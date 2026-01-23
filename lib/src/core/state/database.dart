@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:terminal_studio/src/core/record/ssh_host_record.dart';
 import 'package:terminal_studio/src/core/record/ssh_key_record.dart';
+import 'package:terminal_studio/src/core/record/settings_record.dart';
 
 final hiveProvider = FutureProvider<HiveInterface>((ref) async {
   await Hive.initFlutter('.TerminalStudio');
@@ -26,4 +27,11 @@ final sshKeyBoxProvider = FutureProvider<Box<SSHKeyRecord>>((ref) async {
   final hive = await ref.watch(hiveProvider.future);
   hive.registerAdapter(SSHKeyRecordAdapter());
   return hive.openBox<SSHKeyRecord>('ssh_keys');
+});
+
+// typeId: 2
+final settingsBoxProvider = FutureProvider<Box<SettingsRecord>>((ref) async {
+  final hive = await ref.watch(hiveProvider.future);
+  hive.registerAdapter(SettingsRecordAdapter());
+  return hive.openBox<SettingsRecord>('settings');
 });

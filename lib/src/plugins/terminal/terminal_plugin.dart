@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_studio/src/core/conn.dart';
 import 'package:terminal_studio/src/core/host.dart';
 import 'package:terminal_studio/src/core/plugin.dart';
+import 'package:terminal_studio/src/core/state/settings.dart';
 import 'package:terminal_studio/src/plugins/terminal/terminal_menu.dart';
 import 'package:xterm/xterm.dart';
 
@@ -113,22 +114,39 @@ class TerminalTabView extends ConsumerStatefulWidget {
 class _TerminalTabViewState extends ConsumerState<TerminalTabView> {
   @override
   Widget build(BuildContext context) {
-    return CupertinoPageScaffold(
-      key: ValueKey(widget.plugin),
-      backgroundColor: Colors.transparent,
-      child: SafeArea(
-        child: ClipRect(
-          child: TerminalView(
-            widget.plugin.terminal,
-            textStyle: TerminalStyle(
-              fontSize: 20,
+    final settingsAsync = ref.watch(settingsProvider);
+
+    return settingsAsync.when(
+      data: (settings) {
+        final style = settings.terminalFontFamily?.isNotEmpty == true
+            ? TerminalStyle(
+                fontSize: settings.terminalFontSize,
+                fontFamily: settings.terminalFontFamily!,
+              )
+            : TerminalStyle(fontSize: settings.terminalFontSize);
+
+        return CupertinoPageScaffold(
+          key: ValueKey(widget.plugin),
+          backgroundColor: Colors.transparent,
+          child: SafeArea(
+            child: ClipRect(
+              child: TerminalView(
+                widget.plugin.terminal,
+                textStyle: style,
+                controller: widget.plugin.terminalController,
+                onSecondaryTapDown: (_, __) => showMenu(),
+                backgroundOpacity: 0.8,
+                autofocus: true,
+              ),
             ),
-            controller: widget.plugin.terminalController,
-            onSecondaryTapDown: (_, __) => showMenu(),
-            backgroundOpacity: 0.8,
-            autofocus: true,
           ),
-        ),
+        );
+      },
+      loading: () => const CupertinoPageScaffold(
+        child: Center(child: CupertinoActivityIndicator()),
+      ),
+      error: (error, stack) => CupertinoPageScaffold(
+        child: Center(child: Text('Error: $error')),
       ),
     );
   }

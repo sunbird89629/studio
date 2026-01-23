@@ -2,6 +2,7 @@ import 'package:flex_tabs/flex_tabs.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:terminal_studio/src/core/state/settings.dart';
 import 'package:terminal_studio/src/ui/tabs/settings_tab/settings_tab_hosts.dart';
 
 class SettingsTab extends TabItem {
@@ -39,6 +40,11 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
             PaneItemHeader(header: const Text('Settings')),
             PaneItemSeparator(),
             PaneItem(
+              icon: const Icon(FluentIcons.settings),
+              title: const Text('General'),
+              body: const GeneralSettingsView(),
+            ),
+            PaneItem(
               icon: const Icon(FluentIcons.server),
               title: const Text('Hosts'),
               body: const HostsSettingView(),
@@ -51,6 +57,57 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class GeneralSettingsView extends ConsumerWidget {
+  const GeneralSettingsView({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settingsAsync = ref.watch(settingsProvider);
+    return settingsAsync.when(
+      data: (settings) => ScaffoldPage(
+        header: const PageHeader(title: Text('General')),
+        content: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Terminal',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+              const SizedBox(height: 16),
+              InfoLabel(
+                label: 'Font Size: ${settings.terminalFontSize.toInt()}',
+                child: Slider(
+                  value: settings.terminalFontSize,
+                  min: 8,
+                  max: 32,
+                  onChanged: (v) {
+                    settings.terminalFontSize = v;
+                    settings.save();
+                  },
+                ),
+              ),
+              const SizedBox(height: 16),
+              InfoLabel(
+                label: 'Font Family',
+                child: TextFormBox(
+                  initialValue: settings.terminalFontFamily,
+                  placeholder: 'Default',
+                  onChanged: (v) {
+                    settings.terminalFontFamily = v;
+                    settings.save();
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      loading: () => const Center(child: ProgressRing()),
+      error: (e, s) => Center(child: Text('Error: $e')),
     );
   }
 }
