@@ -41,17 +41,17 @@ class _DevToolsTabViewState extends ConsumerState<DevToolsTabView> {
               spacing: 8,
               children: [
                 PushButton(
-                  buttonSize: ButtonSize.large,
+                  controlSize: ControlSize.large,
                   onPressed: _openAddHostTab,
                   child: const Text('Add SSH host'),
                 ),
                 PushButton(
-                  buttonSize: ButtonSize.large,
+                  controlSize: ControlSize.large,
                   onPressed: _clearHosts,
                   child: const Text('Clear SSH hosts'),
                 ),
                 PushButton(
-                  buttonSize: ButtonSize.large,
+                  controlSize: ControlSize.large,
                   onPressed: () => tab.replace(PlaygroundTab()),
                   child: const Text('Playground'),
                 ),
@@ -81,7 +81,7 @@ class _DevToolsTabViewState extends ConsumerState<DevToolsTabView> {
 }
 
 class PlayGround extends ConsumerWidget {
-  const PlayGround({Key? key}) : super(key: key);
+  const PlayGround({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

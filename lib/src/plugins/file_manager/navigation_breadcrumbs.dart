@@ -54,7 +54,7 @@ class BreadcrumbButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TextButton(
+    return Button(
       onPressed: onPressed,
       child: Text(breadcrumb),
     );

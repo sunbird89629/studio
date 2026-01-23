@@ -120,6 +120,9 @@ class _TerminalTabViewState extends ConsumerState<TerminalTabView> {
         child: ClipRect(
           child: TerminalView(
             widget.plugin.terminal,
+            textStyle: TerminalStyle(
+              fontSize: 20,
+            ),
             controller: widget.plugin.terminalController,
             onSecondaryTapDown: (_, __) => showMenu(),
             backgroundOpacity: 0.8,

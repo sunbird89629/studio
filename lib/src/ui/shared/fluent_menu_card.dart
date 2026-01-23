@@ -2,14 +2,14 @@ import 'package:fluent_ui/fluent_ui.dart';
 
 class FluentMenuCard extends StatelessWidget {
   const FluentMenuCard({
-    Key? key,
+    super.key,
     required this.children,
     this.borderRadius,
     this.bgColor,
     this.border,
     this.shadows,
     this.padding,
-  }) : super(key: key);
+  });
 
   final List<Widget> children;
   final Border? border;

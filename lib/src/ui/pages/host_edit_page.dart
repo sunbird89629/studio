@@ -65,7 +65,7 @@ class _HostEditDialogState extends ConsumerState<HostEditPage> {
     );
   }
 
-  Future<void> _onSaved(record) async {
+  Future<void> _onSaved(SSHHostRecord record) async {
     final box = await ref.read(sshHostBoxProvider.future);
     if (record.isInBox) {
       record.save();
@@ -125,10 +125,12 @@ class _HostEditFormState extends ConsumerState<SSHHostEditForm> {
                 onChanged: (value) {},
               ),
               const FluentFormDivider(),
-              TextFormBox(
-                header: 'Label',
-                initialValue: record.name,
-                onSaved: (value) => record.name = value!,
+              InfoLabel(
+                label: 'Label',
+                child: TextFormBox(
+                  initialValue: record.name,
+                  onSaved: (value) => record.name = value!,
+                ),
               ),
             ],
           ),
@@ -138,43 +140,55 @@ class _HostEditFormState extends ConsumerState<SSHHostEditForm> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              TextFormBox(
-                header: 'Host',
-                initialValue: record.host,
-                placeholder: 'example.com / 1.2.3.4',
-                validator: (value) {
-                  if (value == null || value.isEmpty) return 'Host is required';
-                  return isHostOrIP(value) ? null : 'Invalid host or IP';
-                },
-                onSaved: (value) => record.host = value!,
+              InfoLabel(
+                label: 'Host',
+                child: TextFormBox(
+                  initialValue: record.host,
+                  placeholder: 'example.com / 1.2.3.4',
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Host is required';
+                    }
+                    return isHostOrIP(value) ? null : 'Invalid host or IP';
+                  },
+                  onSaved: (value) => record.host = value!,
+                ),
               ),
               const FluentFormDivider(),
-              TextFormBox(
-                header: 'Port',
-                initialValue: record.port.toString(),
-                validator: (value) {
-                  if (value == null || value.isEmpty) return 'Port is required';
-                  return isPort(value) ? null : 'Invalid port';
-                },
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                ],
-                onSaved: (value) => record.port = int.parse(value!),
+              InfoLabel(
+                label: 'Port',
+                child: TextFormBox(
+                  initialValue: record.port.toString(),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Port is required';
+                    }
+                    return isPort(value) ? null : 'Invalid port';
+                  },
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                  ],
+                  onSaved: (value) => record.port = int.parse(value!),
+                ),
               ),
               const FluentFormDivider(),
-              TextFormBox(
-                header: 'User',
-                initialValue: record.username,
-                placeholder: 'root',
-                onSaved: (value) => record.username = value,
+              InfoLabel(
+                label: 'User',
+                child: TextFormBox(
+                  initialValue: record.username,
+                  placeholder: 'root',
+                  onSaved: (value) => record.username = value,
+                ),
               ),
               const FluentFormDivider(),
-              TextFormBox(
-                header: 'Password',
-                placeholder: '',
-                initialValue: record.password,
-                obscureText: true,
-                onSaved: (value) => record.password = value,
+              InfoLabel(
+                label: 'Password',
+                child: TextFormBox(
+                  placeholder: '',
+                  initialValue: record.password,
+                  obscureText: true,
+                  onSaved: (value) => record.password = value,
+                ),
               ),
             ],
           ),

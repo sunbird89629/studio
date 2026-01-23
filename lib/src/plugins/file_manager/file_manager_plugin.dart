@@ -7,7 +7,7 @@ import 'package:terminal_studio/src/plugins/file_manager/navigation_breadcrumbs.
 import 'package:terminal_studio/src/plugins/file_manager/navigation_stack.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
-class FileManagerPlugin with Plugin {
+class FileManagerPlugin extends Plugin {
   late FileSystem fs;
 
   String? homePath;

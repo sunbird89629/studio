@@ -5,7 +5,7 @@ import 'package:terminal_studio/src/core/state/database.dart';
 import 'package:terminal_studio/src/ui/pages/host_edit_page.dart';
 
 class HostsSettingView extends ConsumerStatefulWidget {
-  const HostsSettingView({Key? key}) : super(key: key);
+  const HostsSettingView({super.key});
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() =>

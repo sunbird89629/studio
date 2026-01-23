@@ -63,7 +63,7 @@ abstract class FileSystem {
   bool get isWatchSupported;
 
   /// Finds the type of file system object that a [path] points to. Returns
-  /// a Future<FileSystemEntityType> that completes with the result.
+  /// a `Future<FileSystemEntityType>` that completes with the result.
   ///
   /// [FileSystemEntityType.LINK] will only be returned if [followLinks] is
   /// `false`, and [path] points to a link
@@ -269,7 +269,7 @@ class FileStat {
   });
 }
 
-abstract class File with FileSystemEntity {
+abstract class File extends FileSystemEntity {
   Future<File> create({bool recursive = false});
 
   @override
@@ -321,7 +321,7 @@ enum FileMode {
   writeOnlyAppend,
 }
 
-abstract class Directory with FileSystemEntity {
+abstract class Directory extends FileSystemEntity {
   Future<Directory> create({bool recursive = false});
 
   @override
@@ -336,7 +336,7 @@ abstract class Directory with FileSystemEntity {
   });
 }
 
-abstract class Link with FileSystemEntity {
+abstract class Link extends FileSystemEntity {
   Future<Link> create(String target, {bool recursive = false});
 
   Future<Link> update(String target);

@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class ProviderLogger implements ProviderObserver {
@@ -9,7 +11,7 @@ class ProviderLogger implements ProviderObserver {
     Object? value,
     ProviderContainer container,
   ) {
-    print('Provider+: ${provider.describe}');
+    developer.log('Provider+: ${provider.describe}');
   }
 
   @override
@@ -17,7 +19,7 @@ class ProviderLogger implements ProviderObserver {
     ProviderBase provider,
     ProviderContainer container,
   ) {
-    print('Provider-: ${provider.describe}');
+    developer.log('Provider-: ${provider.describe}');
   }
 
   @override
@@ -27,7 +29,7 @@ class ProviderLogger implements ProviderObserver {
     Object? newValue,
     ProviderContainer container,
   ) {
-    print('Provider*: ${provider.describe}');
+    developer.log('Provider*: ${provider.describe}');
   }
 
   @override
@@ -37,7 +39,8 @@ class ProviderLogger implements ProviderObserver {
     StackTrace stackTrace,
     ProviderContainer container,
   ) {
-    print('Provider!: ${provider.describe}');
+    developer.log('Provider!: ${provider.describe}',
+        error: error, stackTrace: stackTrace);
   }
 }
 

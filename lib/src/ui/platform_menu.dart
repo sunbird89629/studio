@@ -107,8 +107,8 @@ class _GlobalPlatformMenuState extends ConsumerState<GlobalPlatformMenu> {
                             SelectionChangedCause.keyboard),
                       );
                     } catch (e, st) {
-                      print(e);
-                      print(st);
+                      debugPrint(e.toString());
+                      debugPrint(st.toString());
                     }
                     Actions.invoke<Intent>(
                       primaryContext,

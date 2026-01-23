@@ -12,7 +12,7 @@ class SettingsTab extends TabItem {
 }
 
 class SettingsView extends ConsumerStatefulWidget {
-  const SettingsView({Key? key}) : super(key: key);
+  const SettingsView({super.key});
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() => _SettingsViewState();
