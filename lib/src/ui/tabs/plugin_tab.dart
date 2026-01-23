@@ -80,7 +80,7 @@ class _PluginTabViewState extends ConsumerState<PluginTabView> {
 
   @override
   void initState() {
-    SchedulerBinding.instance!.addPostFrameCallback((_) {
+    SchedulerBinding.instance.addPostFrameCallback((_) {
       ref.read(connectorProvider(plugin.hostSpec)).connect();
     });
     super.initState();

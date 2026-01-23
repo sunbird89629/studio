@@ -20,7 +20,7 @@ class _GlobalPlatformMenuState extends ConsumerState<GlobalPlatformMenu> {
   @override
   Widget build(BuildContext context) {
     return PlatformMenuBar(
-      menus: <MenuItem>[
+      menus: <PlatformMenuItem>[
         PlatformMenu(
           label: 'TerminalStudio',
           menus: [

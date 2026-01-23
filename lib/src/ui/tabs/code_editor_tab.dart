@@ -1,6 +1,5 @@
 // Import the language & theme
 import 'package:fluent_ui/fluent_ui.dart';
-import 'package:flutter_highlight/themes/github.dart';
 import 'package:highlight/highlight.dart';
 import 'package:code_text_field/code_text_field.dart';
 import 'package:flex_tabs/flex_tabs.dart';
@@ -23,7 +22,6 @@ class CodeEditorTab extends TabItem {
     codeController.value = CodeController(
       text: content,
       language: _detectLanguage(content),
-      theme: githubTheme,
     );
   }
 }
