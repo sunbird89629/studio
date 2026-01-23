@@ -36,7 +36,6 @@ dependencies:
 
   dartssh2: ^2.7.2+3
 
-  # xterm: ^3.2.7
   xterm:
     git:
       url: https://github.com/TerminalStudio/xterm.dart.git
