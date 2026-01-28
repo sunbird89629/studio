@@ -281,8 +281,6 @@ class LocalFile extends File with LocalFileSystemEntity {
         return io.FileMode.writeOnlyAppend;
       case FileMode.read:
         return io.FileMode.read;
-      default:
-        throw StateError('Unknown file mode: $mode');
     }
   }
 }

@@ -4,7 +4,7 @@ import 'package:terminal_studio/src/core/state/database.dart';
 
 final settingsProvider = FutureProvider<SettingsRecord>((ref) async {
   final box = await ref.watch(settingsBoxProvider.future);
-  
+
   // Create default settings if not exists
   if (box.isEmpty) {
     await box.add(SettingsRecord());

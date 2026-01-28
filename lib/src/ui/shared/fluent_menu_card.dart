@@ -35,12 +35,12 @@ class FluentMenuCard extends StatelessWidget {
             boxShadow: shadows ??
                 [
                   BoxShadow(
-                    color: shadowColor.withOpacity(.05),
+                    color: shadowColor.withValues(alpha: .05),
                     blurRadius: 4,
                     offset: const Offset(2, 2),
                   ),
                   BoxShadow(
-                    color: shadowColor.withOpacity(.02),
+                    color: shadowColor.withValues(alpha: .02),
                     blurRadius: 2,
                     offset: const Offset(2, 2),
                   ),
