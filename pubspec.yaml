@@ -38,8 +38,8 @@ dependencies:
 
   xterm:
     git:
-      url: https://github.com/TerminalStudio/xterm.dart.git
-      ref: d35ba2cc72d0b89b0fd19af69d57df2c02f26a16
+      url: https://github.com/sunbird89629/xterm.dart.git
+      ref: master
   flutter_riverpod: ^2.5.1
 
   flutter_pty: ^0.4.2

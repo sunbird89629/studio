@@ -1126,9 +1126,9 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: d35ba2cc72d0b89b0fd19af69d57df2c02f26a16
-      resolved-ref: d35ba2cc72d0b89b0fd19af69d57df2c02f26a16
-      url: "https://github.com/TerminalStudio/xterm.dart.git"
+      ref: master
+      resolved-ref: e57fa91224dd86000fffcf218a95a49b1c7f0456
+      url: "https://github.com/sunbird89629/xterm.dart.git"
     source: git
     version: "4.0.0"
   yaml:
