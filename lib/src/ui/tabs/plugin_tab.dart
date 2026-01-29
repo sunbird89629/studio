@@ -80,9 +80,13 @@ class _PluginTabViewState extends ConsumerState<PluginTabView> {
 
   @override
   void initState() {
-    SchedulerBinding.instance.addPostFrameCallback((_) {
-      // Use the connector initializer to handle async connection setup
-      ref.read(connectorInitializer(plugin.hostSpec));
+    SchedulerBinding.instance.addPostFrameCallback((_) async {
+      final connector = ref.read(connectorProvider(plugin.hostSpec));
+      try {
+        await connector.connect();
+      } catch (e) {
+        debugPrint('Error connecting to host: $e');
+      }
     });
     super.initState();
   }

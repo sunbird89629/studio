@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_studio/src/core/host.dart';
 
 abstract class HostSpec {
@@ -16,11 +15,15 @@ enum HostConnectorStatus {
   aborted,
 }
 
-abstract class HostConnector<T extends Host>
-    extends Notifier<HostConnectorStatus> {
+abstract class HostConnector<T extends Host> {
   T? _host;
 
   T? get host => _host;
+
+  HostConnectorStatus _state = HostConnectorStatus.initialized;
+  HostConnectorStatus get state => _state;
+
+  set state(HostConnectorStatus value) => _state = value;
 
   @protected
   Future<T> createHost();
@@ -58,7 +61,4 @@ abstract class HostConnector<T extends Host>
     _host = null;
     state = HostConnectorStatus.aborted;
   }
-
-  @override
-  HostConnectorStatus build() => HostConnectorStatus.initialized;
 }
