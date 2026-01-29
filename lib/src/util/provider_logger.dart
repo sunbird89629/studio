@@ -2,48 +2,41 @@ import 'dart:developer' as developer;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class ProviderLogger implements ProviderObserver {
+final class ProviderLogger extends ProviderObserver {
   const ProviderLogger();
 
   @override
   void didAddProvider(
-    ProviderBase provider,
+    ProviderObserverContext context,
     Object? value,
-    ProviderContainer container,
   ) {
-    developer.log('Provider+: ${provider.describe}');
+    developer.log('Provider+: ${context.provider}');
   }
 
   @override
   void didDisposeProvider(
-    ProviderBase provider,
-    ProviderContainer container,
+    ProviderObserverContext context,
   ) {
-    developer.log('Provider-: ${provider.describe}');
+    developer.log('Provider-: ${context.provider}');
   }
 
   @override
   void didUpdateProvider(
-    ProviderBase provider,
+    ProviderObserverContext context,
     Object? previousValue,
     Object? newValue,
-    ProviderContainer container,
   ) {
-    developer.log('Provider*: ${provider.describe}');
+    developer.log(
+        'Provider*: ${context.provider} (old: $previousValue, new: $newValue)');
   }
 
   @override
   void providerDidFail(
-    ProviderBase provider,
+    ProviderObserverContext context,
     Object error,
     StackTrace stackTrace,
-    ProviderContainer container,
   ) {
-    developer.log('Provider!: ${provider.describe}',
+    developer.log('Provider!: ${context.provider}',
         error: error, stackTrace: stackTrace);
   }
-}
-
-extension _ProviderName on ProviderBase {
-  String get describe => name ?? toString();
 }

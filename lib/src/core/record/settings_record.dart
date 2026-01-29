@@ -11,7 +11,7 @@ class SettingsRecord extends HiveObject {
   String? terminalFontFamily;
 
   @HiveField(2)
-  bool disableUnderline;
+  bool? disableUnderline;
 
   SettingsRecord({
     this.terminalFontSize = 14.0,

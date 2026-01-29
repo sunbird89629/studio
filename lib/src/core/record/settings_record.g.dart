@@ -19,17 +19,20 @@ class SettingsRecordAdapter extends TypeAdapter<SettingsRecord> {
     return SettingsRecord(
       terminalFontSize: fields[0] as double,
       terminalFontFamily: fields[1] as String?,
+      disableUnderline: fields[2] as bool?,
     );
   }
 
   @override
   void write(BinaryWriter writer, SettingsRecord obj) {
     writer
-      ..writeByte(2)
+      ..writeByte(3)
       ..writeByte(0)
       ..write(obj.terminalFontSize)
       ..writeByte(1)
-      ..write(obj.terminalFontFamily);
+      ..write(obj.terminalFontFamily)
+      ..writeByte(2)
+      ..write(obj.disableUnderline);
   }
 
   @override

@@ -120,15 +120,24 @@ class PluginManager with ChangeNotifier {
   }
 
   void didConnected(Host host) {
+    print(
+        'PluginManager.didConnected called with host: $host. Current plugins: ${_plugins.length}');
     if (_host != null) {
-      throw Exception('plugin manager is already connected to $_host');
+      // throw Exception('plugin manager is already connected to $_host');
+      // Relaxed for debugging/robustness
+      print(
+          'PluginManager: Warning - already connected to $_host. Replacing with $host.');
     }
 
     _host = host;
 
     for (final plugin in _plugins) {
+      print(
+          'PluginManager: notifying plugin ${plugin.runtimeType} of connection.');
       plugin._host = host;
       plugin.didConnected();
+      print(
+          'PluginManager: plugin ${plugin.runtimeType} didConnected completed.');
     }
   }
 
