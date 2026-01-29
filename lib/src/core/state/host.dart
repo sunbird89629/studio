@@ -24,3 +24,14 @@ final hostProvider = Provider.family<Host?, HostSpec>(
     return ref.watch(connectorProvider(spec)).host;
   },
 );
+
+// Provider to handle connector initialization and ensure state is ready
+final connectorInitializer = Provider.family<Future<void>, HostSpec>(
+  name: 'connectorInitializer',
+  (ref, HostSpec spec) async {
+    final connector = ref.watch(connectorProvider(spec));
+    // Schedule connection after frame to ensure initialization is complete
+    await Future.delayed(Duration.zero);
+    await connector.connect();
+  },
+);

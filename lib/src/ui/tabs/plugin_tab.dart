@@ -3,7 +3,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_studio/src/core/plugin.dart';
-import 'package:terminal_studio/src/core/state/host.dart';
 
 class PluginTab extends TabItem {
   final Plugin plugin;
@@ -81,7 +80,8 @@ class _PluginTabViewState extends ConsumerState<PluginTabView> {
   @override
   void initState() {
     SchedulerBinding.instance.addPostFrameCallback((_) {
-      ref.read(connectorProvider(plugin.hostSpec)).connect();
+      // Use the connector initializer to handle async connection setup
+      ref.read(connectorInitializer(plugin.hostSpec));
     });
     super.initState();
   }
