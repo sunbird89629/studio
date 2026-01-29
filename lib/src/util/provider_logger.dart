@@ -7,70 +7,36 @@ final class ProviderLogger extends ProviderObserver {
 
   @override
   void didAddProvider(
-    ProviderBase provider,
+    ProviderObserverContext context,
     Object? value,
-    ProviderContainer container,
   ) {
-    developer.log('Provider+: $provider');
+    developer.log('Provider+: ${context.provider}');
   }
 
   @override
   void didDisposeProvider(
-    ProviderBase provider,
-    ProviderContainer container,
+    ProviderObserverContext context,
   ) {
-    developer.log('Provider-: $provider');
+    developer.log('Provider-: ${context.provider}');
   }
 
   @override
   void didUpdateProvider(
-    ProviderBase provider,
+    ProviderObserverContext context,
     Object? previousValue,
     Object? newValue,
-    ProviderContainer container,
   ) {
-    developer.log('Provider*: $provider (old: $previousValue, new: $newValue)');
+    developer.log(
+        'Provider*: ${context.provider} (old: $previousValue, new: $newValue)');
   }
 
   @override
   void providerDidFail(
-    ProviderBase provider,
-    Object error,
-    StackTrace stackTrace,
-    ProviderContainer container,
-  ) {
-    developer.log('Provider!: $provider',
-        error: error, stackTrace: stackTrace);
-  }
-
-  @override
-  void mutationStart(
-    ProviderObserverMutationContext context,
-  ) {
-    developer.log('Mutation start: ${context.provider}');
-  }
-
-  @override
-  void mutationSuccess(
-    ProviderObserverMutationContext context,
-  ) {
-    developer.log('Mutation success: ${context.provider}');
-  }
-
-  @override
-  void mutationError(
-    ProviderObserverMutationContext context,
+    ProviderObserverContext context,
     Object error,
     StackTrace stackTrace,
   ) {
-    developer.log('Mutation error: ${context.provider}',
+    developer.log('Provider!: ${context.provider}',
         error: error, stackTrace: stackTrace);
-  }
-
-  @override
-  void mutationReset(
-    ProviderObserverMutationContext context,
-  ) {
-    developer.log('Mutation reset: ${context.provider}');
   }
 }
