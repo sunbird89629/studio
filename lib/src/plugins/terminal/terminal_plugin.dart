@@ -123,7 +123,10 @@ class _TerminalTabViewState extends ConsumerState<TerminalTabView> {
                 fontSize: settings.terminalFontSize,
                 fontFamily: settings.terminalFontFamily!,
               )
-            : TerminalStyle(fontSize: settings.terminalFontSize);
+            : TerminalStyle(
+                fontSize: settings.terminalFontSize,
+                fontFamily: 'Hack Nerd Font Mono',
+              );
 
         return CupertinoPageScaffold(
           key: ValueKey(widget.plugin),

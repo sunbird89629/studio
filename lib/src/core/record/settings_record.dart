@@ -10,8 +10,12 @@ class SettingsRecord extends HiveObject {
   @HiveField(1)
   String? terminalFontFamily;
 
+  @HiveField(2)
+  bool disableUnderline;
+
   SettingsRecord({
     this.terminalFontSize = 14.0,
-    this.terminalFontFamily,
+    this.terminalFontFamily = 'Hack Nerd Font Mono',
+    this.disableUnderline = true,
   });
 }

@@ -95,7 +95,7 @@ class GeneralSettingsView extends ConsumerWidget {
                 label: 'Font Family',
                 child: TextFormBox(
                   initialValue: settings.terminalFontFamily,
-                  placeholder: 'Default',
+                  placeholder: 'Hack Nerd Font Mono',
                   onChanged: (v) {
                     settings.terminalFontFamily = v;
                     settings.save();
