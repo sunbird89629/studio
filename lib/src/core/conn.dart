@@ -17,9 +17,7 @@ enum HostConnectorStatus {
 }
 
 abstract class HostConnector<T extends Host>
-    extends StateNotifier<HostConnectorStatus> {
-  HostConnector() : super(HostConnectorStatus.initialized);
-
+    extends Notifier<HostConnectorStatus> {
   T? _host;
 
   T? get host => _host;
@@ -60,4 +58,7 @@ abstract class HostConnector<T extends Host>
     _host = null;
     state = HostConnectorStatus.aborted;
   }
+
+  @override
+  HostConnectorStatus build() => HostConnectorStatus.initialized;
 }

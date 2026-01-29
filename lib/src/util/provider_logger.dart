@@ -2,7 +2,7 @@ import 'dart:developer' as developer;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class ProviderLogger implements ProviderObserver {
+final class ProviderLogger extends ProviderObserver {
   const ProviderLogger();
 
   @override
@@ -11,7 +11,7 @@ class ProviderLogger implements ProviderObserver {
     Object? value,
     ProviderContainer container,
   ) {
-    developer.log('Provider+: ${provider.describe}');
+    developer.log('Provider+: $provider');
   }
 
   @override
@@ -19,7 +19,7 @@ class ProviderLogger implements ProviderObserver {
     ProviderBase provider,
     ProviderContainer container,
   ) {
-    developer.log('Provider-: ${provider.describe}');
+    developer.log('Provider-: $provider');
   }
 
   @override
@@ -29,7 +29,7 @@ class ProviderLogger implements ProviderObserver {
     Object? newValue,
     ProviderContainer container,
   ) {
-    developer.log('Provider*: ${provider.describe}');
+    developer.log('Provider*: $provider (old: $previousValue, new: $newValue)');
   }
 
   @override
@@ -39,11 +39,38 @@ class ProviderLogger implements ProviderObserver {
     StackTrace stackTrace,
     ProviderContainer container,
   ) {
-    developer.log('Provider!: ${provider.describe}',
+    developer.log('Provider!: $provider',
         error: error, stackTrace: stackTrace);
   }
-}
 
-extension _ProviderName on ProviderBase {
-  String get describe => name ?? toString();
+  @override
+  void mutationStart(
+    ProviderObserverMutationContext context,
+  ) {
+    developer.log('Mutation start: ${context.provider}');
+  }
+
+  @override
+  void mutationSuccess(
+    ProviderObserverMutationContext context,
+  ) {
+    developer.log('Mutation success: ${context.provider}');
+  }
+
+  @override
+  void mutationError(
+    ProviderObserverMutationContext context,
+    Object error,
+    StackTrace stackTrace,
+  ) {
+    developer.log('Mutation error: ${context.provider}',
+        error: error, stackTrace: stackTrace);
+  }
+
+  @override
+  void mutationReset(
+    ProviderObserverMutationContext context,
+  ) {
+    developer.log('Mutation reset: ${context.provider}');
+  }
 }

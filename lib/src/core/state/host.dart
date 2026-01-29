@@ -7,10 +7,20 @@ final connectorProvider = Provider.family(
   (ref, HostSpec config) => config.createConnector(),
 );
 
-final connectorStatusProvider =
-    StateNotifierProvider.family<HostConnector, HostConnectorStatus, HostSpec>(
+// Since HostConnector is a Notifier, we wrap it in a FamilyNotifier
+class _HostConnectorNotifier extends FamilyNotifier<HostConnectorStatus, HostSpec> {
+  late HostConnector _connector;
+
+  @override
+  HostConnectorStatus build(HostSpec arg) {
+    _connector = ref.watch(connectorProvider(arg));
+    // Need to watch for state changes
+    return _connector.state;
+  }
+}
+
+final connectorStatusProvider = FamilyNotifierProvider<_HostConnectorNotifier, HostConnectorStatus, HostSpec>(
   name: 'connectorStatusProvider',
-  (ref, HostSpec config) => ref.watch(connectorProvider(config)),
 );
 
 final hostProvider = Provider.family<Host?, HostSpec>(
