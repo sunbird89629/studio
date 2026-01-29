@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_studio/src/core/plugin.dart';
+import 'package:terminal_studio/src/core/state/host.dart';
 
 class PluginTab extends TabItem {
   final Plugin plugin;
