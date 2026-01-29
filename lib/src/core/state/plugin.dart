@@ -25,7 +25,10 @@ final pluginManagerProvider = Provider.family<PluginManager, HostSpec>(
     ref.listen(
       connectorStatusProvider(spec),
       (last, current) {
-        manager.didConnectionStatusChanged(current);
+        // Handle AsyncValue from StreamProvider
+        current.whenData((status) {
+          manager.didConnectionStatusChanged(status);
+        });
       },
     );
 
