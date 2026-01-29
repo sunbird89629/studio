@@ -17,7 +17,7 @@ TerminalStudio is a cross-platform terminal emulator built with **Flutter**. It 
 
 ### Root
 *   `pubspec.yaml`: Project dependencies and metadata. Notable dependencies include `dartssh2`, `xterm`, `flutter_pty`, `window_manager`.
-*   `analysis_options.yaml`: Linting configuration using `flutter_lints`.
+*   `analysis_options.yaml`: Linting configuration using `flutter_lints: ^6.0.0`.
 *   `README.md`: Basic setup instructions.
 
 ### Source Code (`lib/`)
@@ -40,7 +40,7 @@ TerminalStudio is a cross-platform terminal emulator built with **Flutter**. It 
 ## Build & Run
 
 ### Prerequisites
-1.  **Flutter SDK:** Version constraint `>=2.18.0 <3.0.0` (as per `pubspec.yaml`, though `flutter_lints: ^2.0.0` suggests a slightly older setup, verify compatibility with modern Flutter if needed).
+1.  **Flutter SDK:** Version constraint `>=3.0.0 <4.0.0` (as per `pubspec.yaml`, verify compatibility with modern Flutter if needed).
 2.  **Git Submodules:** The project relies on submodules (likely for `xterm.dart`).
 
 ### Setup Commands

@@ -99,7 +99,9 @@ class _HomeState extends ConsumerState<Home> {
   Future<void> initTabs() async {
     final root = Tabs();
 
-    ref.read(tabsServiceProvider).openTerminal(LocalHostSpec(), tabs: root);
+    ref
+        .read(tabsServiceProvider)
+        .openTerminal(const LocalHostSpec(), tabs: root);
 
     final document = ref.watch(tabsProvider);
 
@@ -176,7 +178,7 @@ class _HomeState extends ConsumerState<Home> {
         onPressed: () {
           ref
               .watch(tabsServiceProvider)
-              .openTerminal(LocalHostSpec(), tabs: tabs);
+              .openTerminal(const LocalHostSpec(), tabs: tabs);
         },
       ),
     ];

@@ -1,9 +1,8 @@
 import 'package:flex_tabs/flex_tabs.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_studio/src/core/plugin.dart';
-import 'package:terminal_studio/src/core/state/host.dart';
+import 'package:terminal_studio/src/core/state/plugin.dart';
 
 class PluginTab extends TabItem {
   final Plugin plugin;
@@ -79,20 +78,14 @@ class _PluginTabViewState extends ConsumerState<PluginTabView> {
   Plugin get plugin => widget.plugin;
 
   @override
-  void initState() {
-    SchedulerBinding.instance.addPostFrameCallback((_) async {
-      final connector = ref.read(connectorProvider(plugin.hostSpec));
-      try {
-        await connector.connect();
-      } catch (e) {
-        debugPrint('Error connecting to host: $e');
-      }
-    });
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    // Ensure the PluginManager provider for this plugin's host is kept alive
+    // so that connection events continue to be delivered to the manager.
+    try {
+      // Watch the manager provider to keep it alive.
+      ref.watch(pluginManagerProvider(plugin.manager.hostSpec));
+    } catch (_) {}
+
     return plugin.build(context);
   }
 }

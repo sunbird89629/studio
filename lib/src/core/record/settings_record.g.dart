@@ -19,7 +19,7 @@ class SettingsRecordAdapter extends TypeAdapter<SettingsRecord> {
     return SettingsRecord(
       terminalFontSize: fields[0] as double,
       terminalFontFamily: fields[1] as String?,
-      disableUnderline: (fields[2] as bool?) ?? true,
+      disableUnderline: fields[2] as bool?,
     );
   }
 

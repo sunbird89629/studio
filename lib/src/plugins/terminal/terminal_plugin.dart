@@ -38,6 +38,7 @@ class TerminalPlugin extends Plugin {
     };
 
     terminal.onOutput = (data) {
+      print('Terminal input (user typed): ${data.length} chars: $data');
       session?.write(const Utf8Encoder().convert(data));
     };
 
@@ -54,18 +55,27 @@ class TerminalPlugin extends Plugin {
   @override
   void didConnected() async {
     title.value = 'Terminal';
+    print('TerminalPlugin connected. requesting shell...');
 
     session = await host.shell(
       width: terminal.viewWidth,
       height: terminal.viewHeight,
     );
 
-    session!.output
-        .cast<List<int>>()
-        .transform(const Utf8Decoder())
-        .listen(terminal.write);
+    print('Shell session created: $session');
+
+    session!.output.cast<List<int>>().transform(const Utf8Decoder()).listen(
+        (data) {
+      print('Terminal received output: ${data.length} chars');
+      terminal.write(data);
+    }, onError: (e) {
+      print('Terminal session error: $e');
+    }, onDone: () {
+      print('Terminal session done');
+    });
 
     session!.exitCode.then((code) {
+      print('Terminal session exited with code: $code');
       session = null;
       if (mounted) {
         manager.remove(this);
@@ -75,6 +85,7 @@ class TerminalPlugin extends Plugin {
 
   @override
   void didDisconnected() {
+    print('TerminalPlugin disconnected');
     session = null;
     title.value = 'Disconnected';
   }

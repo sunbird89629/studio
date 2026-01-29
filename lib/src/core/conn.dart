@@ -15,7 +15,7 @@ enum HostConnectorStatus {
   aborted,
 }
 
-abstract class HostConnector<T extends Host> {
+abstract class HostConnector<T extends Host> with ChangeNotifier {
   T? _host;
 
   T? get host => _host;
@@ -23,25 +23,39 @@ abstract class HostConnector<T extends Host> {
   HostConnectorStatus _state = HostConnectorStatus.initialized;
   HostConnectorStatus get state => _state;
 
-  set state(HostConnectorStatus value) => _state = value;
+  set state(HostConnectorStatus value) {
+    if (_state != value) {
+      _state = value;
+      notifyListeners();
+    }
+  }
 
   @protected
   Future<T> createHost();
 
   Future<void> connect() async {
+    print('HostConnector: connect() called for $this. Current state: $state');
     if (state == HostConnectorStatus.connected ||
         state == HostConnectorStatus.connecting) {
+      print('HostConnector: already connecting/connected. Aborting.');
       return;
     }
 
     state = HostConnectorStatus.connecting;
+    print('HostConnector: state set to connecting. Notify called.');
 
     try {
+      print('HostConnector: calling createHost()...');
       _host = await createHost();
+      print('HostConnector: createHost returned $_host. Notifying listeners.');
+      notifyListeners();
+
       _host!.done.then((_) => _onDone(), onError: _onError);
 
       state = HostConnectorStatus.connected;
-    } catch (e) {
+      print('HostConnector: state set to connected. Notify called.');
+    } catch (e, st) {
+      print('HostConnector: error during connect: $e\n$st');
       state = HostConnectorStatus.disconnected;
     }
   }

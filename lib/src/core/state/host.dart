@@ -7,19 +7,39 @@ final connectorProvider = Provider.family(
   (ref, HostSpec config) => config.createConnector(),
 );
 
-final connectorStatusProvider = Provider.family<HostConnectorStatus, HostSpec>(
+final connectorStatusProvider =
+    StreamProvider.family<({HostConnectorStatus status, Host? host}), HostSpec>(
   name: 'connectorStatusProvider',
   (ref, HostSpec config) {
     final connector = ref.watch(connectorProvider(config));
-    // Watch for manual state changes by accessing the connector's state
-    // We can use a simple value notifier pattern if needed
-    return connector.state;
+
+    return Stream<({HostConnectorStatus status, Host? host})>.multi(
+        (controller) {
+      print('connectorStatusProvider: Stream created for $connector');
+      controller.add((status: connector.state, host: connector.host));
+
+      void listener() {
+        print(
+            'connectorStatusProvider: listener called. State: ${connector.state}, Host: ${connector.host}');
+        controller.add((status: connector.state, host: connector.host));
+      }
+
+      connector.addListener(listener);
+
+      controller.onCancel = () {
+        print('connectorStatusProvider: Stream cancelled');
+        connector.removeListener(listener);
+      };
+    });
   },
 );
 
 final hostProvider = Provider.family<Host?, HostSpec>(
   name: 'hostProvider',
   (ref, spec) {
+    // Watch status to force rebuild when connector state/host changes
+    final status = ref.watch(connectorStatusProvider(spec));
+    print('hostProvider: rebuild triggered. StatusAsync: $status');
     return ref.watch(connectorProvider(spec)).host;
   },
 );

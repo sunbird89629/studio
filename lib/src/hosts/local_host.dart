@@ -32,14 +32,29 @@ class LocalHost implements Host {
     Map<String, String>? environment,
   }) async {
     final shell = _platformShell;
-    final pty = Pty.start(
-      shell.command,
-      arguments: shell.args,
-      environment: {...Platform.environment, ...environment ?? {}},
-      rows: height,
-      columns: width,
-    );
-    return LocalExecutionSession(pty);
+    print('Starting shell: ${shell.command} ${shell.args}');
+    print('Environment USER: ${Platform.environment['USER']}');
+
+    try {
+      final env = {
+        'TERM': 'xterm-256color',
+        ...Platform.environment,
+        ...environment ?? {},
+      };
+
+      final pty = Pty.start(
+        shell.command,
+        arguments: shell.args,
+        environment: env,
+        rows: height,
+        columns: width,
+      );
+      print('Pty started successfully: $pty');
+      return LocalExecutionSession(pty);
+    } catch (e) {
+      print('Failed to start Pty: $e');
+      rethrow;
+    }
   }
 
   final _doneCompleter = Completer<void>();
@@ -77,7 +92,12 @@ class LocalExecutionSession implements ExecutionSession {
   Future<int> get exitCode => _pty.exitCode;
 
   @override
-  Stream<Uint8List> get output => _pty.output;
+  Stream<Uint8List> get output {
+    return _pty.output.map((data) {
+      print('Pty output: ${data.length} bytes: ${String.fromCharCodes(data)}');
+      return data;
+    });
+  }
 
   @override
   Future<void> close() async {
@@ -105,8 +125,13 @@ class _ShellCommand {
 
 _ShellCommand get _platformShell {
   if (Platform.isMacOS) {
-    final user = Platform.environment['USER'];
-    return _ShellCommand('login', ['-fp', user!]);
+    // START DEBUG: Use zsh directly instead of login
+    return _ShellCommand('/bin/zsh', []);
+    // END DEBUG
+    // final user = Platform.environment['USER'];
+    // return _ShellCommand('login', ['-fp', user!]);
+    // final user = Platform.environment['USER'];
+    // return _ShellCommand('login', ['-fp', user!]);
   }
 
   if (Platform.isWindows) {

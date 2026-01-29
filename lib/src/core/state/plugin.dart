@@ -25,9 +25,26 @@ final pluginManagerProvider = Provider.family<PluginManager, HostSpec>(
     ref.listen(
       connectorStatusProvider(spec),
       (last, current) {
-        manager.didConnectionStatusChanged(current);
+        current.whenData((data) {
+          manager.didConnectionStatusChanged(data.status);
+
+          if (data.status == HostConnectorStatus.connected &&
+              data.host != null) {
+            try {
+              manager.didConnected(data.host!);
+            } catch (_) {}
+          }
+        });
       },
+      fireImmediately: true,
     );
+
+    // Check initial connection status and connect if needed
+    final connector = ref.read(connectorProvider(spec));
+    if (connector.state == HostConnectorStatus.disconnected ||
+        connector.state == HostConnectorStatus.initialized) {
+      connector.connect();
+    }
 
     return manager;
   },

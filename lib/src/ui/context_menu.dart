@@ -2,9 +2,9 @@ import 'package:context_menus/context_menus.dart';
 import 'package:flex_tabs/flex_tabs.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:terminal_studio/src/hosts/local_spec.dart';
 import 'package:terminal_studio/src/core/service/tabs_service.dart';
 import 'package:terminal_studio/src/core/state/database.dart';
+import 'package:terminal_studio/src/hosts/local_spec.dart';
 import 'package:terminal_studio/src/ui/tabs/add_host_tab.dart';
 import 'package:terminal_studio/src/ui/tabs/settings_tab/settings_tab.dart';
 import 'package:terminal_studio/src/util/tabs_extension.dart';
@@ -34,7 +34,7 @@ class DropdownContextMenuState extends ConsumerState<DropdownContextMenu>
             icon: const Icon(FluentIcons.tablet),
             onPressed: () => handlePressed(context, () {
               final tabsService = ref.read(tabsServiceProvider);
-              tabsService.openTerminal(LocalHostSpec());
+              tabsService.openTerminal(const LocalHostSpec());
             }),
           ),
         ),
