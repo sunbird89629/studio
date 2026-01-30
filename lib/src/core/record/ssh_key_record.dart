@@ -1,4 +1,4 @@
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:terminal_studio/src/util/uuid.dart';
 
 part 'ssh_key_record.g.dart';

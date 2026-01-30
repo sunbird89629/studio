@@ -8,7 +8,7 @@ part of 'ssh_key_record.dart';
 
 class SSHKeyRecordAdapter extends TypeAdapter<SSHKeyRecord> {
   @override
-  final int typeId = 1;
+  final typeId = 1;
 
   @override
   SSHKeyRecord read(BinaryReader reader) {

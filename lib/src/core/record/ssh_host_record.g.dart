@@ -8,7 +8,7 @@ part of 'ssh_host_record.dart';
 
 class SSHHostRecordAdapter extends TypeAdapter<SSHHostRecord> {
   @override
-  final int typeId = 0;
+  final typeId = 0;
 
   @override
   SSHHostRecord read(BinaryReader reader) {
@@ -20,7 +20,7 @@ class SSHHostRecordAdapter extends TypeAdapter<SSHHostRecord> {
       uuid: fields[0] as String?,
       name: fields[1] as String,
       host: fields[2] as String,
-      port: fields[3] as int,
+      port: (fields[3] as num).toInt(),
       username: fields[4] as String?,
       password: fields[5] as String?,
     );

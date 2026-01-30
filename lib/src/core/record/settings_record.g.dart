@@ -8,7 +8,7 @@ part of 'settings_record.dart';
 
 class SettingsRecordAdapter extends TypeAdapter<SettingsRecord> {
   @override
-  final int typeId = 2;
+  final typeId = 2;
 
   @override
   SettingsRecord read(BinaryReader reader) {
@@ -17,9 +17,11 @@ class SettingsRecordAdapter extends TypeAdapter<SettingsRecord> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return SettingsRecord(
-      terminalFontSize: fields[0] as double,
-      terminalFontFamily: fields[1] as String?,
-      disableUnderline: fields[2] as bool?,
+      terminalFontSize:
+          fields[0] == null ? 14.0 : (fields[0] as num).toDouble(),
+      terminalFontFamily:
+          fields[1] == null ? 'Hack Nerd Font Mono' : fields[1] as String?,
+      disableUnderline: fields[2] == null ? true : fields[2] as bool?,
     );
   }
 
