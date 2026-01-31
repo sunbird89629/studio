@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_studio/src/core/service/active_tab_service.dart';
+import 'package:terminal_studio/src/core/service/tabs_service.dart';
+import 'package:terminal_studio/src/core/service/window_service.dart';
+import 'package:terminal_studio/src/hosts/local_spec.dart';
 import 'package:terminal_studio/src/ui/shortcuts.dart' as shortcuts;
 import 'package:terminal_studio/src/ui/tabs/devtools_tab.dart';
 import 'package:terminal_studio/src/ui/tabs/settings_tab/settings_tab.dart';
@@ -57,6 +60,45 @@ class _GlobalPlatformMenuState extends ConsumerState<GlobalPlatformMenu> {
               const PlatformProvidedMenuItem(
                 type: PlatformProvidedMenuItemType.quit,
               ),
+          ],
+        ),
+        PlatformMenu(
+          label: 'File',
+          menus: [
+            PlatformMenuItem(
+              label: 'New Window',
+              shortcut: shortcuts.openNewWindow,
+              onSelected: () {
+                ref.read(windowServiceProvider).createWindow();
+              },
+            ),
+            PlatformMenuItem(
+              label: 'New Tab',
+              shortcut: shortcuts.openNewTab,
+              onSelected: () {
+                ref
+                    .read(tabsServiceProvider)
+                    .openTerminal(const LocalHostSpec());
+              },
+            ),
+            PlatformMenuItemGroup(
+              members: [
+                PlatformMenuItem(
+                  label: 'Show Previous Tab',
+                  shortcut: shortcuts.previousTab,
+                  onSelected: () {
+                    ref.read(activeTabServiceProvider).selectPreviousTab();
+                  },
+                ),
+                PlatformMenuItem(
+                  label: 'Show Next Tab',
+                  shortcut: shortcuts.nextTab,
+                  onSelected: () {
+                    ref.read(activeTabServiceProvider).selectNextTab();
+                  },
+                ),
+              ],
+            ),
           ],
         ),
         PlatformMenu(

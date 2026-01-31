@@ -33,6 +33,42 @@ SingleActivator get openNewWindow {
         );
 }
 
+SingleActivator get openNewTab {
+  return defaultTargetPlatform.isApple
+      ? const SingleActivator(
+          LogicalKeyboardKey.keyT,
+          meta: true,
+        )
+      : const SingleActivator(
+          LogicalKeyboardKey.keyT,
+          control: true,
+        );
+}
+
+SingleActivator get previousTab {
+  return defaultTargetPlatform.isApple
+      ? const SingleActivator(
+          LogicalKeyboardKey.bracketLeft,
+          meta: true,
+        )
+      : const SingleActivator(
+          LogicalKeyboardKey.pageUp,
+          control: true,
+        );
+}
+
+SingleActivator get nextTab {
+  return defaultTargetPlatform.isApple
+      ? const SingleActivator(
+          LogicalKeyboardKey.bracketRight,
+          meta: true,
+        )
+      : const SingleActivator(
+          LogicalKeyboardKey.pageDown,
+          control: true,
+        );
+}
+
 SingleActivator get tabClose {
   return defaultTargetPlatform.isApple
       ? const SingleActivator(

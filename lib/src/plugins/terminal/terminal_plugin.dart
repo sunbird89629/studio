@@ -4,12 +4,15 @@ import 'package:context_menus/context_menus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' show Colors;
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_studio/src/core/conn.dart';
 import 'package:terminal_studio/src/core/host.dart';
 import 'package:terminal_studio/src/core/plugin.dart';
 import 'package:terminal_studio/src/core/state/settings.dart';
 import 'package:terminal_studio/src/plugins/terminal/terminal_menu.dart';
+import 'package:terminal_studio/src/ui/shortcut/intents.dart';
+import 'package:terminal_studio/src/ui/shortcuts.dart' as shortcuts;
 import 'package:xterm/xterm.dart';
 
 class TerminalPlugin extends Plugin {
@@ -123,6 +126,47 @@ class TerminalTabView extends ConsumerStatefulWidget {
 }
 
 class _TerminalTabViewState extends ConsumerState<TerminalTabView> {
+  // Map of shortcut activators to their corresponding intents
+  static final List<(SingleActivator, Intent)> _passthroughShortcuts = [
+    (shortcuts.previousTab, const PreviousTabIntent()),
+    (shortcuts.nextTab, const NextTabIntent()),
+    (shortcuts.openNewTab, const NewTabIntent()),
+    (shortcuts.openNewWindow, const NewWindowIntent()),
+    (shortcuts.tabClose, const CloseTabIntent()),
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    HardwareKeyboard.instance.addHandler(_handleGlobalKeyEvent);
+  }
+
+  @override
+  void dispose() {
+    HardwareKeyboard.instance.removeHandler(_handleGlobalKeyEvent);
+    super.dispose();
+  }
+
+  bool _handleGlobalKeyEvent(KeyEvent event) {
+    if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
+      return false;
+    }
+
+    // Only handle if this terminal tab is mounted and active
+    if (!mounted) return false;
+
+    // Check if any of our passthrough shortcuts match
+    for (final (activator, intent) in _passthroughShortcuts) {
+      if (activator.accepts(event, HardwareKeyboard.instance)) {
+        // Invoke the action through the Actions widget
+        Actions.invoke(context, intent);
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   @override
   Widget build(BuildContext context) {
     final settingsAsync = ref.watch(settingsProvider);
