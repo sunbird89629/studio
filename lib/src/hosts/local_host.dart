@@ -125,13 +125,10 @@ class _ShellCommand {
 
 _ShellCommand get _platformShell {
   if (Platform.isMacOS) {
-    // START DEBUG: Use zsh directly instead of login
-    return _ShellCommand('/bin/zsh', []);
-    // END DEBUG
-    // final user = Platform.environment['USER'];
-    // return _ShellCommand('login', ['-fp', user!]);
-    // final user = Platform.environment['USER'];
-    // return _ShellCommand('login', ['-fp', user!]);
+    // Use login -fp to start a login shell with full user environment
+    // This ensures PATH includes Homebrew and other user-installed tools
+    final user = Platform.environment['USER'];
+    return _ShellCommand('login', ['-fp', user!]);
   }
 
   if (Platform.isWindows) {
