@@ -42,10 +42,12 @@ class LocalHost implements Host {
         ...environment ?? {},
       };
 
+      final String? home = Platform.environment['HOME'];
       final pty = Pty.start(
         shell.command,
         arguments: shell.args,
         environment: env,
+        workingDirectory: home,
         rows: height,
         columns: width,
       );
