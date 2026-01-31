@@ -15,6 +15,7 @@ import 'package:terminal_studio/src/ui/context_menu.dart';
 import 'package:terminal_studio/src/ui/platform_menu.dart';
 import 'package:terminal_studio/src/ui/shared/fluent_menu_card.dart';
 import 'package:terminal_studio/src/ui/shared/macos_titlebar.dart';
+import 'package:terminal_studio/src/core/utils/ai_logger.dart';
 import 'package:terminal_studio/src/ui/shortcut/global_actions.dart';
 import 'package:terminal_studio/src/ui/shortcut/global_shortcuts.dart';
 import 'package:terminal_studio/src/util/provider_logger.dart';
@@ -22,6 +23,11 @@ import 'package:window_manager/window_manager.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize custom logger
+  final logger = AILogger();
+  logger.i('TerminalStudio starting up...',
+      context: const LogContext(component: 'Main'));
 
   initWindow();
 
