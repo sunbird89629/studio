@@ -53,8 +53,8 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget widget = const GlobalShortcuts(
-      child: GlobalActions(
+    Widget widget = const GlobalActions(
+      child: GlobalShortcuts(
         child: Home(),
       ),
     );
