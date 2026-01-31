@@ -130,9 +130,6 @@ class _TerminalTabViewState extends ConsumerState<TerminalTabView> {
   static final List<(SingleActivator, Intent)> _passthroughShortcuts = [
     (shortcuts.previousTab, const PreviousTabIntent()),
     (shortcuts.nextTab, const NextTabIntent()),
-    (shortcuts.openNewTab, const NewTabIntent()),
-    (shortcuts.openNewWindow, const NewWindowIntent()),
-    (shortcuts.tabClose, const CloseTabIntent()),
   ];
 
   @override

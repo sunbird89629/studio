@@ -81,6 +81,13 @@ class _GlobalPlatformMenuState extends ConsumerState<GlobalPlatformMenu> {
                     .openTerminal(const LocalHostSpec());
               },
             ),
+            PlatformMenuItem(
+              label: 'Close Tab',
+              shortcut: shortcuts.tabClose,
+              onSelected: () {
+                ref.read(activeTabServiceProvider).closeCurrentTabOrWindow();
+              },
+            ),
             PlatformMenuItemGroup(
               members: [
                 PlatformMenuItem(
@@ -169,24 +176,10 @@ class _GlobalPlatformMenuState extends ConsumerState<GlobalPlatformMenu> {
         PlatformMenu(
           label: 'View',
           menus: [
-            PlatformMenuItemGroup(
-              members: [
-                PlatformMenuItem(
-                  label: 'Close Tab',
-                  shortcut: shortcuts.tabClose,
-                  onSelected: () {
-                    return ref
-                        .read(activeTabServiceProvider)
-                        .getActiveTab()
-                        ?.detach();
-                  },
-                ),
-                if (PlatformProvidedMenuItem.hasMenu(
-                    PlatformProvidedMenuItemType.toggleFullScreen))
-                  const PlatformProvidedMenuItem(
-                      type: PlatformProvidedMenuItemType.toggleFullScreen),
-              ],
-            ),
+            if (PlatformProvidedMenuItem.hasMenu(
+                PlatformProvidedMenuItemType.toggleFullScreen))
+              const PlatformProvidedMenuItem(
+                  type: PlatformProvidedMenuItemType.toggleFullScreen),
             PlatformMenuItem(
               label: 'Settings',
               shortcut: shortcuts.openSettings,

@@ -25,8 +25,9 @@ TerminalStudio is a cross-platform terminal emulator built with **Flutter**. It 
 *   **`src/core/`**: Core abstractions and business logic.
     *   `plugin.dart`: Defines the `Plugin` abstract class and `PluginManager`. Plugins have lifecycles (`didMounted`, `didConnected`, etc.) and interactions with `Host`.
     *   `host.dart`: (Inferred) Defines the `Host` interface.
-    *   **`service/`**: Application-level services (e.g., `TabsService`, `WindowService`).
+    *   **`service/`**: Application-level services (e.g., `TabsService`, `WindowService`, `LogService`).
     *   **`state/`**: State definitions (e.g., `Tabs`, `Database`).
+    *   **`utils/`**: Utilities including the **AI-friendly Logger** (`ai_logger.dart`).
 *   **`src/hosts/`**: Implementations of connection types.
     *   `local_host.dart`, `ssh_host.dart`: Specific logic for different connection protocols.
     *   `local_spec.dart`: Specification for local connections.
@@ -36,6 +37,26 @@ TerminalStudio is a cross-platform terminal emulator built with **Flutter**. It 
 *   **`src/ui/`**: UI components and pages.
     *   `shared/`: Reusable widgets.
     *   `platform_menu.dart`: Platform-specific menu handling.
+    *   **`shortcut/`**: Keyboard shortcut configurations (`intents.dart`, `global_shortcuts.dart`, `global_actions.dart`).
+
+## Key Features & Implementations
+
+### Shortcut System
+The app uses a robust shortcut system based on Flutter's `Shortcuts`, `Actions`, and `Intents`.
+*   **Config Location:** `lib/src/ui/shortcuts.dart` (Activators) & `lib/src/ui/shortcut/` (Intents/Actions).
+*   **Terminal Interception:** The terminal plugin (`terminal_plugin.dart`) uses `HardwareKeyboard.instance.addHandler` to allow specific shortcuts (like `⌘[` / `⌘]`) to bypass the terminal's PTY input processing.
+*   **Key Shortcuts:**
+    *   New Window: `⌘N` / `Ctrl+N`
+    *   New Tab: `⌘T` / `Ctrl+T`
+    *   Prev/Next Tab: `⌘[` / `⌘]` (macOS) or `Ctrl+PgUp` / `Ctrl+PgDn` (Others)
+
+### AI-Friendly Logging
+A structured logging system is implemented in `src/core/utils/ai_logger.dart`.
+*   **Class:** `AILogger` (wrapper around `logger` package).
+*   **Format:**
+    *   **Debug/Dev:** Pretty-printed colored output (`AIPrettyPrinter`).
+    *   **Release/AI:** Condensed JSON formatting (`AIJsonPrinter`) for machine parsing.
+*   **Context:** Supports `LogContext` (Trace ID, Component, User ID) for tracking async flows.
 
 ## Build & Run
 

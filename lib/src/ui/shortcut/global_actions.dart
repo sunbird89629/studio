@@ -41,7 +41,7 @@ class GlobalActions extends ConsumerWidget {
         ),
         CloseTabIntent: CallbackAction<CloseTabIntent>(
           onInvoke: (CloseTabIntent intent) {
-            ref.read(activeTabServiceProvider).getActiveTab()?.detach();
+            ref.read(activeTabServiceProvider).closeCurrentTabOrWindow();
             return null;
           },
         ),
