@@ -124,17 +124,15 @@ class _ShellCommand {
 }
 
 _ShellCommand get _platformShell {
-  if (Platform.isMacOS) {
-    // Use login -fp to start a login shell with full user environment
-    // This ensures PATH includes Homebrew and other user-installed tools
-    final user = Platform.environment['USER'];
-    return _ShellCommand('login', ['-fp', user!]);
+  if (Platform.isMacOS || Platform.isLinux) {
+    final shell = Platform.environment['SHELL'] ?? 'bash';
+    return _ShellCommand(shell, ['-l']);
   }
 
   if (Platform.isWindows) {
     return _ShellCommand('powershell.exe', []);
   }
 
-  final shell = Platform.environment['SHELL'] ?? 'sh';
-  return _ShellCommand(shell, []);
+  // Fallback
+  return _ShellCommand('sh', []);
 }
