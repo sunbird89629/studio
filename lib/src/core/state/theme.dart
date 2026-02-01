@@ -13,6 +13,14 @@ final themeRegistryProvider = Provider<ThemeRegistry>((ref) {
   registry.registerAll([
     LightTheme(),
     DarkTheme(),
+    MonokaiTheme(),
+    DraculaTheme(),
+    OneDarkTheme(),
+    NordTheme(),
+    SolarizedDarkTheme(),
+    SolarizedLightTheme(),
+    GitHubDarkTheme(),
+    GitHubLightTheme(),
   ]);
 
   return registry;
