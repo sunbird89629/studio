@@ -19,3 +19,7 @@ class NextTabIntent extends Intent {
 class CloseTabIntent extends Intent {
   const CloseTabIntent();
 }
+
+class OpenCommandPaletteIntent extends Intent {
+  const OpenCommandPaletteIntent();
+}

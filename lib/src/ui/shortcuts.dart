@@ -120,3 +120,17 @@ SingleActivator get terminalSelectAll {
           shift: true,
         );
 }
+
+SingleActivator get openCommandPalette {
+  return defaultTargetPlatform.isApple
+      ? const SingleActivator(
+          LogicalKeyboardKey.keyP,
+          meta: true,
+          shift: true,
+        )
+      : const SingleActivator(
+          LogicalKeyboardKey.keyP,
+          control: true,
+          shift: true,
+        );
+}
