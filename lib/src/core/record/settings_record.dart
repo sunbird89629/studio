@@ -13,9 +13,14 @@ class SettingsRecord extends HiveObject {
   @HiveField(2)
   bool? disableUnderline;
 
+  /// The selected theme ID. Defaults to 'dark'.
+  @HiveField(3)
+  String themeId;
+
   SettingsRecord({
     this.terminalFontSize = 14.0,
     this.terminalFontFamily = 'Hack Nerd Font Mono',
     this.disableUnderline = true,
+    this.themeId = 'dark',
   });
 }

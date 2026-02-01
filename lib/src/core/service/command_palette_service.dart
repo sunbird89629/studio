@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_studio/src/core/command/command.dart';
 import 'package:terminal_studio/src/core/command/command_registry.dart';
 import 'package:terminal_studio/src/core/command/builtin_commands.dart';
+import 'package:terminal_studio/src/core/command/theme_commands.dart';
+import 'package:terminal_studio/src/core/state/theme.dart';
 
 /// Command Palette 状态
 class CommandPaletteState {
@@ -47,6 +49,17 @@ class CommandPaletteNotifier extends Notifier<CommandPaletteState> {
   CommandPaletteState build() {
     // 注册内置命令
     _registry.registerAll(builtinCommands);
+
+    // 注册主题命令
+    final registry = ref.read(themeRegistryProvider);
+    _registry.register(ToggleThemeCommand());
+    for (final theme in registry.all) {
+      _registry.register(SelectThemeCommand(
+        themeId: theme.id,
+        themeName: theme.displayName,
+      ));
+    }
+
     return CommandPaletteState(
       filteredCommands: _registry.all,
     );

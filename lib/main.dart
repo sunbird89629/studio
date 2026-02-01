@@ -21,6 +21,7 @@ import 'package:terminal_studio/src/ui/shared/macos_titlebar.dart';
 import 'package:terminal_studio/src/ui/shortcut/global_actions.dart';
 import 'package:terminal_studio/src/ui/shortcut/global_shortcuts.dart';
 import 'package:terminal_studio/src/util/provider_logger.dart';
+import 'package:terminal_studio/src/core/state/theme.dart';
 import 'package:window_manager/window_manager.dart';
 
 Future<void> main() async {
@@ -61,11 +62,13 @@ Future<void> initWindow() async {
   });
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = ref.watch(activeThemeProvider);
+
     Widget widget = const GlobalActions(
       child: GlobalShortcuts(
         child: CommandPaletteOverlay(
@@ -88,6 +91,7 @@ class MyApp extends StatelessWidget {
     return FluentApp(
       title: 'TerminalStudio',
       debugShowCheckedModeBanner: false,
+      theme: theme.fluentTheme,
       home: widget,
     );
   }
@@ -101,8 +105,6 @@ class Home extends ConsumerStatefulWidget {
 }
 
 class _HomeState extends ConsumerState<Home> {
-  final tabsTheme = const TabsViewThemeData();
-
   @override
   void initState() {
     SchedulerBinding.instance.addPostFrameCallback((_) async {
@@ -141,9 +143,12 @@ class _HomeState extends ConsumerState<Home> {
 
   @override
   Widget build(BuildContext context) {
+    final tabsTheme = ref.watch(activeThemeProvider).tabsTheme;
+    final brightness = ref.watch(activeThemeProvider).brightness;
+
     Widget widget = Column(
       children: [
-        _buildTitlebar(context),
+        _buildTitlebar(context, tabsTheme, brightness),
         Expanded(
           child: TabsView(
             ref.watch(tabsProvider),
@@ -161,7 +166,11 @@ class _HomeState extends ConsumerState<Home> {
     return widget;
   }
 
-  Widget _buildTitlebar(BuildContext context) {
+  Widget _buildTitlebar(
+    BuildContext context,
+    TabsViewThemeData tabsTheme,
+    Brightness brightness,
+  ) {
     if (defaultTargetPlatform == TargetPlatform.macOS) {
       return MacosTitlebar(
         color: tabsTheme.selectedBackgroundColor,
@@ -172,7 +181,7 @@ class _HomeState extends ConsumerState<Home> {
       height: kWindowCaptionHeight,
       child: WindowCaption(
         backgroundColor: tabsTheme.selectedBackgroundColor,
-        brightness: Brightness.light,
+        brightness: brightness,
         title: const Text('TerminalStudio'),
       ),
     );

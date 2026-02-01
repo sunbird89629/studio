@@ -22,19 +22,22 @@ class SettingsRecordAdapter extends TypeAdapter<SettingsRecord> {
       terminalFontFamily:
           fields[1] == null ? 'Hack Nerd Font Mono' : fields[1] as String?,
       disableUnderline: fields[2] == null ? true : fields[2] as bool?,
+      themeId: fields[3] == null ? 'dark' : fields[3] as String,
     );
   }
 
   @override
   void write(BinaryWriter writer, SettingsRecord obj) {
     writer
-      ..writeByte(3)
+      ..writeByte(4)
       ..writeByte(0)
       ..write(obj.terminalFontSize)
       ..writeByte(1)
       ..write(obj.terminalFontFamily)
       ..writeByte(2)
-      ..write(obj.disableUnderline);
+      ..write(obj.disableUnderline)
+      ..writeByte(3)
+      ..write(obj.themeId);
   }
 
   @override
