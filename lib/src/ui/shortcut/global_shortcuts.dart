@@ -16,6 +16,7 @@ class GlobalShortcuts extends StatelessWidget {
         shortcuts.previousTab: const PreviousTabIntent(),
         shortcuts.nextTab: const NextTabIntent(),
         shortcuts.tabClose: const CloseTabIntent(),
+        shortcuts.openCommandPalette: const OpenCommandPaletteIntent(),
       },
       child: child,
     );

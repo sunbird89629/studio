@@ -8,14 +8,16 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_devtools/riverpod_devtools.dart';
 import 'package:terminal_studio/src/core/service/tabs_service.dart';
 import 'package:terminal_studio/src/core/state/tabs.dart';
+import 'package:terminal_studio/src/core/utils/ai_logger.dart';
 import 'package:terminal_studio/src/hosts/local_spec.dart';
+import 'package:terminal_studio/src/ui/command_palette/command_palette_overlay.dart';
 import 'package:terminal_studio/src/ui/context_menu.dart';
 import 'package:terminal_studio/src/ui/platform_menu.dart';
 import 'package:terminal_studio/src/ui/shared/fluent_menu_card.dart';
 import 'package:terminal_studio/src/ui/shared/macos_titlebar.dart';
-import 'package:terminal_studio/src/core/utils/ai_logger.dart';
 import 'package:terminal_studio/src/ui/shortcut/global_actions.dart';
 import 'package:terminal_studio/src/ui/shortcut/global_shortcuts.dart';
 import 'package:terminal_studio/src/util/provider_logger.dart';
@@ -26,14 +28,19 @@ Future<void> main() async {
 
   // Initialize custom logger
   final logger = AILogger();
-  logger.i('TerminalStudio starting up...',
-      context: const LogContext(component: 'Main'));
+  logger.i(
+    'TerminalStudio starting up...',
+    context: const LogContext(component: 'Main'),
+  );
 
   initWindow();
 
   runApp(
-    const ProviderScope(
-      observers: [ProviderLogger()],
+    ProviderScope(
+      observers: [
+        ProviderLogger(),
+        RiverpodDevToolsObserver(),
+      ],
       child: MyApp(),
     ),
   );
@@ -61,7 +68,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     Widget widget = const GlobalActions(
       child: GlobalShortcuts(
-        child: Home(),
+        child: CommandPaletteOverlay(
+          child: Home(),
+        ),
       ),
     );
 

@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_studio/src/core/service/active_tab_service.dart';
+import 'package:terminal_studio/src/core/service/command_palette_service.dart';
 import 'package:terminal_studio/src/core/service/tabs_service.dart';
 import 'package:terminal_studio/src/core/service/window_service.dart';
 import 'package:terminal_studio/src/hosts/local_spec.dart';
@@ -42,6 +43,12 @@ class GlobalActions extends ConsumerWidget {
         CloseTabIntent: CallbackAction<CloseTabIntent>(
           onInvoke: (CloseTabIntent intent) {
             ref.read(activeTabServiceProvider).closeCurrentTabOrWindow();
+            return null;
+          },
+        ),
+        OpenCommandPaletteIntent: CallbackAction<OpenCommandPaletteIntent>(
+          onInvoke: (OpenCommandPaletteIntent intent) {
+            ref.read(commandPaletteServiceProvider.notifier).toggle();
             return null;
           },
         ),
