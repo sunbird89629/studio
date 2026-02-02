@@ -34,6 +34,8 @@ class SSHHost implements Host {
     int width = 80,
     int height = 25,
     Map<String, String>? environment,
+    String? command,
+    List<String>? args,
   }) async {
     final session = await client.shell(
       environment: environment,

@@ -30,9 +30,13 @@ class LocalHost implements Host {
     int width = 80,
     int height = 25,
     Map<String, String>? environment,
+    String? command,
+    List<String>? args,
   }) async {
-    final shell = _platformShell;
-    print('Starting shell: ${shell.command} ${shell.args}');
+    final shellCommand =
+        command != null ? _ShellCommand(command, args ?? []) : _platformShell;
+
+    print('Starting shell: ${shellCommand.command} ${shellCommand.args}');
     print('Environment USER: ${Platform.environment['USER']}');
 
     try {
@@ -44,8 +48,8 @@ class LocalHost implements Host {
 
       final String? home = Platform.environment['HOME'];
       final pty = Pty.start(
-        shell.command,
-        arguments: shell.args,
+        shellCommand.command,
+        arguments: shellCommand.args,
         environment: env,
         workingDirectory: home,
         rows: height,

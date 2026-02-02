@@ -16,6 +16,8 @@ abstract class Host {
     int width = 80,
     int height = 25,
     Map<String, String>? environment,
+    String? command,
+    List<String>? args,
   });
 
   Future<void> disconnect();

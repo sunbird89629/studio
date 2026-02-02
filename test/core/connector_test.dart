@@ -24,8 +24,13 @@ class MockHost extends Host {
   }
 
   @override
-  Future<ExecutionSession> shell(
-      {int width = 80, int height = 25, Map<String, String>? environment}) {
+  Future<ExecutionSession> shell({
+    Map<String, String>? environment,
+    int height = 25,
+    int width = 80,
+    String? command,
+    List<String>? args,
+  }) {
     throw UnimplementedError();
   }
 
