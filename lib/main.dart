@@ -14,6 +14,7 @@ import 'package:terminal_studio/src/core/state/tabs.dart';
 import 'package:terminal_studio/src/core/utils/ai_logger.dart';
 import 'package:terminal_studio/src/hosts/local_spec.dart';
 import 'package:terminal_studio/src/ui/command_palette/command_palette_overlay.dart';
+import 'package:terminal_studio/src/ui/vim_edit/vim_edit_overlay.dart';
 import 'package:terminal_studio/src/ui/context_menu.dart';
 import 'package:terminal_studio/src/ui/platform_menu.dart';
 import 'package:terminal_studio/src/ui/shared/fluent_menu_card.dart';
@@ -72,7 +73,9 @@ class MyApp extends ConsumerWidget {
     Widget widget = const GlobalActions(
       child: GlobalShortcuts(
         child: CommandPaletteOverlay(
-          child: Home(),
+          child: VimEditOverlay(
+            child: Home(),
+          ),
         ),
       ),
     );

@@ -9,6 +9,7 @@ import 'package:terminal_studio/src/ui/shortcuts.dart' as shortcuts;
 import 'package:terminal_studio/src/ui/tabs/devtools_tab.dart';
 import 'package:terminal_studio/src/ui/tabs/settings_tab/settings_tab.dart';
 import 'package:terminal_studio/src/util/tabs_extension.dart';
+import 'package:terminal_studio/src/core/service/vim_edit_service.dart';
 
 /// 内置命令列表
 final builtinCommands = <Command>[
@@ -22,6 +23,9 @@ final builtinCommands = <Command>[
   // View 类命令
   _OpenSettingsCommand(),
   _OpenDevToolsCommand(),
+
+  // Tools
+  _VimEditCommand(),
 ];
 
 // ============================================================================
@@ -162,5 +166,25 @@ class _OpenDevToolsCommand extends Command {
   @override
   void execute(BuildContext context, WidgetRef ref) {
     ref.openTab(DevToolsTab());
+  }
+}
+
+// ============================================================================
+// Tools 类命令
+// ============================================================================
+
+class _VimEditCommand extends Command {
+  @override
+  String get id => 'tools.vimEdit';
+
+  @override
+  String get label => 'Fast Vim Edit';
+
+  @override
+  String get category => 'Tools';
+
+  @override
+  void execute(BuildContext context, WidgetRef ref) {
+    ref.read(vimEditServiceProvider.notifier).open();
   }
 }
