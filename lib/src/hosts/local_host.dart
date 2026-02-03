@@ -1,9 +1,9 @@
 import 'dart:async';
-import 'dart:io';
+import 'dart:io' as io;
 import 'dart:typed_data';
 
 import 'package:flutter_pty/flutter_pty.dart';
-import 'package:terminal_studio/src/core/fs.dart';
+import 'package:terminal_studio/src/core/fs.dart' hide File, Directory, Link;
 import 'package:terminal_studio/src/core/host.dart';
 import 'package:terminal_studio/src/hosts/local_fs.dart';
 
@@ -16,7 +16,7 @@ class LocalHost implements Host {
     Map<String, String>? environment,
   }) async {
     final result =
-        await Process.run(executable, args, environment: environment);
+        await io.Process.run(executable, args, environment: environment);
     return LocalExecutionResult(result);
   }
 
@@ -36,19 +36,25 @@ class LocalHost implements Host {
     final shellCommand =
         command != null ? _ShellCommand(command, args ?? []) : _platformShell;
 
-    print('Starting shell: ${shellCommand.command} ${shellCommand.args}');
-    print('Environment USER: ${Platform.environment['USER']}');
+    final resolvedCommand = _resolveCommand(shellCommand.command);
+    if (!io.File(resolvedCommand).existsSync()) {
+      throw StateError('Shell executable not found at $resolvedCommand. '
+          'Please ensure your shell is correctly configured.');
+    }
+
+    print('Starting shell: $resolvedCommand ${shellCommand.args}');
+    print('Environment USER: ${io.Platform.environment['USER']}');
 
     try {
       final env = {
         'TERM': 'xterm-256color',
-        ...Platform.environment,
+        ...io.Platform.environment,
         ...environment ?? {},
       };
 
-      final String? home = Platform.environment['HOME'];
+      final String? home = io.Platform.environment['HOME'];
       final pty = Pty.start(
-        shellCommand.command,
+        resolvedCommand,
         arguments: shellCommand.args,
         environment: env,
         workingDirectory: home,
@@ -72,10 +78,35 @@ class LocalHost implements Host {
 
   @override
   Future<void> get done => _doneCompleter.future;
+
+  String _resolveCommand(String command) {
+    if (command.startsWith('/') ||
+        command.startsWith('./') ||
+        command.startsWith('../') ||
+        io.Platform.isWindows) {
+      return command;
+    }
+
+    // Try common locations for Unix systems
+    final searchPaths = [
+      '/bin/$command',
+      '/usr/bin/$command',
+      '/usr/local/bin/$command',
+      '/opt/homebrew/bin/$command',
+    ];
+
+    for (final path in searchPaths) {
+      if (io.File(path).existsSync()) {
+        return path;
+      }
+    }
+
+    return command;
+  }
 }
 
 class LocalExecutionResult implements ExecutionResult {
-  final ProcessResult _result;
+  final io.ProcessResult _result;
 
   LocalExecutionResult(this._result);
 
@@ -130,12 +161,13 @@ class _ShellCommand {
 }
 
 _ShellCommand get _platformShell {
-  if (Platform.isMacOS || Platform.isLinux) {
-    final shell = Platform.environment['SHELL'] ?? 'bash';
+  if (io.Platform.isMacOS || io.Platform.isLinux) {
+    final shellEnv = io.Platform.environment['SHELL'];
+    final shell = shellEnv ?? (io.Platform.isMacOS ? 'zsh' : 'bash');
     return _ShellCommand(shell, ['-l']);
   }
 
-  if (Platform.isWindows) {
+  if (io.Platform.isWindows) {
     return _ShellCommand('powershell.exe', []);
   }
 

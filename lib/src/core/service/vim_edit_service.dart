@@ -55,8 +55,12 @@ class VimEditNotifier extends Notifier<VimEditState> {
     try {
       // 1. Create temp file
       final tempDir = Directory.systemTemp;
-      _tempFile = File(p.join(tempDir.path,
-          'vim_edit_${DateTime.now().millisecondsSinceEpoch}.txt'));
+      _tempFile = File(
+        p.join(
+          tempDir.path,
+          'vim_edit_${DateTime.now().millisecondsSinceEpoch}.txt',
+        ),
+      );
       await _tempFile!.create();
 
       // 2. Start nvim session
