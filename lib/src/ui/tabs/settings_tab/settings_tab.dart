@@ -102,6 +102,33 @@ class GeneralSettingsView extends ConsumerWidget {
                   },
                 ),
               ),
+              const SizedBox(height: 32),
+              const Text('AI Copilot',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+              const SizedBox(height: 16),
+              InfoLabel(
+                label: 'OpenRouter API Key',
+                child: PasswordBox(
+                  controller: TextEditingController(text: settings.aiApiKey),
+                  placeholder: 'Enter your OpenRouter key here',
+                  onChanged: (v) {
+                    settings.aiApiKey = v;
+                    settings.save();
+                  },
+                ),
+              ),
+              const SizedBox(height: 16),
+              InfoLabel(
+                label: 'Model (OpenRouter format)',
+                child: TextFormBox(
+                  initialValue: settings.aiModel,
+                  placeholder: 'google/gemini-2.0-flash-exp:free',
+                  onChanged: (v) {
+                    settings.aiModel = v;
+                    settings.save();
+                  },
+                ),
+              ),
             ],
           ),
         ),
