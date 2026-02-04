@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_studio/src/core/conn.dart';
 import 'package:terminal_studio/src/core/host.dart';
 
@@ -13,6 +14,8 @@ abstract class Plugin {
 
     return _manager!;
   }
+
+  Ref get ref => manager.ref;
 
   HostSpec? _hostSpec;
 
@@ -78,8 +81,9 @@ abstract class Plugin {
 
 class PluginManager with ChangeNotifier {
   final HostSpec hostSpec;
+  final Ref ref;
 
-  PluginManager(this.hostSpec);
+  PluginManager(this.hostSpec, this.ref);
 
   final _plugins = <Plugin>[];
 

@@ -6,7 +6,7 @@ import 'package:terminal_studio/src/core/state/host.dart';
 final pluginManagerProvider = Provider.family<PluginManager, HostSpec>(
   name: 'pluginManagerProvider',
   (ref, spec) {
-    final manager = PluginManager(spec);
+    final manager = PluginManager(spec, ref);
 
     ref.listen(
       hostProvider(spec),
