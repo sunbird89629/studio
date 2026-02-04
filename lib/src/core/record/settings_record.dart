@@ -17,10 +17,22 @@ class SettingsRecord extends HiveObject {
   @HiveField(3)
   String themeId;
 
+  @HiveField(4)
+  String? aiApiKey;
+
+  @HiveField(5)
+  String aiProvider;
+
+  @HiveField(6)
+  String aiModel;
+
   SettingsRecord({
     this.terminalFontSize = 14.0,
     this.terminalFontFamily = 'Hack Nerd Font Mono',
     this.disableUnderline = true,
     this.themeId = 'dark',
+    this.aiApiKey,
+    this.aiProvider = 'openrouter',
+    this.aiModel = 'google/gemini-2.0-flash-exp:free',
   });
 }
