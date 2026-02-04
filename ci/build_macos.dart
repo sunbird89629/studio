@@ -39,8 +39,8 @@ void main(List<String> args) async {
 
     print('✅ Build successful.');
 
-    final source = 'build/macos/Build/Products/Release/TerminalStudio.app';
-    final destination = '/Applications/TerminalStudio.app';
+    final source = 'build/macos/Build/Products/Release/OpenTerm.app';
+    final destination = '/Applications/OpenTerm.app';
 
     if (!await Directory(source).exists()) {
       print('❌ Error: Build artifact not found at $source');

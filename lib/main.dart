@@ -33,7 +33,7 @@ Future<void> main() async {
   // Initialize custom logger
   final logger = AILogger();
   logger.i(
-    'TerminalStudio starting up...',
+    'OpenTerm starting up...',
     context: const LogContext(component: 'Main'),
   );
 
@@ -53,7 +53,7 @@ Future<void> main() async {
 Future<void> initWindow() async {
   await windowManager.ensureInitialized();
   await windowManager.setBackgroundColor(const Color(0x00000000));
-  await windowManager.setTitle('TerminalStudio');
+  await windowManager.setTitle('OpenTerm');
 
   if (defaultTargetPlatform != TargetPlatform.macOS) {
     await windowManager.setTitleBarStyle(TitleBarStyle.hidden);
@@ -94,7 +94,7 @@ class MyApp extends ConsumerWidget {
     );
 
     return FluentApp(
-      title: 'TerminalStudio',
+      title: 'OpenTerm',
       debugShowCheckedModeBanner: false,
       theme: theme.fluentTheme,
       home: widget,
@@ -202,7 +202,7 @@ class _HomeState extends ConsumerState<Home> {
       child: WindowCaption(
         backgroundColor: tabsTheme.selectedBackgroundColor,
         brightness: brightness,
-        title: const Text('TerminalStudio'),
+        title: const Text('OpenTerm'),
       ),
     );
   }
