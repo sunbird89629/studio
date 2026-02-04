@@ -23,6 +23,8 @@ import 'package:terminal_studio/src/ui/shortcut/global_actions.dart';
 import 'package:terminal_studio/src/ui/shortcut/global_shortcuts.dart';
 import 'package:terminal_studio/src/util/provider_logger.dart';
 import 'package:terminal_studio/src/core/state/theme.dart';
+import 'package:terminal_studio/src/core/state/copilot.dart';
+import 'package:terminal_studio/src/ui/copilot_sidebar.dart';
 import 'package:window_manager/window_manager.dart';
 
 Future<void> main() async {
@@ -149,16 +151,31 @@ class _HomeState extends ConsumerState<Home> {
     final tabsTheme = ref.watch(activeThemeProvider).tabsTheme;
     final brightness = ref.watch(activeThemeProvider).brightness;
 
+    final copilotVisible = ref.watch(copilotVisibleProvider);
+
+    Widget content = TabsView(
+      ref.watch(tabsProvider),
+      theme: tabsTheme,
+      actionBuilder: buildTabActions,
+    );
+
+    if (copilotVisible) {
+      content = Row(
+        children: [
+          Expanded(child: content),
+          const Divider(direction: Axis.vertical),
+          const SizedBox(
+            width: 300,
+            child: CopilotSidebar(),
+          ),
+        ],
+      );
+    }
+
     Widget widget = Column(
       children: [
         _buildTitlebar(context, tabsTheme, brightness),
-        Expanded(
-          child: TabsView(
-            ref.watch(tabsProvider),
-            theme: tabsTheme,
-            actionBuilder: buildTabActions,
-          ),
-        ),
+        Expanded(child: content),
       ],
     );
 
