@@ -3,6 +3,7 @@ import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_studio/src/core/state/settings.dart';
+import 'package:terminal_studio/src/ui/tabs/settings_tab/settings_remote_control.dart';
 import 'package:terminal_studio/src/ui/tabs/settings_tab/settings_tab_hosts.dart';
 
 class SettingsTab extends TabItem {
@@ -53,6 +54,11 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
               icon: const Icon(FluentIcons.key_phrase_extraction),
               title: const Text('SSH keys'),
               body: const SizedBox.expand(),
+            ),
+            PaneItem(
+              icon: const Icon(FluentIcons.remote),
+              title: const Text('Remote Control'),
+              body: const RemoteControlSettingsView(),
             ),
           ],
         ),

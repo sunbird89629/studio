@@ -13,6 +13,7 @@ import 'package:terminal_studio/src/core/state/settings.dart';
 import 'package:terminal_studio/src/plugins/terminal/terminal_menu.dart';
 import 'package:terminal_studio/src/ui/shortcut/intents.dart';
 import 'package:terminal_studio/src/ui/shortcuts.dart' as shortcuts;
+import 'package:terminal_studio/src/core/service/remote_control_service.dart';
 import 'package:xterm/xterm.dart';
 
 class TerminalPlugin extends Plugin {
@@ -71,6 +72,11 @@ class TerminalPlugin extends Plugin {
         (data) {
       print('Terminal received output: ${data.length} chars');
       terminal.write(data);
+
+      // Broadcast to remote control clients
+      ref
+          .read(remoteControlServiceProvider.notifier)
+          .broadcastTerminalOutput(data);
     }, onError: (e) {
       print('Terminal session error: $e');
     }, onDone: () {
