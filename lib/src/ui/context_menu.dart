@@ -8,6 +8,7 @@ import 'package:terminal_studio/src/hosts/local_spec.dart';
 import 'package:terminal_studio/src/ui/tabs/add_host_tab.dart';
 import 'package:terminal_studio/src/ui/tabs/settings_tab/settings_tab.dart';
 import 'package:terminal_studio/src/util/tabs_extension.dart';
+import 'package:terminal_studio/src/core/state/copilot.dart';
 
 class DropdownContextMenu extends ConsumerStatefulWidget {
   const DropdownContextMenu(this.tabs, {super.key});
@@ -59,6 +60,20 @@ class DropdownContextMenuState extends ConsumerState<DropdownContextMenu>
             onPressed: () => handlePressed(
               context,
               () => ref.openTab(SettingsTab()),
+            ),
+          ),
+        ),
+        buildDivider(),
+        buttonBuilder(
+          context,
+          ContextMenuButtonConfig(
+            'AI Copilot',
+            icon: const Icon(FluentIcons.robot),
+            onPressed: () => handlePressed(
+              context,
+              () => ref
+                  .read(copilotVisibleProvider.notifier)
+                  .update((state) => !state),
             ),
           ),
         ),

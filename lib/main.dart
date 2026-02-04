@@ -23,6 +23,8 @@ import 'package:terminal_studio/src/ui/shortcut/global_actions.dart';
 import 'package:terminal_studio/src/ui/shortcut/global_shortcuts.dart';
 import 'package:terminal_studio/src/util/provider_logger.dart';
 import 'package:terminal_studio/src/core/state/theme.dart';
+import 'package:terminal_studio/src/core/state/copilot.dart';
+import 'package:terminal_studio/src/ui/copilot_sidebar.dart';
 import 'package:window_manager/window_manager.dart';
 
 Future<void> main() async {
@@ -31,7 +33,7 @@ Future<void> main() async {
   // Initialize custom logger
   final logger = AILogger();
   logger.i(
-    'TerminalStudio starting up...',
+    'OpenTerm starting up...',
     context: const LogContext(component: 'Main'),
   );
 
@@ -51,7 +53,7 @@ Future<void> main() async {
 Future<void> initWindow() async {
   await windowManager.ensureInitialized();
   await windowManager.setBackgroundColor(const Color(0x00000000));
-  await windowManager.setTitle('TerminalStudio');
+  await windowManager.setTitle('OpenTerm');
 
   if (defaultTargetPlatform != TargetPlatform.macOS) {
     await windowManager.setTitleBarStyle(TitleBarStyle.hidden);
@@ -92,7 +94,7 @@ class MyApp extends ConsumerWidget {
     );
 
     return FluentApp(
-      title: 'TerminalStudio',
+      title: 'OpenTerm',
       debugShowCheckedModeBanner: false,
       theme: theme.fluentTheme,
       home: widget,
@@ -149,16 +151,31 @@ class _HomeState extends ConsumerState<Home> {
     final tabsTheme = ref.watch(activeThemeProvider).tabsTheme;
     final brightness = ref.watch(activeThemeProvider).brightness;
 
+    final copilotVisible = ref.watch(copilotVisibleProvider);
+
+    Widget content = TabsView(
+      ref.watch(tabsProvider),
+      theme: tabsTheme,
+      actionBuilder: buildTabActions,
+    );
+
+    if (copilotVisible) {
+      content = Row(
+        children: [
+          Expanded(child: content),
+          const Divider(direction: Axis.vertical),
+          const SizedBox(
+            width: 300,
+            child: CopilotSidebar(),
+          ),
+        ],
+      );
+    }
+
     Widget widget = Column(
       children: [
         _buildTitlebar(context, tabsTheme, brightness),
-        Expanded(
-          child: TabsView(
-            ref.watch(tabsProvider),
-            theme: tabsTheme,
-            actionBuilder: buildTabActions,
-          ),
-        ),
+        Expanded(child: content),
       ],
     );
 
@@ -185,7 +202,7 @@ class _HomeState extends ConsumerState<Home> {
       child: WindowCaption(
         backgroundColor: tabsTheme.selectedBackgroundColor,
         brightness: brightness,
-        title: const Text('TerminalStudio'),
+        title: const Text('OpenTerm'),
       ),
     );
   }

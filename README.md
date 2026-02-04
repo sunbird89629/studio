@@ -1,4 +1,4 @@
-## TerminalStudio
+## OpenTerm
 
 Terminal emulator written in **Flutter**.
 
