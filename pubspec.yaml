@@ -81,6 +81,7 @@ dependencies:
   logger: ^2.6.2
   shelf: ^1.4.2
   shelf_web_socket: ^3.0.0
+  shelf_router: ^1.1.4
 
 dependency_overrides:
   fading_edge_scrollview: ^4.1.1

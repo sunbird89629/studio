@@ -72,9 +72,9 @@ class RemoteControlSettingsView extends ConsumerWidget {
 
               const SizedBox(height: 16),
 
-              // Local URL
+              // Web Access URL
               InfoLabel(
-                label: 'Local Access URL (Intranet)',
+                label: 'Web Console URL (Intranet)',
                 child: Row(
                   children: [
                     Expanded(
@@ -84,12 +84,27 @@ class RemoteControlSettingsView extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Button(
-                      child: const Icon(FluentIcons.copy),
-                      onPressed: () {
-                        Clipboard.setData(
-                            ClipboardData(text: remoteState.localUrl ?? ''));
-                      },
+                    Tooltip(
+                      message: 'Copy URL',
+                      child: Button(
+                        child: const Icon(FluentIcons.copy),
+                        onPressed: () {
+                          Clipboard.setData(
+                              ClipboardData(text: remoteState.localUrl ?? ''));
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Tooltip(
+                      message: 'Copy URL with Token',
+                      child: Button(
+                        child: const Icon(FluentIcons.share),
+                        onPressed: () {
+                          final urlWithToken =
+                              '${remoteState.localUrl}?token=${remoteState.authToken}';
+                          Clipboard.setData(ClipboardData(text: urlWithToken));
+                        },
+                      ),
                     ),
                   ],
                 ),
