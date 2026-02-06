@@ -127,9 +127,11 @@ class RemoteControlSettingsView extends ConsumerWidget {
                   FilledButton(
                     onPressed: tunnelState.isConnected
                         ? null
-                        : () => ref
-                            .read(tunnelServiceProvider.notifier)
-                            .connect(remoteState.port),
+                        : () =>
+                            ref.read(tunnelServiceProvider.notifier).connect(
+                                  remoteState.port,
+                                  remoteState.authToken ?? "",
+                                ),
                     child: Text(tunnelState.isConnected
                         ? 'Penetration Active'
                         : 'Enable Public Access'),
