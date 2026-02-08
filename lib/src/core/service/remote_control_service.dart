@@ -22,6 +22,8 @@ class RemoteControlState {
   final String? publicUrl;
   final List<String> activeClients;
 
+  final String? cloudflaredToken;
+
   RemoteControlState({
     required this.isEnabled,
     required this.port,
@@ -29,6 +31,7 @@ class RemoteControlState {
     this.localUrl,
     this.publicUrl,
     this.activeClients = const [],
+    this.cloudflaredToken,
   });
 
   factory RemoteControlState.initial() {
@@ -45,6 +48,7 @@ class RemoteControlState {
     String? localUrl,
     String? publicUrl,
     List<String>? activeClients,
+    String? cloudflaredToken,
   }) {
     return RemoteControlState(
       isEnabled: isEnabled ?? this.isEnabled,
@@ -53,6 +57,7 @@ class RemoteControlState {
       localUrl: localUrl ?? this.localUrl,
       publicUrl: publicUrl ?? this.publicUrl,
       activeClients: activeClients ?? this.activeClients,
+      cloudflaredToken: cloudflaredToken ?? this.cloudflaredToken,
     );
   }
 }
@@ -136,6 +141,10 @@ class RemoteControlNotifier extends Notifier<RemoteControlState> {
       'Remote Control Server stopped',
       context: const LogContext(component: 'RemoteControlService'),
     );
+  }
+
+  void setCloudflaredToken(String token) {
+    state = state.copyWith(cloudflaredToken: token);
   }
 
   void _handleNewConnection(WebSocketChannel channel, String requiredToken) {
