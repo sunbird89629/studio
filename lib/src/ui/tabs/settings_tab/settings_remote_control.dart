@@ -136,6 +136,20 @@ class RemoteControlSettingsView extends ConsumerWidget {
 
               const SizedBox(height: 16),
 
+              InfoLabel(
+                label: 'Lark (Feishu) Webhook URL',
+                child: TextFormBox(
+                  placeholder:
+                      'https://open.feishu.cn/open-apis/bot/v2/hook/xxx',
+                  initialValue: remoteState.larkWebhookUrl,
+                  onChanged: (v) => ref
+                      .read(remoteControlServiceProvider.notifier)
+                      .setLarkWebhookUrl(v),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
               Row(
                 children: [
                   FilledButton(
