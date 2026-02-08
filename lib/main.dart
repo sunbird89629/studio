@@ -25,6 +25,7 @@ import 'package:terminal_studio/src/util/provider_logger.dart';
 import 'package:terminal_studio/src/core/state/theme.dart';
 import 'package:terminal_studio/src/core/state/copilot.dart';
 import 'package:terminal_studio/src/ui/copilot_sidebar.dart';
+import 'package:terminal_studio/src/core/service/notification_service.dart';
 import 'package:window_manager/window_manager.dart';
 
 Future<void> main() async {
@@ -70,6 +71,9 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Initialize tunnel observer
+    ref.watch(tunnelObserverProvider);
+
     final theme = ref.watch(activeThemeProvider);
 
     Widget widget = const GlobalActions(

@@ -23,6 +23,7 @@ class RemoteControlState {
   final List<String> activeClients;
 
   final String? cloudflaredToken;
+  final String? larkWebhookUrl;
 
   RemoteControlState({
     required this.isEnabled,
@@ -32,6 +33,7 @@ class RemoteControlState {
     this.publicUrl,
     this.activeClients = const [],
     this.cloudflaredToken,
+    this.larkWebhookUrl,
   });
 
   factory RemoteControlState.initial() {
@@ -49,6 +51,7 @@ class RemoteControlState {
     String? publicUrl,
     List<String>? activeClients,
     String? cloudflaredToken,
+    String? larkWebhookUrl,
   }) {
     return RemoteControlState(
       isEnabled: isEnabled ?? this.isEnabled,
@@ -58,6 +61,7 @@ class RemoteControlState {
       publicUrl: publicUrl ?? this.publicUrl,
       activeClients: activeClients ?? this.activeClients,
       cloudflaredToken: cloudflaredToken ?? this.cloudflaredToken,
+      larkWebhookUrl: larkWebhookUrl ?? this.larkWebhookUrl,
     );
   }
 }
@@ -145,6 +149,10 @@ class RemoteControlNotifier extends Notifier<RemoteControlState> {
 
   void setCloudflaredToken(String token) {
     state = state.copyWith(cloudflaredToken: token);
+  }
+
+  void setLarkWebhookUrl(String url) {
+    state = state.copyWith(larkWebhookUrl: url);
   }
 
   void _handleNewConnection(WebSocketChannel channel, String requiredToken) {
@@ -370,4 +378,5 @@ class RemoteControlNotifier extends Notifier<RemoteControlState> {
 
 final remoteControlServiceProvider =
     NotifierProvider<RemoteControlNotifier, RemoteControlState>(
-        RemoteControlNotifier.new);
+  RemoteControlNotifier.new,
+);
