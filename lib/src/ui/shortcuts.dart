@@ -134,3 +134,17 @@ SingleActivator get openCommandPalette {
           shift: true,
         );
 }
+
+SingleActivator get vimEdit {
+  return defaultTargetPlatform.isApple
+      ? const SingleActivator(
+          LogicalKeyboardKey.keyE,
+          meta: true,
+          shift: true,
+        )
+      : const SingleActivator(
+          LogicalKeyboardKey.keyE,
+          control: true,
+          shift: true,
+        );
+}

@@ -23,3 +23,7 @@ class CloseTabIntent extends Intent {
 class OpenCommandPaletteIntent extends Intent {
   const OpenCommandPaletteIntent();
 }
+
+class VimEditIntent extends Intent {
+  const VimEditIntent();
+}
