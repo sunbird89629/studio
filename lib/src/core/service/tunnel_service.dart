@@ -15,6 +15,15 @@ enum TunnelStatus {
   reconnecting,
 }
 
+class ExecCommand {
+  final String executable;
+  final List<String> args;
+  ExecCommand({
+    required this.executable,
+    required this.args,
+  });
+}
+
 class TunnelState {
   final TunnelStatus status;
   final String? publicUrl;
@@ -64,6 +73,34 @@ class TunnelNotifier extends Notifier<TunnelState> {
     return TunnelState.initial();
   }
 
+  ExecCommand get tunnelCommand {
+    // cloudflared tunnel --url http://localhost:8080
+    if (Platform.isMacOS) {
+      return ExecCommand(executable: 'caffeinate', args: [
+        '-i',
+        'cloudflared',
+        'tunnel',
+        '--url',
+        'http://localhost:8080',
+        '--no-autoupdate',
+        '--output',
+        'json',
+      ]);
+    } else {
+      return ExecCommand(
+        executable: 'cloudflared',
+        args: [
+          'tunnel',
+          '--url',
+          'http://localhost:8080',
+          '--no-autoupdate',
+          '--output',
+          'json',
+        ],
+      );
+    }
+  }
+
   Future<void> connect(String token, {int? localPort}) async {
     if (_process != null) await disconnect();
 
@@ -76,19 +113,21 @@ class TunnelNotifier extends Notifier<TunnelState> {
 
     try {
       // Command: cloudflared tunnel --no-autoupdate run --token TOKEN
-      // We assume cloudflared is in the PATH.
-      _process = await Process.start(
-        'cloudflared',
-        [
-          'tunnel',
-          '--no-autoupdate',
-          'run',
-          '--output',
-          'json',
-          '--token',
-          token
-        ],
-      );
+      // On macOS, we wrap it with 'caffeinate -i' to prevent system sleep.
+      final executable = Platform.isMacOS ? 'caffeinate' : 'cloudflared';
+      final baseArgs = [
+        'tunnel',
+        '--no-autoupdate',
+        'run',
+        '--output',
+        'json',
+        '--token',
+        token
+      ];
+      final args =
+          Platform.isMacOS ? ['-i', 'cloudflared', ...baseArgs] : baseArgs;
+
+      _process = await Process.start(executable, args);
 
       _stdoutSub = _process!.stdout
           .transform(utf8.decoder)
@@ -133,30 +172,22 @@ class TunnelNotifier extends Notifier<TunnelState> {
     );
 
     try {
-      // Command: cloudflared tunnel --no-autoupdate run --url http://localhost:PORT
-      _process = await Process.start(
-        'cloudflared',
-        [
-          'tunnel',
-          '--url',
-          'http://localhost:$localPort',
-          '--no-autoupdate',
-          '--output',
-          'json',
-        ],
+      final process = await Process.start(
+        tunnelCommand.executable,
+        tunnelCommand.args,
       );
 
-      _stdoutSub = _process!.stdout
+      _stdoutSub = process.stdout
           .transform(utf8.decoder)
           .transform(const LineSplitter())
           .listen(_handleLog);
 
-      _stderrSub = _process!.stderr
+      _stderrSub = process.stderr
           .transform(utf8.decoder)
           .transform(const LineSplitter())
           .listen(_handleLog);
 
-      _process!.exitCode.then((code) {
+      process.exitCode.then((code) {
         _logger.w(
           'Cloudflared quick tunnel process exited with code $code',
           context: const LogContext(component: 'TunnelService'),
