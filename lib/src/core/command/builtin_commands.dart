@@ -184,6 +184,9 @@ class _VimEditCommand extends Command {
   String get category => 'Tools';
 
   @override
+  SingleActivator? get shortcut => shortcuts.vimEdit;
+
+  @override
   void execute(BuildContext context, WidgetRef ref) {
     ref.read(vimEditServiceProvider.notifier).open();
   }

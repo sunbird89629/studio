@@ -17,6 +17,7 @@ class GlobalShortcuts extends StatelessWidget {
         shortcuts.nextTab: const NextTabIntent(),
         shortcuts.tabClose: const CloseTabIntent(),
         shortcuts.openCommandPalette: const OpenCommandPaletteIntent(),
+        shortcuts.vimEdit: const VimEditIntent(),
       },
       child: child,
     );
