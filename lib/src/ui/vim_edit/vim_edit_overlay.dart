@@ -6,20 +6,40 @@ import 'package:terminal_studio/src/core/service/vim_edit_service.dart';
 import 'package:terminal_studio/src/core/state/settings.dart';
 import 'package:xterm/xterm.dart';
 
-class VimEditOverlay extends ConsumerWidget {
+class VimEditOverlay extends ConsumerStatefulWidget {
   const VimEditOverlay({super.key, required this.child});
 
   final Widget child;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<VimEditOverlay> createState() => _VimEditOverlayState();
+}
+
+class _VimEditOverlayState extends ConsumerState<VimEditOverlay> {
+  final _focusNode = FocusNode();
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final state = ref.watch(vimEditServiceProvider);
+
+    // Request focus when dialog becomes visible
+    if (state.isVisible) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _focusNode.requestFocus();
+      });
+    }
 
     final theme = FluentTheme.of(context);
 
     return Stack(
       children: [
-        child,
+        widget.child,
         if (state.isVisible)
           Positioned.fill(
             child: Material(
@@ -29,7 +49,7 @@ class VimEditOverlay extends ConsumerWidget {
                   width: 800,
                   height: 600,
                   decoration: BoxDecoration(
-                    color: theme.micaBackgroundColor, // Use theme background
+                    color: theme.micaBackgroundColor,
                     borderRadius: BorderRadius.circular(8),
                     boxShadow: [
                       BoxShadow(
@@ -44,6 +64,7 @@ class VimEditOverlay extends ConsumerWidget {
                     child: VimTerminalView(
                       terminal: state.terminal,
                       controller: state.terminalController,
+                      focusNode: _focusNode,
                     ),
                   ),
                 ),
@@ -60,10 +81,12 @@ class VimTerminalView extends ConsumerWidget {
     super.key,
     required this.terminal,
     required this.controller,
+    required this.focusNode,
   });
 
   final Terminal terminal;
   final TerminalController controller;
+  final FocusNode focusNode;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -85,7 +108,7 @@ class VimTerminalView extends ConsumerWidget {
           terminal,
           controller: controller,
           textStyle: style,
-          autofocus: true,
+          focusNode: focusNode,
           backgroundOpacity: 1,
         );
       },

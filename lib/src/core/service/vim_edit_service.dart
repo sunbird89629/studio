@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
@@ -12,11 +13,13 @@ class VimEditState {
   final bool isVisible;
   final Terminal terminal;
   final TerminalController terminalController;
+  final FocusNode? previousFocusNode;
 
   const VimEditState({
     required this.isVisible,
     required this.terminal,
     required this.terminalController,
+    this.previousFocusNode,
   });
 
   factory VimEditState.initial() {
@@ -31,11 +34,13 @@ class VimEditState {
     bool? isVisible,
     Terminal? terminal,
     TerminalController? terminalController,
+    FocusNode? previousFocusNode,
   }) {
     return VimEditState(
       isVisible: isVisible ?? this.isVisible,
       terminal: terminal ?? this.terminal,
       terminalController: terminalController ?? this.terminalController,
+      previousFocusNode: previousFocusNode ?? this.previousFocusNode,
     );
   }
 }
@@ -53,6 +58,9 @@ class VimEditNotifier extends Notifier<VimEditState> {
     if (state.isVisible) return;
 
     try {
+      // Save current focus
+      final currentFocus = FocusManager.instance.primaryFocus;
+
       // 1. Create temp file
       final tempDir = Directory.systemTemp;
       _tempFile = File(
@@ -100,7 +108,10 @@ class VimEditNotifier extends Notifier<VimEditState> {
 
       _session!.exitCode.then((_) => _onSessionExit());
 
-      state = state.copyWith(isVisible: true);
+      state = state.copyWith(
+        isVisible: true,
+        previousFocusNode: currentFocus,
+      );
     } catch (e) {
       print('Failed to open vim edit mode: $e');
       // Show error handling?
@@ -133,11 +144,13 @@ class VimEditNotifier extends Notifier<VimEditState> {
 
     _session = null;
 
-    // Clear terminal explicitly or re-create it?
-    // state.terminal.buffer.clear(); // If xterm exposes this.
-    // Simpler to just hide it. The next open will clear or append.
+    // Restore previous focus
+    final previousFocus = state.previousFocusNode;
+    if (previousFocus != null && previousFocus.canRequestFocus) {
+      previousFocus.requestFocus();
+    }
 
-    state = state.copyWith(isVisible: false);
+    state = state.copyWith(isVisible: false, previousFocusNode: null);
   }
 
   void close() {
