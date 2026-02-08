@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
 
@@ -68,10 +69,18 @@ class AILogger {
         error: error, stackTrace: stackTrace, time: DateTime.now());
   }
 
-  void i(String message,
-      {LogContext? context, Object? error, StackTrace? stackTrace}) {
-    _logger.i(message,
-        error: error, stackTrace: stackTrace, time: DateTime.now());
+  void i(
+    String message, {
+    LogContext? context,
+    Object? error,
+    StackTrace? stackTrace,
+  }) {
+    _logger.i(
+      message,
+      error: error,
+      stackTrace: stackTrace,
+      time: DateTime.now(),
+    );
   }
 
   void w(String message,
