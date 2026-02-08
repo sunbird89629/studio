@@ -3,40 +3,66 @@ sealed class CloudflaredEvent {
 
   factory CloudflaredEvent.fromJson(Map<String, dynamic> json) {
     final msg = json['message'] as String? ?? '';
+    final level = json['level']?.toString();
 
+    return _parseInternal(msg, level, json);
+  }
+
+  factory CloudflaredEvent.fromText(String message, String? level) {
+    return _parseInternal(message, level, null);
+  }
+
+  static CloudflaredEvent _parseInternal(
+      String msg, String? level, Map<String, dynamic>? raw) {
     if (msg.contains('Registered tunnel connection')) {
+      // JSON: connectionID or connection, tunnelID
+      // Text: connection=UUID
+      final connIdMatch = RegExp(r'connection=([a-fA-F0-9-]+)').firstMatch(msg);
       return RegisteredEvent(
-        id: json['connectionID']?.toString() ?? '',
-        name: json['tunnelID']?.toString(),
+        id: connIdMatch?.group(1) ??
+            (raw?['connectionID']?.toString() ??
+                raw?['connection']?.toString() ??
+                ''),
+        name: raw?['tunnelID']?.toString(),
       );
-    } else if (msg.contains('Your quick tunnel has been created')) {
+    } else if (msg.contains('Your quick tunnel has been created') ||
+        (msg.contains('https://') && msg.contains('.trycloudflare.com'))) {
       final urlMatch =
           RegExp(r'https://[a-zA-Z0-9-]+\.trycloudflare\.com').firstMatch(msg);
-      return QuickTunnelEvent(
-        url: urlMatch?.group(0) ?? '',
-      );
+      if (urlMatch != null) {
+        return QuickTunnelEvent(
+          url: urlMatch.group(0)!,
+        );
+      }
     } else if (msg.contains('Connected to')) {
+      final connIdMatch =
+          RegExp(r'connection(ID)?=([a-fA-F0-9-]+)').firstMatch(msg);
       return ConnectedEvent(
-        id: json['connectionID']?.toString() ?? '',
-        ip: json['ip']?.toString(),
-        location: json['location']?.toString(),
+        id: connIdMatch?.group(2) ?? (raw?['connectionID']?.toString() ?? ''),
+        ip: raw?['ip']?.toString(),
+        location: raw?['location']?.toString(),
       );
     } else if (msg.contains('Connection closed')) {
+      final connIdMatch =
+          RegExp(r'connection(ID)?=([a-fA-F0-9-]+)').firstMatch(msg);
       return DisconnectedEvent(
-        id: json['connectionID']?.toString() ?? '',
-        reason: json['reason']?.toString(),
+        id: connIdMatch?.group(2) ?? (raw?['connectionID']?.toString() ?? ''),
+        reason: raw?['reason']?.toString(),
       );
-    } else if (json['level'] == 'error' || json['level'] == 'fatal') {
+    } else if (level == 'error' ||
+        level == 'fatal' ||
+        level == 'ERR' ||
+        level == 'error') {
       return ErrorEvent(
         message: msg,
-        level: json['level']?.toString(),
+        level: level,
       );
     }
 
     return LogEvent(
       message: msg,
-      level: json['level']?.toString(),
-      raw: json,
+      level: level,
+      raw: raw ?? {},
     );
   }
 }

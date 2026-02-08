@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:terminal_studio/src/core/utils/ai_logger.dart';
 import 'package:terminal_studio/src/core/model/cloudflared_event.dart';
+import 'package:terminal_studio/src/core/utils/ai_logger.dart';
 import 'package:terminal_studio/src/core/utils/cloudflared_log_parser.dart';
 
 enum TunnelStatus {
@@ -79,7 +79,15 @@ class TunnelNotifier extends Notifier<TunnelState> {
       // We assume cloudflared is in the PATH.
       _process = await Process.start(
         'cloudflared',
-        ['tunnel', '--no-autoupdate', 'run', '--token', token],
+        [
+          'tunnel',
+          '--no-autoupdate',
+          'run',
+          '--output',
+          'json',
+          '--token',
+          token
+        ],
       );
 
       _stdoutSub = _process!.stdout
@@ -128,7 +136,14 @@ class TunnelNotifier extends Notifier<TunnelState> {
       // Command: cloudflared tunnel --no-autoupdate run --url http://localhost:PORT
       _process = await Process.start(
         'cloudflared',
-        ['tunnel', '--no-autoupdate', '--url', 'http://localhost:$localPort'],
+        [
+          'tunnel',
+          '--url',
+          'http://localhost:$localPort',
+          '--no-autoupdate',
+          '--output',
+          'json',
+        ],
       );
 
       _stdoutSub = _process!.stdout
@@ -142,8 +157,10 @@ class TunnelNotifier extends Notifier<TunnelState> {
           .listen(_handleLog);
 
       _process!.exitCode.then((code) {
-        _logger.w('Cloudflared quick tunnel process exited with code $code',
-            context: const LogContext(component: 'TunnelService'));
+        _logger.w(
+          'Cloudflared quick tunnel process exited with code $code',
+          context: const LogContext(component: 'TunnelService'),
+        );
         if (state.status != TunnelStatus.stopped) {
           state = state.copyWith(
             status: TunnelStatus.error,
@@ -164,24 +181,14 @@ class TunnelNotifier extends Notifier<TunnelState> {
   }
 
   void _handleLog(String line) {
-    // If not JSON, it might be a quick tunnel notification
-    if (!line.trim().startsWith('{')) {
-      if (line.contains('https://') && line.contains('.trycloudflare.com')) {
-        final urlMatch = RegExp(r'https://[a-zA-Z0-9-]+\.trycloudflare\.com')
-            .firstMatch(line);
-        if (urlMatch != null) {
-          _processEvent(QuickTunnelEvent(url: urlMatch.group(0)!));
-          return;
-        }
-      }
-    }
-
     final event = CloudflaredLogParser.parseLine(line);
     if (event == null) {
-      // Handle non-JSON logs or noise
+      // Handle non-parsed logs or noise
       if (line.isNotEmpty) {
-        _logger.d('Cloudflared log: $line',
-            context: const LogContext(component: 'TunnelService'));
+        _logger.d(
+          'Cloudflared log: $line',
+          context: const LogContext(component: 'TunnelService'),
+        );
       }
       return;
     }
@@ -195,16 +202,20 @@ class TunnelNotifier extends Notifier<TunnelState> {
         state = state.copyWith(
           tunnelId: event.id,
         );
-        _logger.i('Tunnel registered: ${event.id}',
-            context: const LogContext(component: 'TunnelService'));
+        _logger.i(
+          'Tunnel registered: ${event.id}',
+          context: const LogContext(component: 'TunnelService'),
+        );
       case QuickTunnelEvent():
         state = state.copyWith(
           publicUrl: event.url,
           status: TunnelStatus
               .connected, // Quick tunnels are connected when URL is issued
         );
-        _logger.i('Quick tunnel created: ${event.url}',
-            context: const LogContext(component: 'TunnelService'));
+        _logger.i(
+          'Quick tunnel created: ${event.url}',
+          context: const LogContext(component: 'TunnelService'),
+        );
       case ConnectedEvent():
         final newConnections = List<String>.from(state.connections)
           ..add(event.id);
@@ -212,8 +223,10 @@ class TunnelNotifier extends Notifier<TunnelState> {
           status: TunnelStatus.connected,
           connections: newConnections,
         );
-        _logger.i('Connector connected: ${event.id} at ${event.location}',
-            context: const LogContext(component: 'TunnelService'));
+        _logger.i(
+          'Connector connected: ${event.id} at ${event.location}',
+          context: const LogContext(component: 'TunnelService'),
+        );
       case DisconnectedEvent():
         final newConnections = List<String>.from(state.connections)
           ..remove(event.id);
@@ -225,15 +238,18 @@ class TunnelNotifier extends Notifier<TunnelState> {
           connections: newConnections,
         );
         _logger.w(
-            'Connector disconnected: ${event.id}, reason: ${event.reason}',
-            context: const LogContext(component: 'TunnelService'));
+          'Connector disconnected: ${event.id}, reason: ${event.reason}',
+          context: const LogContext(component: 'TunnelService'),
+        );
       case ErrorEvent():
         state = state.copyWith(
           status: TunnelStatus.error,
           error: event.message,
         );
-        _logger.e('Cloudflared error: ${event.message}',
-            context: const LogContext(component: 'TunnelService'));
+        _logger.e(
+          'Cloudflared error: ${event.message}',
+          context: const LogContext(component: 'TunnelService'),
+        );
       case LogEvent():
         // Optional: process other specific log messages if needed
         break;
