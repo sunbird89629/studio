@@ -4,39 +4,58 @@ import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_studio/src/core/utils/ai_logger.dart';
-import 'package:terminal_studio/src/util/lark_utils.dart';
+import 'package:terminal_studio/src/core/model/cloudflared_event.dart';
+import 'package:terminal_studio/src/core/utils/cloudflared_log_parser.dart';
+
+enum TunnelStatus {
+  stopped,
+  starting,
+  connected,
+  error,
+  reconnecting,
+}
 
 class TunnelState {
-  final bool isConnected;
+  final TunnelStatus status;
   final String? publicUrl;
-  final String? status;
+  final String? error;
+  final String? tunnelId;
+  final List<String> connections;
 
   TunnelState({
-    required this.isConnected,
+    required this.status,
     this.publicUrl,
-    this.status,
+    this.error,
+    this.tunnelId,
+    this.connections = const [],
   });
 
+  bool get isConnected => status == TunnelStatus.connected;
+
   factory TunnelState.initial() {
-    return TunnelState(isConnected: false, status: 'Stopped');
+    return TunnelState(status: TunnelStatus.stopped);
   }
 
   TunnelState copyWith({
-    bool? isConnected,
+    TunnelStatus? status,
     String? publicUrl,
-    String? status,
+    String? error,
+    String? tunnelId,
+    List<String>? connections,
   }) {
     return TunnelState(
-      isConnected: isConnected ?? this.isConnected,
-      publicUrl: publicUrl ?? this.publicUrl,
       status: status ?? this.status,
+      publicUrl: publicUrl ?? this.publicUrl,
+      error: error ?? this.error,
+      tunnelId: tunnelId ?? this.tunnelId,
+      connections: connections ?? this.connections,
     );
   }
 }
 
 class TunnelNotifier extends Notifier<TunnelState> {
   final _logger = AILogger();
-  Process? _sshProcess;
+  Process? _process;
   StreamSubscription? _stdoutSub;
   StreamSubscription? _stderrSub;
 
@@ -45,96 +64,179 @@ class TunnelNotifier extends Notifier<TunnelState> {
     return TunnelState.initial();
   }
 
-  /// In a real scenario, this would connect to a service like frp, ngrok, or a custom relay.
-  /// For now, we will simulate a tunnel connection or provide a placeholder for the user to integrate.
-  Future<void> connect(int localPort, String password) async {
-    if (_sshProcess != null) await disconnect();
+  Future<void> connect(String token, {int? localPort}) async {
+    if (_process != null) await disconnect();
 
-    state = state.copyWith(status: 'Initializing SSH...', isConnected: false);
+    state = state.copyWith(status: TunnelStatus.starting, error: null);
 
     _logger.i(
-      'Starting real intranet penetration for port $localPort via localhost.run',
+      'Starting cloudflared tunnel',
       context: const LogContext(component: 'TunnelService'),
     );
 
     try {
-      // Command: ssh -R 80:localhost:PORT nokey@localhost.run
-      // We use Process.start to handle the persistent connection.
-      _sshProcess = await Process.start(
-        'ssh',
-        ['-R', '80:localhost:$localPort', 'nokey@localhost.run'],
-        runInShell: true,
+      // Command: cloudflared tunnel --no-autoupdate run --token TOKEN
+      // We assume cloudflared is in the PATH.
+      _process = await Process.start(
+        'cloudflared',
+        ['tunnel', '--no-autoupdate', 'run', '--token', token],
       );
 
-      bool urlFound = false;
-
-      // Listen to stdout to find the URL
-      _stdoutSub = _sshProcess!.stdout
+      _stdoutSub = _process!.stdout
           .transform(utf8.decoder)
           .transform(const LineSplitter())
-          .listen((line) {
-        _logger.d(
-          'SSH STDOUT: $line',
-          context: const LogContext(component: 'TunnelService'),
-        );
-        // localhost.run typically outputs: "tunneled with https://[id].lhr.life"
-        if (line.contains('https://')) {
-          final urlMatch =
-              RegExp(r'https://[a-fA-F0-9]+\.lhr\.life').firstMatch(line);
-          if (urlMatch != null) {
-            final publicUrl = urlMatch.group(0);
-            final linkWithToken = "$publicUrl?token=$password";
-            LarkUtils.sendMessage(linkWithToken);
-            state = state.copyWith(
-              isConnected: true,
-              publicUrl: linkWithToken,
-              status: 'Connected',
-            );
-            urlFound = true;
-            _logger.i(
-              'Real tunnel established: $publicUrl',
-              context: const LogContext(component: 'TunnelService'),
-            );
-          }
-        }
-      });
+          .listen(_handleLog);
 
-      // Listen to stderr for errors (like SSH key warnings)
-      _stderrSub = _sshProcess!.stderr
+      _stderrSub = _process!.stderr
           .transform(utf8.decoder)
           .transform(const LineSplitter())
-          .listen((line) {
-        _logger.w('SSH STDERR: $line',
+          .listen(_handleLog);
+
+      _process!.exitCode.then((code) {
+        _logger.w('Cloudflared process exited with code $code',
             context: const LogContext(component: 'TunnelService'));
-        if (line.contains('Permission denied') || line.contains('failed')) {
-          state = state.copyWith(status: 'SSH Error: $line');
-        }
-      });
-
-      // Wait a few seconds to see if it connects, or handle exit
-      _sshProcess!.exitCode.then((code) {
-        if (!urlFound) {
+        if (state.status != TunnelStatus.stopped) {
           state = state.copyWith(
-              status: 'SSH exited with code $code', isConnected: false);
-          _logger.e('SSH process exited prematurely with code $code',
-              context: const LogContext(component: 'TunnelService'));
+            status: TunnelStatus.error,
+            error: 'Process exited with code $code',
+          );
         }
         _cleanup();
       });
-
-      // Timeout if nothing found in 10 seconds
-      Future.delayed(const Duration(seconds: 10), () {
-        if (!state.isConnected && state.status == 'Initializing SSH...') {
-          state = state.copyWith(status: 'Connection timeout');
-          disconnect();
-        }
-      });
     } catch (e) {
-      state =
-          state.copyWith(status: 'Error launching SSH: $e', isConnected: false);
+      state = state.copyWith(
+        status: TunnelStatus.error,
+        error: 'Failed to launch cloudflared: $e',
+      );
       _logger.e('Tunnel startup failed: $e',
           context: const LogContext(component: 'TunnelService'));
       _cleanup();
+    }
+  }
+
+  Future<void> connectQuick(int localPort) async {
+    if (_process != null) await disconnect();
+
+    state = state.copyWith(status: TunnelStatus.starting, error: null);
+
+    _logger.i(
+      'Starting cloudflared quick tunnel for port $localPort',
+      context: const LogContext(component: 'TunnelService'),
+    );
+
+    try {
+      // Command: cloudflared tunnel --no-autoupdate run --url http://localhost:PORT
+      _process = await Process.start(
+        'cloudflared',
+        ['tunnel', '--no-autoupdate', '--url', 'http://localhost:$localPort'],
+      );
+
+      _stdoutSub = _process!.stdout
+          .transform(utf8.decoder)
+          .transform(const LineSplitter())
+          .listen(_handleLog);
+
+      _stderrSub = _process!.stderr
+          .transform(utf8.decoder)
+          .transform(const LineSplitter())
+          .listen(_handleLog);
+
+      _process!.exitCode.then((code) {
+        _logger.w('Cloudflared quick tunnel process exited with code $code',
+            context: const LogContext(component: 'TunnelService'));
+        if (state.status != TunnelStatus.stopped) {
+          state = state.copyWith(
+            status: TunnelStatus.error,
+            error: 'Process exited with code $code',
+          );
+        }
+        _cleanup();
+      });
+    } catch (e) {
+      state = state.copyWith(
+        status: TunnelStatus.error,
+        error: 'Failed to launch cloudflared: $e',
+      );
+      _logger.e('Tunnel startup failed: $e',
+          context: const LogContext(component: 'TunnelService'));
+      _cleanup();
+    }
+  }
+
+  void _handleLog(String line) {
+    // If not JSON, it might be a quick tunnel notification
+    if (!line.trim().startsWith('{')) {
+      if (line.contains('https://') && line.contains('.trycloudflare.com')) {
+        final urlMatch = RegExp(r'https://[a-zA-Z0-9-]+\.trycloudflare\.com')
+            .firstMatch(line);
+        if (urlMatch != null) {
+          _processEvent(QuickTunnelEvent(url: urlMatch.group(0)!));
+          return;
+        }
+      }
+    }
+
+    final event = CloudflaredLogParser.parseLine(line);
+    if (event == null) {
+      // Handle non-JSON logs or noise
+      if (line.isNotEmpty) {
+        _logger.d('Cloudflared log: $line',
+            context: const LogContext(component: 'TunnelService'));
+      }
+      return;
+    }
+
+    _processEvent(event);
+  }
+
+  void _processEvent(CloudflaredEvent event) {
+    switch (event) {
+      case RegisteredEvent():
+        state = state.copyWith(
+          tunnelId: event.id,
+        );
+        _logger.i('Tunnel registered: ${event.id}',
+            context: const LogContext(component: 'TunnelService'));
+      case QuickTunnelEvent():
+        state = state.copyWith(
+          publicUrl: event.url,
+          status: TunnelStatus
+              .connected, // Quick tunnels are connected when URL is issued
+        );
+        _logger.i('Quick tunnel created: ${event.url}',
+            context: const LogContext(component: 'TunnelService'));
+      case ConnectedEvent():
+        final newConnections = List<String>.from(state.connections)
+          ..add(event.id);
+        state = state.copyWith(
+          status: TunnelStatus.connected,
+          connections: newConnections,
+        );
+        _logger.i('Connector connected: ${event.id} at ${event.location}',
+            context: const LogContext(component: 'TunnelService'));
+      case DisconnectedEvent():
+        final newConnections = List<String>.from(state.connections)
+          ..remove(event.id);
+        final newStatus = (newConnections.isEmpty && state.publicUrl == null)
+            ? TunnelStatus.reconnecting
+            : state.status;
+        state = state.copyWith(
+          status: newStatus,
+          connections: newConnections,
+        );
+        _logger.w(
+            'Connector disconnected: ${event.id}, reason: ${event.reason}',
+            context: const LogContext(component: 'TunnelService'));
+      case ErrorEvent():
+        state = state.copyWith(
+          status: TunnelStatus.error,
+          error: event.message,
+        );
+        _logger.e('Cloudflared error: ${event.message}',
+            context: const LogContext(component: 'TunnelService'));
+      case LogEvent():
+        // Optional: process other specific log messages if needed
+        break;
     }
   }
 
@@ -143,14 +245,14 @@ class TunnelNotifier extends Notifier<TunnelState> {
     _stderrSub?.cancel();
     _stdoutSub = null;
     _stderrSub = null;
-    _sshProcess = null;
+    _process = null;
   }
 
   Future<void> disconnect() async {
-    _sshProcess?.kill();
+    _process?.kill();
     _cleanup();
     state = TunnelState.initial();
-    _logger.i('Tunnel disconnected and process killed',
+    _logger.i('Tunnel disconnected',
         context: const LogContext(component: 'TunnelService'));
   }
 }

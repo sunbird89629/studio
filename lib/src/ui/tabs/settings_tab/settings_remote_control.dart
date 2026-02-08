@@ -115,28 +115,53 @@ class RemoteControlSettingsView extends ConsumerWidget {
               const SizedBox(height: 24),
 
               // Intranet Penetration
-              const Text('Intranet Penetration',
+              const Text('Cloudflare Tunnel',
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
               const SizedBox(height: 8),
-              const Text('Expose your local terminal to the public internet.',
+              const Text(
+                  'Expose your local terminal to the public internet via cloudflared.',
                   style: TextStyle(color: Colors.grey, fontSize: 13)),
+              const SizedBox(height: 16),
+
+              InfoLabel(
+                label: 'Cloudflare Tunnel Token',
+                child: TextFormBox(
+                  placeholder: 'Paste your tunnel token here',
+                  initialValue: remoteState.cloudflaredToken,
+                  onChanged: (v) => ref
+                      .read(remoteControlServiceProvider.notifier)
+                      .setCloudflaredToken(v),
+                ),
+              ),
+
               const SizedBox(height: 16),
 
               Row(
                 children: [
                   FilledButton(
-                    onPressed: tunnelState.isConnected
+                    onPressed: (tunnelState.status != TunnelStatus.stopped)
+                        ? null
+                        : () => ref
+                            .read(tunnelServiceProvider.notifier)
+                            .connectQuick(remoteState.port),
+                    child: const Text('Quick Tunnel (TryCloudflare)'),
+                  ),
+                  const SizedBox(width: 8),
+                  Button(
+                    onPressed: (tunnelState.isConnected ||
+                            remoteState.cloudflaredToken == null ||
+                            remoteState.cloudflaredToken!.isEmpty)
                         ? null
                         : () =>
                             ref.read(tunnelServiceProvider.notifier).connect(
-                                  remoteState.port,
-                                  remoteState.authToken ?? "",
+                                  remoteState.cloudflaredToken!,
                                 ),
-                    child: Text(tunnelState.isConnected
-                        ? 'Penetration Active'
-                        : 'Enable Public Access'),
+                    child: Text(
+                        tunnelState.isConnected && tunnelState.publicUrl == null
+                            ? 'Tunnel Active'
+                            : 'Start Persistent Tunnel'),
                   ),
-                  if (tunnelState.isConnected) ...[
+                  if (tunnelState.status != TunnelStatus.stopped) ...[
                     const SizedBox(width: 8),
                     Button(
                       onPressed: () =>
@@ -147,36 +172,72 @@ class RemoteControlSettingsView extends ConsumerWidget {
                 ],
               ),
 
-              if (tunnelState.isConnected) ...[
-                const SizedBox(height: 16),
-                InfoLabel(
-                  label: 'Public Access URL',
+              if (tunnelState.publicUrl != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 16.0),
+                  child: InfoLabel(
+                    label: 'Public Access URL',
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextFormBox(
+                            readOnly: true,
+                            initialValue: tunnelState.publicUrl,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Button(
+                          child: const Icon(FluentIcons.copy),
+                          onPressed: () {
+                            Clipboard.setData(ClipboardData(
+                                text: tunnelState.publicUrl ?? ''));
+                          },
+                        ),
+                        const SizedBox(width: 8),
+                        Tooltip(
+                          message: 'Copy with Token',
+                          child: Button(
+                            child: const Icon(FluentIcons.share),
+                            onPressed: () {
+                              final urlWithToken =
+                                  '${tunnelState.publicUrl}?token=${remoteState.authToken}';
+                              Clipboard.setData(
+                                  ClipboardData(text: urlWithToken));
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+              if (tunnelState.status != TunnelStatus.stopped)
+                Padding(
+                  padding: const EdgeInsets.only(top: 12.0),
                   child: Row(
                     children: [
-                      Expanded(
-                        child: TextFormBox(
-                          readOnly: true,
-                          initialValue: tunnelState.publicUrl,
+                      if (tunnelState.status != TunnelStatus.connected)
+                        const Padding(
+                          padding: EdgeInsets.only(right: 8.0),
+                          child: SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: ProgressRing(strokeWidth: 2),
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      Button(
-                        child: const Icon(FluentIcons.copy),
-                        onPressed: () {
-                          Clipboard.setData(
-                              ClipboardData(text: tunnelState.publicUrl ?? ''));
-                        },
-                      ),
+                      Text('Status: ${tunnelState.status.name}',
+                          style: const TextStyle(color: Colors.grey)),
                     ],
                   ),
                 ),
-              ],
 
-              if (tunnelState.status != null && !tunnelState.isConnected)
+              if (tunnelState.error != null)
                 Padding(
                   padding: const EdgeInsets.only(top: 8.0),
-                  child: Text(tunnelState.status!,
-                      style: const TextStyle(color: Colors.grey)),
+                  child: Text(
+                    'Error: ${tunnelState.error!}',
+                    style: TextStyle(color: Colors.red),
+                  ),
                 ),
 
               const SizedBox(height: 32),
