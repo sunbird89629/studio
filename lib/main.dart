@@ -26,6 +26,9 @@ import 'package:terminal_studio/src/core/state/theme.dart';
 import 'package:terminal_studio/src/core/state/copilot.dart';
 import 'package:terminal_studio/src/ui/copilot_sidebar.dart';
 import 'package:terminal_studio/src/core/service/notification_service.dart';
+import 'package:terminal_studio/src/core/service/log_service.dart';
+import 'package:terminal_studio/src/core/state/log_visible.dart';
+import 'package:terminal_studio/src/ui/log_sidebar.dart';
 import 'package:window_manager/window_manager.dart';
 
 Future<void> main() async {
@@ -39,6 +42,9 @@ Future<void> main() async {
   );
 
   initWindow();
+
+  // Initialize LogService
+  await LogService.instance.initialize();
 
   runApp(
     ProviderScope(
@@ -156,6 +162,7 @@ class _HomeState extends ConsumerState<Home> {
     final brightness = ref.watch(activeThemeProvider).brightness;
 
     final copilotVisible = ref.watch(copilotVisibleProvider);
+    final logVisible = ref.watch(logVisibleProvider);
 
     Widget content = TabsView(
       ref.watch(tabsProvider),
@@ -171,6 +178,19 @@ class _HomeState extends ConsumerState<Home> {
           const SizedBox(
             width: 300,
             child: CopilotSidebar(),
+          ),
+        ],
+      );
+    }
+
+    if (logVisible) {
+      content = Row(
+        children: [
+          Expanded(child: content),
+          const Divider(direction: Axis.vertical),
+          const SizedBox(
+            width: 400,
+            child: LogSidebar(),
           ),
         ],
       );

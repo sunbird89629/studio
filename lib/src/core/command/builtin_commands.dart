@@ -4,6 +4,7 @@ import 'package:terminal_studio/src/core/command/command.dart';
 import 'package:terminal_studio/src/core/service/active_tab_service.dart';
 import 'package:terminal_studio/src/core/service/tabs_service.dart';
 import 'package:terminal_studio/src/core/service/window_service.dart';
+import 'package:terminal_studio/src/core/state/log_visible.dart';
 import 'package:terminal_studio/src/hosts/local_spec.dart';
 import 'package:terminal_studio/src/ui/shortcuts.dart' as shortcuts;
 import 'package:terminal_studio/src/ui/tabs/devtools_tab.dart';
@@ -23,6 +24,7 @@ final builtinCommands = <Command>[
   // View 类命令
   _OpenSettingsCommand(),
   _OpenDevToolsCommand(),
+  _ToggleLogPanelCommand(),
 
   // Tools
   _VimEditCommand(),
@@ -166,6 +168,23 @@ class _OpenDevToolsCommand extends Command {
   @override
   void execute(BuildContext context, WidgetRef ref) {
     ref.openTab(DevToolsTab());
+  }
+}
+
+class _ToggleLogPanelCommand extends Command {
+  @override
+  String get id => 'view.toggleLogPanel';
+
+  @override
+  String get label => 'Toggle Log Panel';
+
+  @override
+  String get category => 'View';
+
+  @override
+  void execute(BuildContext context, WidgetRef ref) {
+    final current = ref.read(logVisibleProvider);
+    ref.read(logVisibleProvider.notifier).state = !current;
   }
 }
 
