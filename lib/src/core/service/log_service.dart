@@ -67,9 +67,19 @@ class LogService {
   }
 
   // 便捷方法
-  void debug(String channel, String message,
-          {int? pid, Map<String, dynamic>? meta}) =>
-      log(channel, LogLevel.debug, message, pid: pid, meta: meta);
+  void debug(
+    String channel,
+    String message, {
+    int? pid,
+    Map<String, dynamic>? meta,
+  }) =>
+      log(
+        channel,
+        LogLevel.debug,
+        message,
+        pid: pid,
+        meta: meta,
+      );
 
   void info(String channel, String message,
           {int? pid, Map<String, dynamic>? meta}) =>
