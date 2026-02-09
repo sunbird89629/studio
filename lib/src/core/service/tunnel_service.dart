@@ -4,7 +4,7 @@ import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_studio/src/core/model/cloudflared_event.dart';
-import 'package:terminal_studio/src/core/utils/ai_logger.dart';
+import 'package:terminal_studio/src/core/service/log_service.dart';
 import 'package:terminal_studio/src/core/utils/cloudflared_log_parser.dart';
 
 enum TunnelStatus {
@@ -63,7 +63,7 @@ class TunnelState {
 }
 
 class TunnelNotifier extends Notifier<TunnelState> {
-  final _logger = AILogger();
+  static const _channel = 'tunnel';
   Process? _process;
   StreamSubscription? _stdoutSub;
   StreamSubscription? _stderrSub;
@@ -106,10 +106,7 @@ class TunnelNotifier extends Notifier<TunnelState> {
 
     state = state.copyWith(status: TunnelStatus.starting, error: null);
 
-    _logger.i(
-      'Starting cloudflared tunnel',
-      context: const LogContext(component: 'TunnelService'),
-    );
+    LogService.instance.info(_channel, 'Starting cloudflared tunnel');
 
     try {
       // Command: cloudflared tunnel --no-autoupdate run --token TOKEN
@@ -140,8 +137,11 @@ class TunnelNotifier extends Notifier<TunnelState> {
           .listen(_handleLog);
 
       _process!.exitCode.then((code) {
-        _logger.w('Cloudflared process exited with code $code',
-            context: const LogContext(component: 'TunnelService'));
+        LogService.instance.warning(
+          _channel,
+          'Cloudflared process exited with code $code',
+          pid: _process?.pid,
+        );
         if (state.status != TunnelStatus.stopped) {
           state = state.copyWith(
             status: TunnelStatus.error,
@@ -155,8 +155,10 @@ class TunnelNotifier extends Notifier<TunnelState> {
         status: TunnelStatus.error,
         error: 'Failed to launch cloudflared: $e',
       );
-      _logger.e('Tunnel startup failed: $e',
-          context: const LogContext(component: 'TunnelService'));
+      LogService.instance.error(
+        _channel,
+        'Tunnel startup failed: $e',
+      );
       _cleanup();
     }
   }
@@ -166,9 +168,9 @@ class TunnelNotifier extends Notifier<TunnelState> {
 
     state = state.copyWith(status: TunnelStatus.starting, error: null);
 
-    _logger.i(
+    LogService.instance.info(
+      _channel,
       'Starting cloudflared quick tunnel for port $localPort',
-      context: const LogContext(component: 'TunnelService'),
     );
 
     try {
@@ -188,9 +190,9 @@ class TunnelNotifier extends Notifier<TunnelState> {
           .listen(_handleLog);
 
       process.exitCode.then((code) {
-        _logger.w(
+        LogService.instance.warning(
+          _channel,
           'Cloudflared quick tunnel process exited with code $code',
-          context: const LogContext(component: 'TunnelService'),
         );
         if (state.status != TunnelStatus.stopped) {
           state = state.copyWith(
@@ -205,8 +207,7 @@ class TunnelNotifier extends Notifier<TunnelState> {
         status: TunnelStatus.error,
         error: 'Failed to launch cloudflared: $e',
       );
-      _logger.e('Tunnel startup failed: $e',
-          context: const LogContext(component: 'TunnelService'));
+      LogService.instance.error(_channel, 'Tunnel startup failed: $e');
       _cleanup();
     }
   }
@@ -216,10 +217,7 @@ class TunnelNotifier extends Notifier<TunnelState> {
     if (event == null) {
       // Handle non-parsed logs or noise
       if (line.isNotEmpty) {
-        _logger.d(
-          'Cloudflared log: $line',
-          context: const LogContext(component: 'TunnelService'),
-        );
+        LogService.instance.debug(_channel, 'Cloudflared log: $line');
       }
       return;
     }
@@ -233,9 +231,10 @@ class TunnelNotifier extends Notifier<TunnelState> {
         state = state.copyWith(
           tunnelId: event.id,
         );
-        _logger.i(
+        LogService.instance.info(
+          _channel,
           'Tunnel registered: ${event.id}',
-          context: const LogContext(component: 'TunnelService'),
+          meta: {'tunnelId': event.id},
         );
       case QuickTunnelEvent():
         state = state.copyWith(
@@ -243,9 +242,10 @@ class TunnelNotifier extends Notifier<TunnelState> {
           status: TunnelStatus
               .connected, // Quick tunnels are connected when URL is issued
         );
-        _logger.i(
+        LogService.instance.info(
+          _channel,
           'Quick tunnel created: ${event.url}',
-          context: const LogContext(component: 'TunnelService'),
+          meta: {'url': event.url},
         );
       case ConnectedEvent():
         final newConnections = List<String>.from(state.connections)
@@ -254,9 +254,10 @@ class TunnelNotifier extends Notifier<TunnelState> {
           status: TunnelStatus.connected,
           connections: newConnections,
         );
-        _logger.i(
+        LogService.instance.info(
+          _channel,
           'Connector connected: ${event.id} at ${event.location}',
-          context: const LogContext(component: 'TunnelService'),
+          meta: {'connectionId': event.id, 'location': event.location},
         );
       case DisconnectedEvent():
         final newConnections = List<String>.from(state.connections)
@@ -268,18 +269,19 @@ class TunnelNotifier extends Notifier<TunnelState> {
           status: newStatus,
           connections: newConnections,
         );
-        _logger.w(
+        LogService.instance.warning(
+          _channel,
           'Connector disconnected: ${event.id}, reason: ${event.reason}',
-          context: const LogContext(component: 'TunnelService'),
+          meta: {'connectionId': event.id, 'reason': event.reason},
         );
       case ErrorEvent():
         state = state.copyWith(
           status: TunnelStatus.error,
           error: event.message,
         );
-        _logger.e(
+        LogService.instance.error(
+          _channel,
           'Cloudflared error: ${event.message}',
-          context: const LogContext(component: 'TunnelService'),
         );
       case LogEvent():
         // Optional: process other specific log messages if needed
@@ -299,8 +301,7 @@ class TunnelNotifier extends Notifier<TunnelState> {
     _process?.kill();
     _cleanup();
     state = TunnelState.initial();
-    _logger.i('Tunnel disconnected',
-        context: const LogContext(component: 'TunnelService'));
+    LogService.instance.info(_channel, 'Tunnel disconnected');
   }
 }
 
