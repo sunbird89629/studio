@@ -213,16 +213,11 @@ class TunnelNotifier extends Notifier<TunnelState> {
   }
 
   void _handleLog(String line) {
+    LogService.instance.debug(_channel, 'Cloudflared log: $line');
     final event = CloudflaredLogParser.parseLine(line);
-    if (event == null) {
-      // Handle non-parsed logs or noise
-      if (line.isNotEmpty) {
-        LogService.instance.debug(_channel, 'Cloudflared log: $line');
-      }
-      return;
+    if (event != null) {
+      _processEvent(event);
     }
-
-    _processEvent(event);
   }
 
   void _processEvent(CloudflaredEvent event) {
