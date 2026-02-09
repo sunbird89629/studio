@@ -68,6 +68,12 @@ class TunnelNotifier extends Notifier<TunnelState> {
   StreamSubscription? _stdoutSub;
   StreamSubscription? _stderrSub;
 
+  /// Homebrew PATH for GUI apps that don't inherit shell PATH
+  Map<String, String> get _processEnvironment => {
+        'PATH':
+            '/opt/homebrew/bin:/usr/local/bin:${Platform.environment['PATH'] ?? ''}',
+      };
+
   @override
   TunnelState build() {
     return TunnelState.initial();
@@ -124,7 +130,11 @@ class TunnelNotifier extends Notifier<TunnelState> {
       final args =
           Platform.isMacOS ? ['-i', 'cloudflared', ...baseArgs] : baseArgs;
 
-      _process = await Process.start(executable, args);
+      _process = await Process.start(
+        executable,
+        args,
+        environment: _processEnvironment,
+      );
 
       _stdoutSub = _process!.stdout
           .transform(utf8.decoder)
@@ -177,6 +187,7 @@ class TunnelNotifier extends Notifier<TunnelState> {
       final process = await Process.start(
         tunnelCommand.executable,
         tunnelCommand.args,
+        environment: _processEnvironment,
       );
 
       _stdoutSub = process.stdout
