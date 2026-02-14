@@ -14,6 +14,7 @@ import 'package:terminal_studio/src/plugins/terminal/terminal_menu.dart';
 import 'package:terminal_studio/src/ui/shortcut/intents.dart';
 import 'package:terminal_studio/src/ui/shortcuts.dart' as shortcuts;
 import 'package:terminal_studio/src/core/service/remote_control_service.dart';
+import 'package:terminal_studio/src/ui/shared/animated_cursor.dart';
 import 'package:xterm/xterm.dart';
 
 class TerminalPlugin extends Plugin {
@@ -191,8 +192,8 @@ class _TerminalTabViewState extends ConsumerState<TerminalTabView> {
           backgroundColor: Colors.transparent,
           child: SafeArea(
             child: ClipRect(
-              child: TerminalView(
-                widget.plugin.terminal,
+              child: AnimatedCursorTerminalView(
+                terminal: widget.plugin.terminal,
                 textStyle: style,
                 controller: widget.plugin.terminalController,
                 onSecondaryTapDown: (_, __) => showMenu(),
