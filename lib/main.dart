@@ -25,7 +25,6 @@ import 'package:terminal_studio/src/ui/copilot_sidebar.dart';
 import 'package:terminal_studio/src/ui/log_sidebar.dart';
 import 'package:terminal_studio/src/ui/platform_menu.dart';
 import 'package:terminal_studio/src/ui/shared/fluent_menu_card.dart';
-import 'package:terminal_studio/src/ui/shared/macos_titlebar.dart';
 import 'package:terminal_studio/src/ui/shared/release_notes_dialog.dart';
 import 'package:terminal_studio/src/ui/shortcut/global_actions.dart';
 import 'package:terminal_studio/src/ui/shortcut/global_shortcuts.dart';
@@ -230,9 +229,11 @@ class _HomeState extends ConsumerState<Home> {
     Brightness brightness,
   ) {
     if (defaultTargetPlatform == TargetPlatform.macOS) {
-      return MacosTitlebar(
-        color: tabsTheme.selectedBackgroundColor,
-      );
+      // i like no tab
+      // return MacosTitlebar(
+      //   color: tabsTheme.selectedBackgroundColor,
+      // );
+      return SizedBox.shrink();
     }
 
     return SizedBox(
