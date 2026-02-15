@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_studio/src/core/state/settings.dart';
 import 'package:terminal_studio/src/ui/tabs/settings_tab/settings_remote_control.dart';
 import 'package:terminal_studio/src/ui/tabs/settings_tab/settings_tab_hosts.dart';
+import 'package:terminal_studio/src/ui/tabs/settings_tab/about_settings_view.dart';
 
 class SettingsTab extends TabItem {
   SettingsTab() {
@@ -59,6 +60,11 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
               icon: const Icon(FluentIcons.remote),
               title: const Text('Remote Control'),
               body: const RemoteControlSettingsView(),
+            ),
+            PaneItem(
+              icon: const Icon(FluentIcons.info),
+              title: const Text('About'),
+              body: const AboutSettingsView(),
             ),
           ],
         ),

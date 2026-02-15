@@ -9,26 +9,28 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_devtools/riverpod_devtools.dart';
+import 'package:terminal_studio/src/core/service/log_service.dart';
+import 'package:terminal_studio/src/core/service/notification_service.dart';
+import 'package:terminal_studio/src/core/service/release_notes_service.dart';
 import 'package:terminal_studio/src/core/service/tabs_service.dart';
+import 'package:terminal_studio/src/core/state/copilot.dart';
+import 'package:terminal_studio/src/core/state/log_visible.dart';
 import 'package:terminal_studio/src/core/state/tabs.dart';
+import 'package:terminal_studio/src/core/state/theme.dart';
 import 'package:terminal_studio/src/core/utils/ai_logger.dart';
 import 'package:terminal_studio/src/hosts/local_spec.dart';
 import 'package:terminal_studio/src/ui/command_palette/command_palette_overlay.dart';
-import 'package:terminal_studio/src/ui/vim_edit/vim_edit_overlay.dart';
 import 'package:terminal_studio/src/ui/context_menu.dart';
+import 'package:terminal_studio/src/ui/copilot_sidebar.dart';
+import 'package:terminal_studio/src/ui/log_sidebar.dart';
 import 'package:terminal_studio/src/ui/platform_menu.dart';
 import 'package:terminal_studio/src/ui/shared/fluent_menu_card.dart';
 import 'package:terminal_studio/src/ui/shared/macos_titlebar.dart';
+import 'package:terminal_studio/src/ui/shared/release_notes_dialog.dart';
 import 'package:terminal_studio/src/ui/shortcut/global_actions.dart';
 import 'package:terminal_studio/src/ui/shortcut/global_shortcuts.dart';
+import 'package:terminal_studio/src/ui/vim_edit/vim_edit_overlay.dart';
 import 'package:terminal_studio/src/util/provider_logger.dart';
-import 'package:terminal_studio/src/core/state/theme.dart';
-import 'package:terminal_studio/src/core/state/copilot.dart';
-import 'package:terminal_studio/src/ui/copilot_sidebar.dart';
-import 'package:terminal_studio/src/core/service/notification_service.dart';
-import 'package:terminal_studio/src/core/service/log_service.dart';
-import 'package:terminal_studio/src/core/state/log_visible.dart';
-import 'package:terminal_studio/src/ui/log_sidebar.dart';
 import 'package:window_manager/window_manager.dart';
 
 Future<void> main() async {
@@ -140,6 +142,18 @@ class _HomeState extends ConsumerState<Home> {
     document.addListener(_onDocumentChanged);
 
     document.setRoot(root);
+
+    // Check for release notes
+    final releaseNotesService = ref.read(releaseNotesServiceProvider);
+    if (await releaseNotesService.checkNewVersion()) {
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        builder: (context) => const ReleaseNotesDialog(),
+      );
+      final version = await releaseNotesService.getAppVersion();
+      await releaseNotesService.markVersionAsSeen(version);
+    }
   }
 
   void _onDocumentChanged() {
@@ -176,7 +190,7 @@ class _HomeState extends ConsumerState<Home> {
           Expanded(child: content),
           const Divider(direction: Axis.vertical),
           const SizedBox(
-            width: 300,
+            width: 600,
             child: CopilotSidebar(),
           ),
         ],

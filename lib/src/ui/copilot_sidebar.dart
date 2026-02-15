@@ -1,7 +1,24 @@
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../core/service/ai_service.dart';
 import '../core/state/settings.dart';
+
+final aiModelsProvider = FutureProvider<List<String>>((ref) async {
+  final service = ref.read(aiCopilotServiceProvider);
+  final models = await service.listModels();
+  return models.map((e) => e.id).toList();
+});
+
+final selectedModelProvider =
+    NotifierProvider<SelectedModelNotifier, String?>(SelectedModelNotifier.new);
+
+class SelectedModelNotifier extends Notifier<String?> {
+  @override
+  String? build() => null;
+
+  void set(String? value) => state = value;
+}
 
 class CopilotSidebar extends ConsumerStatefulWidget {
   const CopilotSidebar({super.key});
@@ -26,7 +43,8 @@ class _CopilotSidebarState extends ConsumerState<CopilotSidebar> {
     });
 
     final aiService = ref.read(aiCopilotServiceProvider);
-    final response = await aiService.chat(text);
+    final selectedModel = ref.read(selectedModelProvider);
+    final response = await aiService.chat(text, model: selectedModel);
 
     if (mounted) {
       setState(() {
@@ -42,33 +60,15 @@ class _CopilotSidebarState extends ConsumerState<CopilotSidebar> {
 
     return settingsAsync.when(
       data: (settings) {
-        final hasApiKey = settings.aiApiKey?.isNotEmpty ?? false;
-
-        if (!hasApiKey) {
-          return Center(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(FluentIcons.robot, size: 48),
-                  const SizedBox(height: 16),
-                  const Text('AI Copilot is not configured.'),
-                  const SizedBox(height: 8),
-                  const Text(
-                      'Please add your OpenRouter API Key in settings to enable this feature.'),
-                  const SizedBox(height: 16),
-                  Button(
-                    child: const Text('Open Settings'),
-                    onPressed: () {
-                      // TODO: Trigger settings dialog or navigate to settings
-                    },
-                  ),
-                ],
-              ),
-            ),
-          );
-        }
+        // Since we are using hardcoded keys for now, we might not strictly need this check,
+        // but it's good practice. For now, let's assume if it's not configured in settings,
+        // we might still want to show it because we hardcoded it?
+        // Actually, the previous code showed a warning if not configured.
+        // Given we are overriding in service, let's skip the check or assume
+        // the user might have empty settings but we proceed.
+        // HOWEVER, to be safe and consistent with previous behavior:
+        // If the service is using hardcoded values, we can skip the check on settings.
+        // Let's just show the UI.
 
         return Column(
           children: [
@@ -88,6 +88,8 @@ class _CopilotSidebarState extends ConsumerState<CopilotSidebar> {
                     style: FluentTheme.of(context).typography.subtitle,
                   ),
                   const Spacer(),
+                  _buildModelSwitcher(),
+                  const SizedBox(width: 8),
                   IconButton(
                     icon: const Icon(FluentIcons.clear),
                     onPressed: () => setState(() => _messages.clear()),
@@ -158,6 +160,49 @@ class _CopilotSidebarState extends ConsumerState<CopilotSidebar> {
       },
       loading: () => const Center(child: ProgressRing()),
       error: (e, s) => Center(child: Text('Error: $e')),
+    );
+  }
+
+  Widget _buildModelSwitcher() {
+    final modelsAsync = ref.watch(aiModelsProvider);
+    final selectedModel = ref.watch(selectedModelProvider);
+
+    return modelsAsync.when(
+      data: (models) {
+        if (models.isEmpty) return const SizedBox.shrink();
+
+        // Ensure selection is valid or default to first
+        final currentSelection =
+            selectedModel ?? (models.isNotEmpty ? models.first : null);
+        if (selectedModel == null && currentSelection != null) {
+          // Initialize selection
+          Future.microtask(() {
+            ref.read(selectedModelProvider.notifier).set(currentSelection);
+          });
+        }
+
+        return ComboBox<String>(
+          value: currentSelection,
+          items: models.map((e) {
+            return ComboBoxItem<String>(
+              value: e,
+              child: Text(e, overflow: TextOverflow.ellipsis),
+            );
+          }).toList(),
+          onChanged: (value) {
+            if (value != null) {
+              ref.read(selectedModelProvider.notifier).set(value);
+            }
+          },
+          placeholder: const Text('Select Model'),
+        );
+      },
+      loading: () => const SizedBox(
+        width: 16,
+        height: 16,
+        child: ProgressRing(strokeWidth: 2),
+      ),
+      error: (_, __) => const Icon(FluentIcons.error, size: 16),
     );
   }
 }

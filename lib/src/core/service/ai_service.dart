@@ -1,68 +1,62 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'package:dart_openai/dart_openai.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../state/settings.dart';
 import '../utils/ai_logger.dart';
 
 final aiCopilotServiceProvider = Provider((ref) {
-  final settingsAsync = ref.watch(settingsProvider);
-  return settingsAsync.when(
-    data: (settings) => AICopilotService(
-      apiKey: settings.aiApiKey,
-      modelName: settings.aiModel,
-    ),
-    loading: () => AICopilotService(
-        apiKey: null, modelName: 'google/gemini-2.0-flash-exp:free'),
-    error: (_, __) => AICopilotService(
-        apiKey: null, modelName: 'google/gemini-2.0-flash-exp:free'),
-  );
+  // We can still watch settings if we want to allow overriding,
+  // but for now, we'll initialize with the hardcoded values as requested.
+  // If the user changes settings, this provider will rebuild, but the service
+  // constructor might not need them if we hardcode inside the service or pass them here.
+  // Let's passed the hardcoded values here for now to match the "referencing tmp/test.dart" request.
+  ref.watch(settingsProvider); // Keep watching to allow future flexibility
+  return AICopilotService();
 });
 
 class AICopilotService {
-  final String? apiKey;
-  final String modelName;
   final AILogger _logger =
       AILogger(context: const LogContext(component: 'AICopilotService'));
 
-  AICopilotService({
-    required this.apiKey,
-    required this.modelName,
-  });
+  static const String _baseUrl = "https://cliapi.aaaabb.cc";
+  static const String _apiKey = "390ea36cb435840c2ad7823c5ffb7d5c";
+  static const String _defaultModel = "gemini-3-flash";
 
-  Future<String> _requestOpenRouter(List<Map<String, String>> messages) async {
-    if (apiKey == null || apiKey!.isEmpty) {
-      _logger.w('API Key is missing, AI features will not work.');
-      return 'Error: API Key not configured in settings.';
-    }
+  AICopilotService() {
+    OpenAI.baseUrl = _baseUrl;
+    OpenAI.apiKey = _apiKey;
+    // Optional: Set timeout
+    OpenAI.requestsTimeOut = const Duration(seconds: 60);
+  }
 
-    final url = Uri.parse('https://openrouter.ai/api/v1/chat/completions');
+  Future<List<OpenAIModelModel>> listModels() async {
     try {
-      final response = await http.post(
-        url,
-        headers: {
-          'Authorization': 'Bearer $apiKey',
-          'Content-Type': 'application/json',
-          'HTTP-Referer':
-              'https://github.com/TerminalStudio', // Optional, for OpenRouter tracking
-          'X-Title': 'TerminalStudio', // Optional
-        },
-        body: jsonEncode({
-          'model': modelName,
-          'messages': messages,
-        }),
+      final models = await OpenAI.instance.model.list();
+      return models;
+    } catch (e, stack) {
+      _logger.e('Failed to list models', error: e, stackTrace: stack);
+      return [];
+    }
+  }
+
+  Future<String> _chat(List<OpenAIChatCompletionChoiceMessageModel> messages,
+      {String? model}) async {
+    try {
+      final chatCompletion = await OpenAI.instance.chat.create(
+        model: model ?? _defaultModel,
+        messages: messages,
+        // maxTokens: 1000,
       );
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final content = data['choices'][0]['message']['content'];
-        return content?.trim() ?? 'No response content.';
+      if (chatCompletion.choices.isNotEmpty &&
+          chatCompletion.choices.first.message.content?.isNotEmpty == true) {
+        final content =
+            chatCompletion.choices.first.message.content!.first.text ?? '';
+        return content.trim();
       } else {
-        _logger.e(
-            'OpenRouter API error: ${response.statusCode} - ${response.body}');
-        return 'Error: AI Provider returned ${response.statusCode}. ${response.body}';
+        return 'No response content.';
       }
     } catch (e, stack) {
-      _logger.e('Failed to call OpenRouter', error: e, stackTrace: stack);
+      _logger.e('Failed to call AI Service', error: e, stackTrace: stack);
       return 'Error: Failed to connect to AI Provider. ${e.toString()}';
     }
   }
@@ -70,38 +64,59 @@ class AICopilotService {
   Future<String> generateCommand(String description) async {
     _logger.i('Generating command for: $description');
     final messages = [
-      {
-        'role': 'system',
-        'content':
-            'You are a terminal expert. Translate the following natural language description into a single, executable shell command for a POSIX-compliant shell. Return ONLY the command itself, no explanation, no markdown formatting (like ```bash), and no additional text.'
-      },
-      {'role': 'user', 'content': description},
+      OpenAIChatCompletionChoiceMessageModel(
+        role: OpenAIChatMessageRole.system,
+        content: [
+          OpenAIChatCompletionChoiceMessageContentItemModel.text(
+              'You are a terminal expert. Translate the following natural language description into a single, executable shell command for a POSIX-compliant shell. Return ONLY the command itself, no explanation, no markdown formatting (like ```bash), and no additional text.'),
+        ],
+      ),
+      OpenAIChatCompletionChoiceMessageModel(
+        role: OpenAIChatMessageRole.user,
+        content: [
+          OpenAIChatCompletionChoiceMessageContentItemModel.text(description),
+        ],
+      ),
     ];
 
-    return await _requestOpenRouter(messages);
+    return await _chat(messages);
   }
 
   Future<String> explainError(String errorOutput) async {
     _logger.i('Explaining error: ${errorOutput.take(100)}...');
+
     final messages = [
-      {
-        'role': 'system',
-        'content':
-            'You are a terminal expert. Explain the following terminal error message and suggest a brief solution. Keep the explanation concise and actionable.'
-      },
-      {'role': 'user', 'content': errorOutput},
+      OpenAIChatCompletionChoiceMessageModel(
+        role: OpenAIChatMessageRole.system,
+        content: [
+          OpenAIChatCompletionChoiceMessageContentItemModel.text(
+              'You are a terminal expert. Explain the following terminal error message and suggest a brief solution. Keep the explanation concise and actionable.'),
+        ],
+      ),
+      OpenAIChatCompletionChoiceMessageModel(
+        role: OpenAIChatMessageRole.user,
+        content: [
+          OpenAIChatCompletionChoiceMessageContentItemModel.text(errorOutput),
+        ],
+      ),
     ];
 
-    return await _requestOpenRouter(messages);
+    return await _chat(messages);
   }
 
-  Future<String> chat(String message) async {
-    _logger.i('Chatting with Copilot: $message');
+  Future<String> chat(String message, {String? model}) async {
+    _logger.i('Chatting with Copilot: $message (model: $model)');
+
     final messages = [
-      {'role': 'user', 'content': message},
+      OpenAIChatCompletionChoiceMessageModel(
+        role: OpenAIChatMessageRole.user,
+        content: [
+          OpenAIChatCompletionChoiceMessageContentItemModel.text(message),
+        ],
+      ),
     ];
 
-    return await _requestOpenRouter(messages);
+    return await _chat(messages, model: model);
   }
 }
 
