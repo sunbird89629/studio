@@ -61,11 +61,8 @@ Future<void> main() async {
 Future<void> initWindow() async {
   await windowManager.ensureInitialized();
   await windowManager.setBackgroundColor(const Color(0x00000000));
-  await windowManager.setTitle('OpenTerm');
-
-  if (defaultTargetPlatform != TargetPlatform.macOS) {
-    await windowManager.setTitleBarStyle(TitleBarStyle.hidden);
-  }
+  await windowManager.setTitle('');
+  await windowManager.setTitleBarStyle(TitleBarStyle.hidden);
 
   windowManager.waitUntilReadyToShow(null, () async {
     await windowManager.show();
@@ -171,7 +168,15 @@ class _HomeState extends ConsumerState<Home> {
 
   @override
   Widget build(BuildContext context) {
-    final tabsTheme = ref.watch(activeThemeProvider).tabsTheme;
+    // final tabsTheme = ref.watch(activeThemeProvider).tabsTheme;
+    final tabsTheme = TabsViewThemeData(
+      backgroundColor: Colors.transparent,
+      groupDividerColor: Colors.transparent,
+      selectedBackgroundColor: Colors.transparent,
+      tabSeparatorColor: Colors.transparent,
+      hoverBackgroundColor: Colors.transparent,
+      labelColor: Colors.white,
+    );
     final brightness = ref.watch(activeThemeProvider).brightness;
 
     final copilotVisible = ref.watch(copilotVisibleProvider);

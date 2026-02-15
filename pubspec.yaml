@@ -53,7 +53,9 @@ dependencies:
 
   context_menus: ^2.0.0+1
 
-  flex_tabs: ^0.2.0-pre
+  flex_tabs:
+    git:
+      url: https://github.com/sunbird89629/tabs.git
 
   file: ^7.0.1
 
