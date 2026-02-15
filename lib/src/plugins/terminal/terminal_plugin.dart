@@ -9,12 +9,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_studio/src/core/conn.dart';
 import 'package:terminal_studio/src/core/host.dart';
 import 'package:terminal_studio/src/core/plugin.dart';
+import 'package:terminal_studio/src/core/service/remote_control_service.dart';
 import 'package:terminal_studio/src/core/state/settings.dart';
 import 'package:terminal_studio/src/plugins/terminal/terminal_menu.dart';
 import 'package:terminal_studio/src/ui/shortcut/intents.dart';
 import 'package:terminal_studio/src/ui/shortcuts.dart' as shortcuts;
-import 'package:terminal_studio/src/core/service/remote_control_service.dart';
-import 'package:terminal_studio/src/ui/shared/animated_cursor.dart';
 import 'package:xterm/xterm.dart';
 
 class TerminalPlugin extends Plugin {
@@ -191,15 +190,24 @@ class _TerminalTabViewState extends ConsumerState<TerminalTabView> {
           key: ValueKey(widget.plugin),
           backgroundColor: Colors.transparent,
           child: SafeArea(
-            child: ClipRect(
-              child: AnimatedCursorTerminalView(
-                terminal: widget.plugin.terminal,
-                textStyle: style,
-                controller: widget.plugin.terminalController,
-                onSecondaryTapDown: (_, __) => showMenu(),
-                backgroundOpacity: 0.8,
-                autofocus: true,
-              ),
+            child:
+                // ClipRect(
+                //   child: AnimatedCursorTerminalView(
+                //     terminal: widget.plugin.terminal,
+                //     textStyle: style,
+                //     controller: widget.plugin.terminalController,
+                //     onSecondaryTapDown: (_, __) => showMenu(),
+                //     backgroundOpacity: 0.8,
+                //     autofocus: true,
+                //   ),
+                // ),
+                TerminalView(
+              widget.plugin.terminal,
+              textStyle: style,
+              controller: widget.plugin.terminalController,
+              onSecondaryTapDown: (_, __) => showMenu(),
+              backgroundOpacity: 0,
+              autofocus: true,
             ),
           ),
         );
