@@ -12,6 +12,7 @@ import 'package:terminal_studio/src/core/plugin.dart';
 import 'package:terminal_studio/src/core/service/remote_control_service.dart';
 import 'package:terminal_studio/src/core/state/settings.dart';
 import 'package:terminal_studio/src/plugins/terminal/terminal_menu.dart';
+import 'package:terminal_studio/src/plugins/terminal/xterm_fixes.dart'; // NEW
 import 'package:terminal_studio/src/ui/shortcut/intents.dart';
 import 'package:terminal_studio/src/ui/shortcuts.dart' as shortcuts;
 import 'package:xterm/xterm.dart';
@@ -37,7 +38,11 @@ class TerminalPlugin extends Plugin {
     // Read scrollback from settings (fallback to 10000)
     final settings = ref.read(settingsProvider).value;
     final scrollback = settings?.scrollback ?? 10000;
-    terminal = Terminal(maxLines: scrollback);
+    terminal = Terminal(
+      maxLines: scrollback,
+      inputHandler: fixedDefaultInputHandler, // FIXED
+      mouseHandler: fixedDefaultMouseHandler, // FIXED
+    );
 
     title.value = 'Connecting';
 
