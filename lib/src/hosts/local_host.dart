@@ -32,6 +32,7 @@ class LocalHost implements Host {
     Map<String, String>? environment,
     String? command,
     List<String>? args,
+    String? workingDirectory,
   }) async {
     final shellCommand =
         command != null ? _ShellCommand(command, args ?? []) : _platformShell;
@@ -52,12 +53,12 @@ class LocalHost implements Host {
         ...environment ?? {},
       };
 
-      final String? home = io.Platform.environment['HOME'];
+      final cwd = workingDirectory ?? io.Platform.environment['HOME'];
       final pty = Pty.start(
         resolvedCommand,
         arguments: shellCommand.args,
         environment: env,
-        workingDirectory: home,
+        workingDirectory: cwd,
         rows: height,
         columns: width,
       );

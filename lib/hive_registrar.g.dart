@@ -3,12 +3,16 @@
 // Check in to version control
 
 import 'package:hive_ce/hive.dart';
+import 'package:terminal_studio/src/core/record/keymap_record.dart';
+import 'package:terminal_studio/src/core/record/profile_record.dart';
 import 'package:terminal_studio/src/core/record/settings_record.dart';
 import 'package:terminal_studio/src/core/record/ssh_host_record.dart';
 import 'package:terminal_studio/src/core/record/ssh_key_record.dart';
 
 extension HiveRegistrar on HiveInterface {
   void registerAdapters() {
+    registerAdapter(KeymapRecordAdapter());
+    registerAdapter(ProfileRecordAdapter());
     registerAdapter(SSHHostRecordAdapter());
     registerAdapter(SSHKeyRecordAdapter());
     registerAdapter(SettingsRecordAdapter());
@@ -17,6 +21,8 @@ extension HiveRegistrar on HiveInterface {
 
 extension IsolatedHiveRegistrar on IsolatedHiveInterface {
   void registerAdapters() {
+    registerAdapter(KeymapRecordAdapter());
+    registerAdapter(ProfileRecordAdapter());
     registerAdapter(SSHHostRecordAdapter());
     registerAdapter(SSHKeyRecordAdapter());
     registerAdapter(SettingsRecordAdapter());

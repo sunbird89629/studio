@@ -18,6 +18,7 @@ abstract class Host {
     Map<String, String>? environment,
     String? command,
     List<String>? args,
+    String? workingDirectory,
   });
 
   Future<void> disconnect();

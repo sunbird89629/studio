@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
+import 'package:terminal_studio/src/core/record/profile_record.dart';
 import 'package:terminal_studio/src/core/record/ssh_host_record.dart';
 import 'package:terminal_studio/src/core/record/ssh_key_record.dart';
 import 'package:terminal_studio/src/core/record/settings_record.dart';
@@ -34,4 +35,18 @@ final settingsBoxProvider = FutureProvider<Box<SettingsRecord>>((ref) async {
   final hive = await ref.watch(hiveProvider.future);
   hive.registerAdapter(SettingsRecordAdapter());
   return hive.openBox<SettingsRecord>('settings');
+});
+
+// typeId: 3
+final profileBoxProvider = FutureProvider<Box<ProfileRecord>>((ref) async {
+  final hive = await ref.watch(hiveProvider.future);
+  hive.registerAdapter(ProfileRecordAdapter());
+  return hive.openBox<ProfileRecord>('profiles');
+});
+
+final profilesProvider = FutureProvider<List<ProfileRecord>>((ref) async {
+  final box = await ref.watch(profileBoxProvider.future);
+  final listener = box.watch().listen((event) => ref.invalidateSelf());
+  ref.onDispose(listener.cancel);
+  return box.values.toList();
 });
