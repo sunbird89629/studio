@@ -36,6 +36,7 @@ class SSHHost implements Host {
     Map<String, String>? environment,
     String? command,
     List<String>? args,
+    String? workingDirectory,
   }) async {
     final session = await client.shell(
       environment: environment,

@@ -30,6 +30,7 @@ class MockHost extends Host {
     int width = 80,
     String? command,
     List<String>? args,
+    String? workingDirectory,
   }) {
     throw UnimplementedError();
   }

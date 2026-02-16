@@ -17,7 +17,7 @@ import 'package:terminal_studio/src/ui/shortcuts.dart' as shortcuts;
 import 'package:xterm/xterm.dart';
 
 class TerminalPlugin extends Plugin {
-  final terminal = Terminal(maxLines: 10000);
+  late final Terminal terminal;
 
   final terminalController = TerminalController();
 
@@ -34,6 +34,11 @@ class TerminalPlugin extends Plugin {
 
   @override
   void didMounted() {
+    // Read scrollback from settings (fallback to 10000)
+    final settings = ref.read(settingsProvider).value;
+    final scrollback = settings?.scrollback ?? 10000;
+    terminal = Terminal(maxLines: scrollback);
+
     title.value = 'Connecting';
 
     terminal.onTitleChange = (title) {
@@ -61,9 +66,16 @@ class TerminalPlugin extends Plugin {
     title.value = 'Terminal';
     print('TerminalPlugin connected. requesting shell...');
 
+    // Read user settings for shell configuration
+    final settings = ref.read(settingsProvider).value;
+
     session = await host.shell(
       width: terminal.viewWidth,
       height: terminal.viewHeight,
+      command: settings?.shell,
+      args: settings?.shellArgs,
+      workingDirectory: settings?.workingDirectory,
+      environment: settings?.env,
     );
 
     print('Shell session created: $session');
@@ -176,15 +188,14 @@ class _TerminalTabViewState extends ConsumerState<TerminalTabView> {
 
     return settingsAsync.when(
       data: (settings) {
-        final style = settings.terminalFontFamily?.isNotEmpty == true
-            ? TerminalStyle(
-                fontSize: settings.terminalFontSize,
-                fontFamily: settings.terminalFontFamily!,
-              )
-            : TerminalStyle(
-                fontSize: settings.terminalFontSize,
-                fontFamily: 'Hack Nerd Font Mono',
-              );
+        final fontFamily = settings.terminalFontFamily?.isNotEmpty == true
+            ? settings.terminalFontFamily!
+            : 'Hack Nerd Font Mono';
+
+        final style = TerminalStyle(
+          fontSize: settings.terminalFontSize,
+          fontFamily: fontFamily,
+        );
 
         return CupertinoPageScaffold(
           key: ValueKey(widget.plugin),
@@ -206,7 +217,8 @@ class _TerminalTabViewState extends ConsumerState<TerminalTabView> {
               textStyle: style,
               controller: widget.plugin.terminalController,
               onSecondaryTapDown: (_, __) => showMenu(),
-              backgroundOpacity: 0,
+              backgroundOpacity: settings.backgroundOpacity,
+              padding: EdgeInsets.all(settings.padding),
               autofocus: true,
             ),
           ),
