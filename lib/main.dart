@@ -24,6 +24,7 @@ import 'package:terminal_studio/src/ui/context_menu.dart';
 import 'package:terminal_studio/src/ui/copilot_sidebar.dart';
 import 'package:terminal_studio/src/ui/log_sidebar.dart';
 import 'package:terminal_studio/src/ui/platform_menu.dart';
+import 'package:terminal_studio/src/ui/shared/debug_indicator.dart';
 import 'package:terminal_studio/src/ui/shared/fluent_menu_card.dart';
 import 'package:terminal_studio/src/ui/shared/release_notes_dialog.dart';
 import 'package:terminal_studio/src/ui/shortcut/global_actions.dart';
@@ -225,7 +226,16 @@ class _HomeState extends ConsumerState<Home> {
     //   widget = VirtualWindowFrame(child: widget);
     // }
 
-    return widget;
+    return Stack(
+      children: [
+        widget,
+        const Positioned(
+          bottom: 0,
+          right: 0,
+          child: DebugIndicator(),
+        ),
+      ],
+    );
   }
 
   Widget _buildTitlebar(
