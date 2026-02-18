@@ -1,5 +1,5 @@
 import 'package:flex_tabs/flex_tabs.dart';
-import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/material.dart';
 import 'package:terminal_studio/src/core/theme/theme_plugin.dart';
 
 /// Built-in light theme.
@@ -14,11 +14,15 @@ class LightTheme extends ThemePlugin {
   Brightness get brightness => Brightness.light;
 
   @override
-  FluentThemeData get fluentTheme => FluentThemeData(
+  ThemeData get theme => ThemeData(
+        useMaterial3: true,
         brightness: Brightness.light,
-        accentColor: Colors.blue,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.blue,
+          brightness: Brightness.light,
+          surface: const Color(0xFFF3F3F3),
+        ),
         scaffoldBackgroundColor: const Color(0xFFF3F3F3),
-        micaBackgroundColor: const Color(0xFFFFFFFF),
       );
 
   @override

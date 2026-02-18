@@ -1,4 +1,4 @@
-import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/material.dart';
 
 class FluentBackButton extends StatelessWidget {
   const FluentBackButton({super.key, this.onPressed});
@@ -7,14 +7,9 @@ class FluentBackButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return PaneItem(
-      icon: const Icon(FluentIcons.back, size: 14.0),
-      body: const SizedBox.shrink(),
-    ).build(
-      context,
-      false,
-      () => _onPressed(context),
-      displayMode: PaneDisplayMode.compact,
+    return IconButton(
+      icon: const Icon(Icons.arrow_back),
+      onPressed: () => _onPressed(context),
     );
   }
 

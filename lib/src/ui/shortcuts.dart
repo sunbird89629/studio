@@ -1,6 +1,6 @@
-import 'package:fluent_ui/fluent_ui.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:terminal_studio/src/util/target_platform.dart';
 
 // ── Action IDs ─────────────────────────────────────
@@ -245,4 +245,3 @@ String formatActivator(SingleActivator a) {
   parts.add(a.trigger.keyLabel);
   return parts.join(' + ');
 }
-

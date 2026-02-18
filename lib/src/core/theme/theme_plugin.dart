@@ -1,5 +1,5 @@
 import 'package:flex_tabs/flex_tabs.dart';
-import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/material.dart';
 import 'package:xterm/xterm.dart';
 
 /// Abstract base class for theme plugins.
@@ -25,8 +25,8 @@ abstract class ThemePlugin {
   /// The brightness of this theme (light or dark).
   Brightness get brightness;
 
-  /// Fluent UI theme data for the application shell.
-  FluentThemeData get fluentTheme;
+  /// Material UI theme data for the application shell.
+  ThemeData get theme;
 
   /// Theme data for the tabs component.
   TabsViewThemeData get tabsTheme;

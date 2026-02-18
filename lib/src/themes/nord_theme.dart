@@ -1,5 +1,5 @@
 import 'package:flex_tabs/flex_tabs.dart';
-import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/material.dart';
 import 'package:terminal_studio/src/core/theme/theme_plugin.dart';
 
 /// Nord theme - Arctic, north-bluish color palette.
@@ -14,14 +14,22 @@ class NordTheme extends ThemePlugin {
   Brightness get brightness => Brightness.dark;
 
   @override
-  FluentThemeData get fluentTheme => FluentThemeData(
-        brightness: Brightness.dark,
-        accentColor: AccentColor.swatch(const {
-          'normal': Color(0xFF88C0D0),
-        }),
-        scaffoldBackgroundColor: const Color(0xFF2E3440),
-        micaBackgroundColor: const Color(0xFF3B4252),
-      );
+  ThemeData get theme {
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: const Color(0xFF88C0D0),
+      brightness: Brightness.dark,
+      surface: const Color(0xFF2E3440),
+      primary: const Color(0xFF88C0D0),
+    );
+
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.dark,
+      colorScheme: colorScheme,
+      scaffoldBackgroundColor: const Color(0xFF2E3440),
+      dividerColor: const Color(0xFF3B4252),
+    );
+  }
 
   @override
   TabsViewThemeData get tabsTheme => const TabsViewThemeData(

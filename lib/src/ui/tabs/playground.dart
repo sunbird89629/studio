@@ -1,5 +1,5 @@
 import 'package:flex_tabs/flex_tabs.dart';
-import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/material.dart';
 
 class PlaygroundTab extends TabItem {
   PlaygroundTab() {
@@ -20,15 +20,23 @@ class _PlaygroundViewState extends State<PlaygroundView> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: const [
-        SizedBox(
-          width: 300,
-          height: 300,
-          child: Text('Hello'),
-        ),
-        Acrylic(),
-      ],
+    return Scaffold(
+      body: Stack(
+        children: [
+          const SizedBox(
+            width: 300,
+            height: 300,
+            child: Center(child: Text('Playground Content')),
+          ),
+          // Acrylic replacement if needed, for now just a semi-transparent surface
+          Positioned.fill(
+            child: Container(
+              color:
+                  Theme.of(context).colorScheme.surface.withValues(alpha: 0.1),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

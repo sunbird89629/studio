@@ -1,5 +1,5 @@
 import 'package:flex_tabs/flex_tabs.dart';
-import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/material.dart';
 import 'package:terminal_studio/src/core/theme/theme_plugin.dart';
 
 /// One Dark theme - Atom editor's iconic dark theme.
@@ -14,14 +14,22 @@ class OneDarkTheme extends ThemePlugin {
   Brightness get brightness => Brightness.dark;
 
   @override
-  FluentThemeData get fluentTheme => FluentThemeData(
-        brightness: Brightness.dark,
-        accentColor: AccentColor.swatch(const {
-          'normal': Color(0xFF61AFEF),
-        }),
-        scaffoldBackgroundColor: const Color(0xFF282C34),
-        micaBackgroundColor: const Color(0xFF21252B),
-      );
+  ThemeData get theme {
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: const Color(0xFF61AFEF),
+      brightness: Brightness.dark,
+      surface: const Color(0xFF282C34),
+      primary: const Color(0xFF61AFEF),
+    );
+
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.dark,
+      colorScheme: colorScheme,
+      scaffoldBackgroundColor: const Color(0xFF282C34),
+      dividerColor: const Color(0xFF3E4451),
+    );
+  }
 
   @override
   TabsViewThemeData get tabsTheme => const TabsViewThemeData(

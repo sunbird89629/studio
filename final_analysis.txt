@@ -1,0 +1,33 @@
+Analyzing studio...                                             
+
+   info • Don't invoke 'print' in production code • ci/build_macos.dart:5:5 • avoid_print
+   info • Don't invoke 'print' in production code • ci/build_macos.dart:8:5 • avoid_print
+   info • Don't invoke 'print' in production code • ci/build_macos.dart:11:7 • avoid_print
+   info • Don't invoke 'print' in production code • ci/build_macos.dart:12:7 • avoid_print
+   info • Don't invoke 'print' in production code • ci/build_macos.dart:14:7 • avoid_print
+   info • Don't invoke 'print' in production code • ci/build_macos.dart:17:5 • avoid_print
+   info • Don't invoke 'print' in production code • ci/build_macos.dart:36:7 • avoid_print
+   info • Don't invoke 'print' in production code • ci/build_macos.dart:40:5 • avoid_print
+   info • Don't invoke 'print' in production code • ci/build_macos.dart:46:7 • avoid_print
+   info • Don't invoke 'print' in production code • ci/build_macos.dart:50:5 • avoid_print
+   info • Don't invoke 'print' in production code • ci/build_macos.dart:54:7 • avoid_print
+   info • Don't invoke 'print' in production code • ci/build_macos.dart:57:9 • avoid_print
+   info • Don't invoke 'print' in production code • ci/build_macos.dart:58:9 • avoid_print
+   info • Don't invoke 'print' in production code • ci/build_macos.dart:67:7 • avoid_print
+   info • Don't invoke 'print' in production code • ci/build_macos.dart:68:7 • avoid_print
+   info • Don't invoke 'print' in production code • ci/build_macos.dart:72:5 • avoid_print
+   info • Don't invoke 'print' in production code • ci/build_macos.dart:74:5 • avoid_print
+   info • Don't invoke 'print' in production code • ci/build_macos.dart:75:5 • avoid_print
+   info • Don't invoke 'print' in production code • tmp/test.dart:19:3 • avoid_print
+   info • Don't invoke 'print' in production code • tmp/test.dart:27:5 • avoid_print
+   info • Don't invoke 'print' in production code • tmp/test.dart:45:7 • avoid_print
+   info • Don't invoke 'print' in production code • tmp/test.dart:46:7 • avoid_print
+   info • Don't invoke 'print' in production code • tmp/test.dart:48:7 • avoid_print
+   info • Don't invoke 'print' in production code • tmp/test.dart:51:5 • avoid_print
+   info • Don't invoke 'print' in production code • tmp/test.dart:58:5 • avoid_print
+   info • Don't invoke 'print' in production code • tmp/test.dart:68:5 • avoid_print
+   info • Don't invoke 'print' in production code • tmp/test.dart:84:5 • avoid_print
+   info • Don't invoke 'print' in production code • tmp/test.dart:86:5 • avoid_print
+   info • Don't invoke 'print' in production code • tmp/test.dart:93:3 • avoid_print
+   info • Don't invoke 'print' in production code • tmp/test.dart:96:5 • avoid_print
+

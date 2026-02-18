@@ -1,4 +1,4 @@
-import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/service/ai_service.dart';
@@ -57,108 +57,115 @@ class _CopilotSidebarState extends ConsumerState<CopilotSidebar> {
   @override
   Widget build(BuildContext context) {
     final settingsAsync = ref.watch(settingsProvider);
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return settingsAsync.when(
       data: (settings) {
-        // Since we are using hardcoded keys for now, we might not strictly need this check,
-        // but it's good practice. For now, let's assume if it's not configured in settings,
-        // we might still want to show it because we hardcoded it?
-        // Actually, the previous code showed a warning if not configured.
-        // Given we are overriding in service, let's skip the check or assume
-        // the user might have empty settings but we proceed.
-        // HOWEVER, to be safe and consistent with previous behavior:
-        // If the service is using hardcoded values, we can skip the check on settings.
-        // Let's just show the UI.
-
-        return Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                border: Border(
-                    bottom: BorderSide(
-                        color: FluentTheme.of(context).micaBackgroundColor)),
-              ),
-              child: Row(
-                children: [
-                  const Icon(FluentIcons.robot),
-                  const SizedBox(width: 8),
-                  Text(
-                    'AI Copilot',
-                    style: FluentTheme.of(context).typography.subtitle,
-                  ),
-                  const Spacer(),
-                  _buildModelSwitcher(),
-                  const SizedBox(width: 8),
-                  IconButton(
-                    icon: const Icon(FluentIcons.clear),
-                    onPressed: () => setState(() => _messages.clear()),
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              child: ListView.builder(
+        return Material(
+          color: colorScheme.surface,
+          child: Column(
+            children: [
+              Container(
                 padding: const EdgeInsets.all(12),
-                itemCount: _messages.length,
-                itemBuilder: (context, index) {
-                  final msg = _messages[index];
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: Column(
-                      crossAxisAlignment: msg.isUser
-                          ? CrossAxisAlignment.end
-                          : CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: msg.isUser
-                                ? FluentTheme.of(context).accentColor.lightest
-                                : FluentTheme.of(context).cardColor,
-                            borderRadius: BorderRadius.circular(8),
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(color: theme.dividerColor),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.smart_toy_outlined),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'AI Copilot',
+                        style: theme.textTheme.titleMedium,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    _buildModelSwitcher(),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      icon: const Icon(Icons.delete_outline),
+                      tooltip: 'Clear Chat',
+                      onPressed: () => setState(() => _messages.clear()),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.all(12),
+                  itemCount: _messages.length,
+                  itemBuilder: (context, index) {
+                    final msg = _messages[index];
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Column(
+                        crossAxisAlignment: msg.isUser
+                            ? CrossAxisAlignment.end
+                            : CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: msg.isUser
+                                  ? colorScheme.primaryContainer
+                                  : colorScheme.surfaceContainerHighest,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: SelectableText(
+                              msg.text,
+                              style: TextStyle(
+                                color: msg.isUser
+                                    ? colorScheme.onPrimaryContainer
+                                    : colorScheme.onSurfaceVariant,
+                              ),
+                            ),
                           ),
-                          child: SelectableText(msg.text),
+                          const SizedBox(height: 4),
+                          Text(
+                            msg.isUser ? 'You' : 'Copilot',
+                            style: theme.textTheme.labelSmall,
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+              if (_isLoading) const LinearProgressIndicator(),
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _controller,
+                        decoration: const InputDecoration(
+                          hintText: 'Ask Copilot anything...',
+                          border: OutlineInputBorder(),
+                          contentPadding:
+                              EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          msg.isUser ? 'You' : 'Copilot',
-                          style: FluentTheme.of(context).typography.caption,
-                        ),
-                      ],
+                        onSubmitted: (_) => _handleSend(),
+                      ),
                     ),
-                  );
-                },
-              ),
-            ),
-            if (_isLoading)
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                child: ProgressBar(),
-              ),
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextBox(
-                      controller: _controller,
-                      placeholder: 'Ask Copilot anything...',
-                      onSubmitted: (_) => _handleSend(),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      icon: const Icon(Icons.send),
+                      onPressed: _handleSend,
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  IconButton(
-                    icon: const Icon(FluentIcons.send),
-                    onPressed: _handleSend,
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         );
       },
-      loading: () => const Center(child: ProgressRing()),
+      loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, s) => Center(child: Text('Error: $e')),
     );
   }
@@ -171,22 +178,25 @@ class _CopilotSidebarState extends ConsumerState<CopilotSidebar> {
       data: (models) {
         if (models.isEmpty) return const SizedBox.shrink();
 
-        // Ensure selection is valid or default to first
         final currentSelection =
             selectedModel ?? (models.isNotEmpty ? models.first : null);
         if (selectedModel == null && currentSelection != null) {
-          // Initialize selection
           Future.microtask(() {
             ref.read(selectedModelProvider.notifier).set(currentSelection);
           });
         }
 
-        return ComboBox<String>(
+        return DropdownButton<String>(
           value: currentSelection,
+          isDense: true,
+          underline: const SizedBox(),
           items: models.map((e) {
-            return ComboBoxItem<String>(
+            return DropdownMenuItem<String>(
               value: e,
-              child: Text(e, overflow: TextOverflow.ellipsis),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 150),
+                child: Text(e, overflow: TextOverflow.ellipsis),
+              ),
             );
           }).toList(),
           onChanged: (value) {
@@ -194,15 +204,14 @@ class _CopilotSidebarState extends ConsumerState<CopilotSidebar> {
               ref.read(selectedModelProvider.notifier).set(value);
             }
           },
-          placeholder: const Text('Select Model'),
         );
       },
       loading: () => const SizedBox(
         width: 16,
         height: 16,
-        child: ProgressRing(strokeWidth: 2),
+        child: CircularProgressIndicator(strokeWidth: 2),
       ),
-      error: (_, __) => const Icon(FluentIcons.error, size: 16),
+      error: (_, __) => const Icon(Icons.error_outline, size: 16),
     );
   }
 }

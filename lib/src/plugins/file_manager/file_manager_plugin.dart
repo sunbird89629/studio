@@ -1,4 +1,4 @@
-import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_studio/src/core/fs.dart';
 import 'package:terminal_studio/src/core/plugin.dart';
@@ -98,14 +98,15 @@ class FileManagerPlugin extends Plugin {
 
   @override
   Widget build(BuildContext context) {
-    return NavigationView(
-      content: Column(
+    return Scaffold(
+      body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(height: 40, child: FileListToolbar(this)),
+          SizedBox(height: 48, child: FileListToolbar(this)),
+          const Divider(height: 1),
           Expanded(child: FileListView(this)),
-          const Divider(),
-          SizedBox(height: 30, child: FileListNavigator(this)),
+          const Divider(height: 1),
+          SizedBox(height: 40, child: FileListNavigator(this)),
         ],
       ),
     );
@@ -133,32 +134,37 @@ class FileListToolbar extends StatelessWidget {
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(FluentIcons.back),
+            icon: const Icon(Icons.arrow_back_outlined),
             onPressed: stack.canGoBack ? stack.back : null,
+            tooltip: 'Back',
           ),
-          const SizedBox(width: 8),
           IconButton(
-            icon: const Icon(FluentIcons.forward),
+            icon: const Icon(Icons.arrow_forward_outlined),
             onPressed: stack.canGoForward ? stack.forward : null,
+            tooltip: 'Forward',
           ),
-          const SizedBox(width: 8),
           IconButton(
-            icon: const Icon(FluentIcons.up),
+            icon: const Icon(Icons.arrow_upward_outlined),
             onPressed: plugin.canGoUp ? plugin.goUp : null,
+            tooltip: 'Up',
           ),
-          const SizedBox(width: 8),
           IconButton(
-            icon: const Icon(FluentIcons.home),
+            icon: const Icon(Icons.home_outlined),
             onPressed: plugin.homePath == null ? null : plugin.goHome,
+            tooltip: 'Home',
           ),
-          const SizedBox(width: 16),
-          const Divider(direction: Axis.vertical),
-          const SizedBox(width: 16),
-          Expanded(child: Text(plugin.currentDirectory ?? '')),
-          const SizedBox(width: 8),
+          const VerticalDivider(width: 32, indent: 12, endIndent: 12),
+          Expanded(
+            child: Text(
+              plugin.currentDirectory ?? '',
+              style: Theme.of(context).textTheme.titleSmall,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
           IconButton(
-            icon: const Icon(FluentIcons.refresh),
+            icon: const Icon(Icons.refresh_outlined),
             onPressed: () => plugin._fetchFiles(),
+            tooltip: 'Refresh',
           ),
         ],
       ),
@@ -215,11 +221,14 @@ class FileListViewState extends ConsumerState<FileListView> {
   }
 
   Widget _buildTable(BuildContext context, List<FileSystemEntity> files) {
-    final source = _FilesDataSource(files);
+    final theme = Theme.of(context);
+    final source = _FilesDataSource(files, theme);
     return SfDataGrid(
       headerRowHeight: 40,
       allowSorting: true,
       allowFiltering: true,
+      gridLinesVisibility: GridLinesVisibility.horizontal,
+      headerGridLinesVisibility: GridLinesVisibility.horizontal,
       horizontalScrollPhysics: const NeverScrollableScrollPhysics(),
       onCellTap: (details) {
         final rowIndex = details.rowColumnIndex.rowIndex;
@@ -241,7 +250,9 @@ class FileListViewState extends ConsumerState<FileListView> {
           columnName: 'name',
           label: Container(
             padding: const EdgeInsets.all(8),
-            child: const Text('Name'),
+            alignment: Alignment.centerLeft,
+            child: const Text('Name',
+                style: TextStyle(fontWeight: FontWeight.bold)),
           ),
           columnWidthMode: ColumnWidthMode.fill,
           allowFiltering: true,
@@ -250,7 +261,9 @@ class FileListViewState extends ConsumerState<FileListView> {
           columnName: 'date',
           label: Container(
             padding: const EdgeInsets.all(8),
-            child: const Text('Date'),
+            alignment: Alignment.centerLeft,
+            child: const Text('Date',
+                style: TextStyle(fontWeight: FontWeight.bold)),
           ),
           minimumWidth: 210,
           allowFiltering: false,
@@ -262,9 +275,10 @@ class FileListViewState extends ConsumerState<FileListView> {
 }
 
 class _FilesDataSource extends DataGridSource {
-  _FilesDataSource(this.files);
+  _FilesDataSource(this.files, this.theme);
 
   final List<FileSystemEntity> files;
+  final ThemeData theme;
 
   @override
   late final rows = files
@@ -276,24 +290,31 @@ class _FilesDataSource extends DataGridSource {
   DataGridRowAdapter buildRow(covariant _FileDataGridRow row) {
     return DataGridRowAdapter(
       cells: [
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(width: 8),
-            Icon(
-              row.file is Directory
-                  ? FluentIcons.folder
-                  : FluentIcons.file_code,
-              size: 16,
-            ),
-            Container(
-              padding: const EdgeInsets.all(8),
-              child: Text(row.name),
-            ),
-          ],
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                row.file is Directory
+                    ? Icons.folder_outlined
+                    : Icons.description_outlined,
+                size: 20,
+                color: theme.colorScheme.primary,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  row.name,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
         ),
         Container(
           padding: const EdgeInsets.all(8),
+          alignment: Alignment.centerLeft,
           child: Text(row.date),
         ),
       ],

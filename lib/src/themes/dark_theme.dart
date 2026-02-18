@@ -1,5 +1,5 @@
 import 'package:flex_tabs/flex_tabs.dart';
-import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/material.dart';
 import 'package:terminal_studio/src/core/theme/theme_plugin.dart';
 
 /// Built-in dark theme.
@@ -14,11 +14,15 @@ class DarkTheme extends ThemePlugin {
   Brightness get brightness => Brightness.dark;
 
   @override
-  FluentThemeData get fluentTheme => FluentThemeData(
+  ThemeData get theme => ThemeData(
+        useMaterial3: true,
         brightness: Brightness.dark,
-        accentColor: Colors.blue,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.blue,
+          brightness: Brightness.dark,
+          surface: const Color(0xFF1E1E1E),
+        ),
         scaffoldBackgroundColor: const Color(0xFF1E1E1E),
-        micaBackgroundColor: const Color(0xFF252526),
       );
 
   @override

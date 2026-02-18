@@ -1,4 +1,4 @@
-import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/material.dart';
 
 class NavigationBreadcrumbs extends StatelessWidget {
   const NavigationBreadcrumbs({
@@ -24,6 +24,10 @@ class NavigationBreadcrumbs extends StatelessWidget {
           onPressed: () => onTap?.call(breadcrumbs.sublist(0, i + 1)),
         ),
       );
+
+      if (i < breadcrumbs.length - 1) {
+        widgets.add(const BreadcrumbSeparator());
+      }
     }
 
     return SingleChildScrollView(
@@ -43,33 +47,36 @@ class BreadcrumbButton extends StatelessWidget {
     super.key,
     this.onPressed,
     required this.breadcrumb,
-    this.isPrimary = false,
   });
 
   final String breadcrumb;
-
-  final bool isPrimary;
-
   final void Function()? onPressed;
 
   @override
   Widget build(BuildContext context) {
-    return Button(
+    return TextButton(
       onPressed: onPressed,
-      child: Text(breadcrumb),
+      style: TextButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        minimumSize: Size.zero,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
+      child: Text(
+        breadcrumb,
+        style: Theme.of(context).textTheme.bodyMedium,
+      ),
     );
   }
 }
 
-class BreadcrumbSeprator extends StatelessWidget {
-  const BreadcrumbSeprator({super.key});
+class BreadcrumbSeparator extends StatelessWidget {
+  const BreadcrumbSeparator({super.key});
 
   @override
   Widget build(BuildContext context) {
     return const Icon(
-      FluentIcons.chevron_right,
-      size: 8,
-      // color: CupertinoColors.secondaryLabel,
+      Icons.chevron_right,
+      size: 16,
     );
   }
 }

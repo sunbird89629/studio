@@ -1,4 +1,4 @@
-import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_studio/src/core/record/profile_record.dart';
 import 'package:terminal_studio/src/core/state/database.dart';
@@ -14,26 +14,23 @@ class ProfilesSettingsView extends ConsumerWidget {
     final activeId = ref.watch(activeProfileIdProvider);
 
     return profilesAsync.when(
-      data: (profiles) => ScaffoldPage(
-        header: PageHeader(
+      data: (profiles) => Scaffold(
+        appBar: AppBar(
           title: const Text('Profiles'),
-          commandBar: CommandBar(
-            mainAxisAlignment: MainAxisAlignment.end,
-            primaryItems: [
-              CommandBarButton(
-                icon: const Icon(FluentIcons.add),
-                label: const Text('New Profile'),
-                onPressed: () => _createProfile(context, ref),
-              ),
-            ],
-          ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.add),
+              onPressed: () => _createProfile(context, ref),
+              tooltip: 'New Profile',
+            ),
+          ],
         ),
-        content: profiles.isEmpty
+        body: profiles.isEmpty
             ? Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(FluentIcons.contact, size: 48),
+                    const Icon(Icons.person, size: 48),
                     const SizedBox(height: 16),
                     const Text(
                       'No profiles yet',
@@ -55,81 +52,63 @@ class ProfilesSettingsView extends ConsumerWidget {
               )
             : ListView.builder(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 itemCount: profiles.length,
                 itemBuilder: (context, index) {
                   final profile = profiles[index];
                   final isActive = profile.id == activeId;
 
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 4),
-                    child: ListTile.selectable(
+                  return Card(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    child: ListTile(
                       selected: isActive,
                       leading: Icon(
                         isActive
-                            ? FluentIcons.radio_btn_on
-                            : FluentIcons.radio_btn_off,
+                            ? Icons.radio_button_checked
+                            : Icons.radio_button_off,
+                        color: isActive
+                            ? Theme.of(context).colorScheme.primary
+                            : null,
                       ),
                       title: Text(profile.name),
                       subtitle: Text(_profileSummary(profile)),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          if (!isActive)
-                            Tooltip(
-                              message: 'Activate',
-                              child: IconButton(
-                                icon: const Icon(FluentIcons.play, size: 16),
-                                onPressed: () {
-                                  ref
-                                      .read(activeProfileIdProvider.notifier)
-                                      .state = profile.id;
-                                },
-                              ),
-                            ),
-                          if (isActive)
-                            Tooltip(
-                              message: 'Deactivate',
-                              child: IconButton(
-                                icon: const Icon(FluentIcons.pause, size: 16),
-                                onPressed: () {
-                                  ref
-                                      .read(activeProfileIdProvider.notifier)
-                                      .state = null;
-                                },
-                              ),
-                            ),
-                          Tooltip(
-                            message: 'Edit',
-                            child: IconButton(
-                              icon: const Icon(FluentIcons.edit, size: 16),
-                              onPressed: () =>
-                                  _editProfile(context, ref, profile),
-                            ),
+                          IconButton(
+                            icon:
+                                Icon(isActive ? Icons.pause : Icons.play_arrow),
+                            onPressed: () {
+                              ref.read(activeProfileIdProvider.notifier).state =
+                                  isActive ? null : profile.id;
+                            },
+                            tooltip: isActive ? 'Deactivate' : 'Activate',
                           ),
-                          Tooltip(
-                            message: 'Duplicate',
-                            child: IconButton(
-                              icon: const Icon(FluentIcons.copy, size: 16),
-                              onPressed: () async {
-                                final box =
-                                    await ref.read(profileBoxProvider.future);
-                                final copy = profile.duplicate();
-                                await box.add(copy);
-                              },
-                            ),
+                          IconButton(
+                            icon: const Icon(Icons.edit),
+                            onPressed: () =>
+                                _editProfile(context, ref, profile),
+                            tooltip: 'Edit',
                           ),
-                          Tooltip(
-                            message: 'Delete',
-                            child: IconButton(
-                              icon: const Icon(FluentIcons.delete, size: 16),
-                              onPressed: () =>
-                                  _deleteProfile(context, ref, profile),
-                            ),
+                          IconButton(
+                            icon: const Icon(Icons.copy),
+                            onPressed: () async {
+                              final box =
+                                  await ref.read(profileBoxProvider.future);
+                              final copy = profile.duplicate();
+                              await box.add(copy);
+                            },
+                            tooltip: 'Duplicate',
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete),
+                            onPressed: () =>
+                                _deleteProfile(context, ref, profile),
+                            tooltip: 'Delete',
                           ),
                         ],
                       ),
-                      onPressed: () {
+                      onTap: () {
                         ref.read(activeProfileIdProvider.notifier).state =
                             isActive ? null : profile.id;
                       },
@@ -138,7 +117,7 @@ class ProfilesSettingsView extends ConsumerWidget {
                 },
               ),
       ),
-      loading: () => const Center(child: ProgressRing()),
+      loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, _) => Center(child: Text('Error: $e')),
     );
   }
@@ -169,11 +148,11 @@ class ProfilesSettingsView extends ConsumerWidget {
   ) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (ctx) => ContentDialog(
+      builder: (ctx) => AlertDialog(
         title: const Text('Delete Profile'),
         content: Text('Delete "${profile.name}"? This cannot be undone.'),
         actions: [
-          Button(
+          TextButton(
             child: const Text('Cancel'),
             onPressed: () => Navigator.of(ctx).pop(false),
           ),
@@ -214,15 +193,18 @@ class ProfilesSettingsView extends ConsumerWidget {
     final controller = TextEditingController(text: initialValue);
     return showDialog<String>(
       context: context,
-      builder: (ctx) => ContentDialog(
+      builder: (ctx) => AlertDialog(
         title: Text(title),
-        content: TextBox(
+        content: TextField(
           controller: controller,
-          placeholder: 'Profile name',
+          decoration: const InputDecoration(
+            labelText: 'Profile name',
+            border: OutlineInputBorder(),
+          ),
           autofocus: true,
         ),
         actions: [
-          Button(
+          TextButton(
             child: const Text('Cancel'),
             onPressed: () => Navigator.of(ctx).pop(null),
           ),
@@ -275,98 +257,109 @@ class _ProfileEditDialogState extends State<_ProfileEditDialog> {
   Widget build(BuildContext context) {
     final p = widget.profile;
 
-    return ContentDialog(
+    return AlertDialog(
       title: Text('Edit: ${p.name}'),
-      constraints: const BoxConstraints(maxWidth: 500, maxHeight: 600),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            InfoLabel(
-              label: 'Name',
-              child: TextBox(controller: _nameCtrl),
-            ),
-            const SizedBox(height: 16),
-
-            // ── Appearance ──
-            const Text('Appearance',
-                style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            InfoLabel(
-              label: 'Theme (empty = inherit)',
-              child: TextFormBox(
+      content: SizedBox(
+        width: 500,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextFormField(
+                controller: _nameCtrl,
+                decoration: const InputDecoration(
+                    labelText: 'Name', border: OutlineInputBorder()),
+              ),
+              const SizedBox(height: 16),
+              Text('Appearance', style: Theme.of(context).textTheme.titleSmall),
+              const SizedBox(height: 8),
+              TextFormField(
                 initialValue: p.themeId ?? '',
-                placeholder: 'dark',
+                decoration: const InputDecoration(
+                  labelText: 'Theme (empty = inherit)',
+                  hintText: 'dark',
+                  border: OutlineInputBorder(),
+                ),
                 onChanged: (v) => p.themeId = v.isEmpty ? null : v,
               ),
-            ),
-            const SizedBox(height: 8),
-            InfoLabel(
-              label: 'Font Size (0 = inherit)',
-              child: NumberBox<double>(
-                value: p.fontSize,
-                onChanged: (v) => setState(() => p.fontSize = v),
-                smallChange: 1,
-                placeholder: 'inherit',
+              const SizedBox(height: 16),
+              TextFormField(
+                initialValue: p.fontSize?.toString() ?? '',
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                decoration: const InputDecoration(
+                  labelText: 'Font Size (empty = inherit)',
+                  border: OutlineInputBorder(),
+                ),
+                onChanged: (v) {
+                  setState(() => p.fontSize = double.tryParse(v));
+                },
               ),
-            ),
-            const SizedBox(height: 8),
-            InfoLabel(
-              label: 'Font Family (empty = inherit)',
-              child: TextBox(controller: _fontFamilyCtrl),
-            ),
-            const SizedBox(height: 8),
-            InfoLabel(
-              label: 'Background Opacity (empty = inherit)',
-              child: NumberBox<double>(
-                value: p.backgroundOpacity,
-                onChanged: (v) => setState(() => p.backgroundOpacity = v),
-                smallChange: 0.1,
-                placeholder: 'inherit',
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _fontFamilyCtrl,
+                decoration: const InputDecoration(
+                  labelText: 'Font Family (empty = inherit)',
+                  border: OutlineInputBorder(),
+                ),
               ),
-            ),
-            const SizedBox(height: 16),
-
-            // ── Cursor ──
-            const Text('Cursor', style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            InfoLabel(
-              label: 'Cursor Shape',
-              child: ComboBox<String?>(
-                value: p.cursorShape,
-                items: [
-                  const ComboBoxItem<String?>(
-                    value: null,
-                    child: Text('Inherit'),
-                  ),
-                  const ComboBoxItem(value: 'block', child: Text('Block')),
-                  const ComboBoxItem(value: 'beam', child: Text('Beam')),
-                  const ComboBoxItem(
+              const SizedBox(height: 16),
+              TextFormField(
+                initialValue: p.backgroundOpacity?.toString() ?? '',
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                decoration: const InputDecoration(
+                  labelText: 'Background Opacity (empty = inherit)',
+                  border: OutlineInputBorder(),
+                ),
+                onChanged: (v) {
+                  setState(() => p.backgroundOpacity = double.tryParse(v));
+                },
+              ),
+              const SizedBox(height: 24),
+              Text('Cursor', style: Theme.of(context).textTheme.titleSmall),
+              const SizedBox(height: 8),
+              DropdownButtonFormField<String?>(
+                initialValue: p.cursorShape,
+                decoration: const InputDecoration(
+                  labelText: 'Cursor Shape',
+                  border: OutlineInputBorder(),
+                ),
+                items: const [
+                  DropdownMenuItem<String?>(
+                      value: null, child: Text('Inherit')),
+                  DropdownMenuItem(value: 'block', child: Text('Block')),
+                  DropdownMenuItem(value: 'beam', child: Text('Beam')),
+                  DropdownMenuItem(
                       value: 'underline', child: Text('Underline')),
                 ],
                 onChanged: (v) => setState(() => p.cursorShape = v),
               ),
-            ),
-            const SizedBox(height: 16),
-
-            // ── Shell ──
-            const Text('Shell', style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            InfoLabel(
-              label: 'Shell Path (empty = inherit)',
-              child: TextBox(controller: _shellCtrl),
-            ),
-            const SizedBox(height: 8),
-            InfoLabel(
-              label: 'Working Directory (empty = inherit)',
-              child: TextBox(controller: _wdCtrl),
-            ),
-          ],
+              const SizedBox(height: 24),
+              Text('Shell', style: Theme.of(context).textTheme.titleSmall),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _shellCtrl,
+                decoration: const InputDecoration(
+                  labelText: 'Shell Path (empty = inherit)',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _wdCtrl,
+                decoration: const InputDecoration(
+                  labelText: 'Working Directory (empty = inherit)',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
       actions: [
-        Button(
+        TextButton(
           child: const Text('Cancel'),
           onPressed: () => Navigator.of(context).pop(),
         ),

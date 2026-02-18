@@ -1,7 +1,6 @@
 import 'package:flex_tabs/flex_tabs.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:macos_ui/macos_ui.dart';
 import 'package:terminal_studio/src/core/state/database.dart';
 import 'package:terminal_studio/src/ui/tabs/playground.dart';
 import 'package:xterm/xterm.dart';
@@ -30,8 +29,8 @@ class _DevToolsTabViewState extends ConsumerState<DevToolsTabView> {
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoPageScaffold(
-      child: Container(
+    return Scaffold(
+      body: Container(
         constraints: const BoxConstraints.expand(),
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -39,30 +38,27 @@ class _DevToolsTabViewState extends ConsumerState<DevToolsTabView> {
           children: [
             Wrap(
               spacing: 8,
+              runSpacing: 8,
               children: [
-                PushButton(
-                  controlSize: ControlSize.large,
+                FilledButton.tonal(
                   onPressed: _openAddHostTab,
                   child: const Text('Add SSH host'),
                 ),
-                PushButton(
-                  controlSize: ControlSize.large,
+                OutlinedButton(
                   onPressed: _clearHosts,
                   child: const Text('Clear SSH hosts'),
                 ),
-                PushButton(
-                  controlSize: ControlSize.large,
+                TextButton.icon(
                   onPressed: () => tab.replace(PlaygroundTab()),
-                  child: const Text('Playground'),
+                  label: const Text('Playground'),
+                  icon: const Icon(Icons.rocket_launch_outlined),
                 ),
               ],
             ),
-
             const SizedBox(height: 16),
             Expanded(
               child: TerminalView(tab.terminal),
             ),
-            // const PlayGround(),
           ],
         ),
       ),
@@ -77,19 +73,5 @@ class _DevToolsTabViewState extends ConsumerState<DevToolsTabView> {
     final sshHosts = await ref.read(sshHostBoxProvider.future);
     await sshHosts.clear();
     tab.terminal.write('Cleared SSH hosts\r\n');
-  }
-}
-
-class PlayGround extends ConsumerWidget {
-  const PlayGround({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Container(
-      constraints: const BoxConstraints(maxWidth: 500),
-      padding: const EdgeInsets.all(16),
-      color: const Color.fromARGB(255, 251, 251, 251),
-      // child:
-    );
   }
 }

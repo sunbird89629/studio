@@ -1,6 +1,6 @@
 import 'package:context_menus/context_menus.dart';
 import 'package:flex_tabs/flex_tabs.dart';
-import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_studio/src/core/service/tabs_service.dart';
 import 'package:terminal_studio/src/core/state/database.dart';
@@ -32,7 +32,7 @@ class DropdownContextMenuState extends ConsumerState<DropdownContextMenu>
           context,
           ContextMenuButtonConfig(
             'Local',
-            icon: const Icon(FluentIcons.tablet),
+            icon: const Icon(Icons.laptop),
             onPressed: () => handlePressed(context, () {
               final tabsService = ref.read(tabsServiceProvider);
               tabsService.openTerminal(const LocalHostSpec());
@@ -44,7 +44,7 @@ class DropdownContextMenuState extends ConsumerState<DropdownContextMenu>
           context,
           ContextMenuButtonConfig(
             'Add New',
-            icon: const Icon(FluentIcons.add),
+            icon: const Icon(Icons.add),
             onPressed: () => handlePressed(
               context,
               () => ref.openTab(AddHostTab()),
@@ -56,7 +56,7 @@ class DropdownContextMenuState extends ConsumerState<DropdownContextMenu>
           context,
           ContextMenuButtonConfig(
             'Settings',
-            icon: const Icon(FluentIcons.settings),
+            icon: const Icon(Icons.settings_outlined),
             onPressed: () => handlePressed(
               context,
               () => ref.openTab(SettingsTab()),
@@ -68,7 +68,7 @@ class DropdownContextMenuState extends ConsumerState<DropdownContextMenu>
           context,
           ContextMenuButtonConfig(
             'AI Copilot',
-            icon: const Icon(FluentIcons.robot),
+            icon: const Icon(Icons.smart_toy_outlined),
             onPressed: () => handlePressed(
               context,
               () => ref
@@ -96,7 +96,7 @@ class DropdownContextMenuState extends ConsumerState<DropdownContextMenu>
           context,
           ContextMenuButtonConfig(
             host.name,
-            icon: const Icon(FluentIcons.cloud),
+            icon: const Icon(Icons.cloud_outlined),
             onPressed: () => handlePressed(context, () async {
               final tabsService = ref.read(tabsServiceProvider);
               tabsService.openTerminal(host, tabs: tabs);

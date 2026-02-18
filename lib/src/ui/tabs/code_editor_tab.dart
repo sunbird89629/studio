@@ -1,5 +1,5 @@
 // Import the language & theme
-import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/material.dart';
 import 'package:highlight/highlight.dart';
 import 'package:code_text_field/code_text_field.dart';
 import 'package:flex_tabs/flex_tabs.dart';
@@ -41,11 +41,11 @@ class CodeEditorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return NavigationView(
-      content: Column(
+    return Scaffold(
+      body: Column(
         children: [
           _buildToolbar(),
-          const Divider(),
+          const Divider(height: 1),
           Expanded(child: _buildEditor()),
         ],
       ),
@@ -53,19 +53,14 @@ class CodeEditorView extends StatelessWidget {
   }
 
   Widget _buildToolbar() {
-    return Padding(
-      padding: const EdgeInsets.all(8),
-      child: CommandBar(
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
-        primaryItems: [
-          // CommandBarButton(
-          //   icon: const Icon(FluentIcons.back),
-          //   label: const Text('Back'),
-          //   onPressed: () {},
-          // ),
-          CommandBarButton(
-            icon: const Icon(FluentIcons.save),
-            label: const Text('Save'),
+        children: [
+          IconButton(
+            icon: const Icon(Icons.save_outlined),
+            tooltip: 'Save',
             onPressed: () async {
               final controller = tab.codeController.value;
               if (controller == null) return;
@@ -78,28 +73,31 @@ class CodeEditorView extends StatelessWidget {
   }
 
   Widget _buildEditor() {
-    return ValueListenableBuilder(
+    return ValueListenableBuilder<CodeController?>(
       valueListenable: tab.codeController,
       builder: (context, codeController, child) {
         if (codeController == null) {
           return const Center(
-            child: ProgressRing(),
+            child: CircularProgressIndicator(),
           );
         }
 
-        return SingleChildScrollView(
-          child: CodeField(
-            controller: codeController,
-            lineNumberStyle: const LineNumberStyle(
-              textStyle: TextStyle(
+        return Container(
+          color: Theme.of(context).colorScheme.surface,
+          child: SingleChildScrollView(
+            child: CodeField(
+              controller: codeController,
+              lineNumberStyle: const LineNumberStyle(
+                textStyle: TextStyle(
+                  fontFamily: fontFamily,
+                  fontFamilyFallback: fontFamilyFallback,
+                ),
+              ),
+              textStyle: const TextStyle(
                 fontFamily: fontFamily,
+                fontSize: 12,
                 fontFamilyFallback: fontFamilyFallback,
               ),
-            ),
-            textStyle: const TextStyle(
-              fontFamily: fontFamily,
-              fontSize: 12,
-              fontFamilyFallback: fontFamilyFallback,
             ),
           ),
         );

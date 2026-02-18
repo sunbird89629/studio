@@ -1,4 +1,4 @@
-import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/log/log_entry.dart';
@@ -60,7 +60,8 @@ class _LogSidebarState extends ConsumerState<LogSidebar> {
   @override
   Widget build(BuildContext context) {
     final logService = ref.watch(logServiceProvider);
-    final theme = FluentTheme.of(context);
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return Column(
       children: [
@@ -69,28 +70,29 @@ class _LogSidebarState extends ConsumerState<LogSidebar> {
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             border: Border(
-              bottom: BorderSide(color: theme.micaBackgroundColor),
+              bottom: BorderSide(color: theme.dividerColor),
             ),
           ),
           child: Row(
             children: [
-              const Icon(FluentIcons.event_info),
+              const Icon(Icons.info_outline),
               const SizedBox(width: 8),
-              Text('Logs', style: theme.typography.subtitle),
+              Text('Logs', style: theme.textTheme.titleMedium),
               const Spacer(),
               // 自动滚动开关
-              Tooltip(
-                message: _autoScroll ? 'Auto-scroll ON' : 'Auto-scroll OFF',
-                child: ToggleButton(
-                  checked: _autoScroll,
-                  onChanged: (v) => setState(() => _autoScroll = v),
-                  child: const Icon(FluentIcons.down),
-                ),
+              IconButton(
+                icon: Icon(_autoScroll
+                    ? Icons.vertical_align_bottom
+                    : Icons.vertical_align_bottom_outlined),
+                tooltip: _autoScroll ? 'Auto-scroll ON' : 'Auto-scroll OFF',
+                color: _autoScroll ? colorScheme.primary : theme.disabledColor,
+                onPressed: () => setState(() => _autoScroll = !_autoScroll),
               ),
               const SizedBox(width: 4),
               // 清空按钮
               IconButton(
-                icon: const Icon(FluentIcons.delete),
+                icon: const Icon(Icons.delete_outline),
+                tooltip: 'Clear Logs',
                 onPressed: () {
                   logService.buffer.clear();
                   setState(() {});
@@ -107,12 +109,14 @@ class _LogSidebarState extends ConsumerState<LogSidebar> {
             children: [
               // 级别过滤
               Expanded(
-                child: ComboBox<LogLevel?>(
-                  placeholder: const Text('All Levels'),
+                child: DropdownButton<LogLevel?>(
+                  isExpanded: true,
+                  hint: const Text('All Levels'),
                   value: _levelFilter,
                   items: [
-                    const ComboBoxItem(value: null, child: Text('All Levels')),
-                    ...LogLevel.values.map((l) => ComboBoxItem(
+                    const DropdownMenuItem(
+                        value: null, child: Text('All Levels')),
+                    ...LogLevel.values.map((l) => DropdownMenuItem(
                           value: l,
                           child: Text(l.shortName),
                         )),
@@ -123,15 +127,16 @@ class _LogSidebarState extends ConsumerState<LogSidebar> {
               const SizedBox(width: 8),
               // 通道过滤
               Expanded(
-                child: ComboBox<String?>(
-                  placeholder: const Text('All Channels'),
+                child: DropdownButton<String?>(
+                  isExpanded: true,
+                  hint: const Text('All Channels'),
                   value: _channelFilter,
                   items: [
-                    const ComboBoxItem(
+                    const DropdownMenuItem(
                         value: null, child: Text('All Channels')),
-                    ...logService.buffer.channels.map((c) => ComboBoxItem(
+                    ...logService.buffer.channels.map((c) => DropdownMenuItem(
                           value: c,
-                          child: Text(c),
+                          child: Text(c, overflow: TextOverflow.ellipsis),
                         )),
                   ],
                   onChanged: (v) => setState(() => _channelFilter = v),
@@ -157,11 +162,11 @@ class _LogSidebarState extends ConsumerState<LogSidebar> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(FluentIcons.text_document,
-                          size: 48, color: theme.inactiveColor),
+                      Icon(Icons.description_outlined,
+                          size: 48, color: theme.disabledColor),
                       const SizedBox(height: 8),
                       Text('No logs yet',
-                          style: TextStyle(color: theme.inactiveColor)),
+                          style: TextStyle(color: theme.disabledColor)),
                     ],
                   ),
                 );
@@ -198,7 +203,8 @@ class _LogEntryTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = FluentTheme.of(context);
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final time =
         '${entry.timestamp.hour.toString().padLeft(2, '0')}:${entry.timestamp.minute.toString().padLeft(2, '0')}:${entry.timestamp.second.toString().padLeft(2, '0')}';
 
@@ -210,8 +216,8 @@ class _LogEntryTile extends StatelessWidget {
           // 时间戳
           Text(
             time,
-            style: theme.typography.caption?.copyWith(
-              color: theme.inactiveColor,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.disabledColor,
               fontFamily: 'monospace',
             ),
           ),
@@ -220,12 +226,12 @@ class _LogEntryTile extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
             decoration: BoxDecoration(
-              color: levelColor.withValues(alpha: 0.2),
+              color: levelColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(3),
             ),
             child: Text(
               entry.level.shortName,
-              style: theme.typography.caption?.copyWith(
+              style: theme.textTheme.labelSmall?.copyWith(
                 color: levelColor,
                 fontWeight: FontWeight.bold,
                 fontFamily: 'monospace',
@@ -236,9 +242,10 @@ class _LogEntryTile extends StatelessWidget {
           // 通道
           Text(
             entry.channel,
-            style: theme.typography.caption?.copyWith(
-              color: Colors.purple,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: colorScheme.secondary,
               fontFamily: 'monospace',
+              fontWeight: FontWeight.w500,
             ),
           ),
           const SizedBox(width: 8),
@@ -246,7 +253,7 @@ class _LogEntryTile extends StatelessWidget {
           Expanded(
             child: SelectableText(
               entry.message,
-              style: theme.typography.body?.copyWith(
+              style: theme.textTheme.bodySmall?.copyWith(
                 fontFamily: 'monospace',
                 fontSize: 12,
               ),

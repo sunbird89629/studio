@@ -1,4 +1,4 @@
-import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:terminal_studio/src/core/state/database.dart';
@@ -15,35 +15,24 @@ class HostsSettingView extends ConsumerStatefulWidget {
 class _HostsSettingViewState extends ConsumerState<HostsSettingView> {
   @override
   Widget build(BuildContext context) {
-    return ScaffoldPage.scrollable(
-      header: PageHeader(
+    return Scaffold(
+      appBar: AppBar(
         title: const Text('Hosts'),
-        commandBar: Expanded(
-          child: _buildCommandBar(context),
-        ),
+        actions: [
+          IconButton(
+            icon: const Icon(FontAwesomeIcons.plus),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const HostEditPage(),
+                ),
+              );
+            },
+            tooltip: 'Add',
+          ),
+        ],
       ),
-      children: [
-        _buildSSHHosts(),
-      ],
-    );
-  }
-
-  Widget _buildCommandBar(BuildContext context) {
-    return CommandBar(
-      mainAxisAlignment: MainAxisAlignment.end,
-      primaryItems: [
-        CommandBarButton(
-          icon: const Icon(FontAwesomeIcons.plus),
-          label: const Text('Add'),
-          onPressed: () {
-            Navigator.of(context).push(
-              FluentPageRoute(
-                builder: (context) => const HostEditPage(),
-              ),
-            );
-          },
-        ),
-      ],
+      body: _buildSSHHosts(),
     );
   }
 
@@ -51,7 +40,7 @@ class _HostsSettingViewState extends ConsumerState<HostsSettingView> {
     final hosts = ref.watch(sshHostsProvider);
 
     return hosts.when(
-      loading: () => const Center(child: ProgressRing()),
+      loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, st) => Text('Error: $e'),
       data: (box) => ListView.builder(
         shrinkWrap: true,
@@ -62,9 +51,9 @@ class _HostsSettingViewState extends ConsumerState<HostsSettingView> {
             title: Text(record.name),
             subtitle: Text('${record.host}:${record.port}'),
             leading: const FaIcon(FontAwesomeIcons.computer),
-            onPressed: () {
+            onTap: () {
               Navigator.of(context).push(
-                FluentPageRoute(
+                MaterialPageRoute(
                   builder: (context) => HostEditPage(record: record),
                 ),
               );

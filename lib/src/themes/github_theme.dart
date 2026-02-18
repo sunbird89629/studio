@@ -1,5 +1,5 @@
 import 'package:flex_tabs/flex_tabs.dart';
-import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/material.dart';
 import 'package:terminal_studio/src/core/theme/theme_plugin.dart';
 
 /// GitHub Dark theme.
@@ -14,14 +14,22 @@ class GitHubDarkTheme extends ThemePlugin {
   Brightness get brightness => Brightness.dark;
 
   @override
-  FluentThemeData get fluentTheme => FluentThemeData(
-        brightness: Brightness.dark,
-        accentColor: AccentColor.swatch(const {
-          'normal': Color(0xFF58A6FF),
-        }),
-        scaffoldBackgroundColor: const Color(0xFF0D1117),
-        micaBackgroundColor: const Color(0xFF161B22),
-      );
+  ThemeData get theme {
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: const Color(0xFF58A6FF),
+      brightness: Brightness.dark,
+      surface: const Color(0xFF0D1117),
+      primary: const Color(0xFF58A6FF),
+    );
+
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.dark,
+      colorScheme: colorScheme,
+      scaffoldBackgroundColor: const Color(0xFF0D1117),
+      dividerColor: const Color(0xFF30363D),
+    );
+  }
 
   @override
   TabsViewThemeData get tabsTheme => const TabsViewThemeData(
@@ -45,14 +53,22 @@ class GitHubLightTheme extends ThemePlugin {
   Brightness get brightness => Brightness.light;
 
   @override
-  FluentThemeData get fluentTheme => FluentThemeData(
-        brightness: Brightness.light,
-        accentColor: AccentColor.swatch(const {
-          'normal': Color(0xFF0969DA),
-        }),
-        scaffoldBackgroundColor: const Color(0xFFFFFFFF),
-        micaBackgroundColor: const Color(0xFFF6F8FA),
-      );
+  ThemeData get theme {
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: const Color(0xFF0969DA),
+      brightness: Brightness.light,
+      surface: const Color(0xFFFFFFFF),
+      primary: const Color(0xFF0969DA),
+    );
+
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.light,
+      colorScheme: colorScheme,
+      scaffoldBackgroundColor: const Color(0xFFFFFFFF),
+      dividerColor: const Color(0xFFD0D7DE),
+    );
+  }
 
   @override
   TabsViewThemeData get tabsTheme => const TabsViewThemeData(

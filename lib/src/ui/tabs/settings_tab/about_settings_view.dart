@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_studio/src/core/service/config_export_service.dart';
 import 'package:terminal_studio/src/core/service/release_notes_service.dart';
@@ -12,9 +12,9 @@ class AboutSettingsView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return ScaffoldPage(
-      header: const PageHeader(title: Text('About')),
-      content: SingleChildScrollView(
+    return Scaffold(
+      appBar: AppBar(title: const Text('About')),
+      body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -38,7 +38,7 @@ class AboutSettingsView extends ConsumerWidget {
               'Copyright © 2024 TerminalStudio Contributors',
             ),
             const SizedBox(height: 24),
-            Button(
+            OutlinedButton(
               onPressed: () {
                 showDialog(
                   context: context,
@@ -55,38 +55,23 @@ class AboutSettingsView extends ConsumerWidget {
             const SizedBox(height: 12),
             Row(
               children: [
-                FilledButton(
+                FilledButton.icon(
                   onPressed: () => _exportConfig(context, ref),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(FluentIcons.download, size: 14),
-                      SizedBox(width: 8),
-                      Text('Export Configuration'),
-                    ],
-                  ),
+                  icon: const Icon(Icons.download, size: 18),
+                  label: const Text('Export Configuration'),
                 ),
                 const SizedBox(width: 12),
-                Button(
+                OutlinedButton.icon(
                   onPressed: () => _importConfig(context, ref),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(FluentIcons.upload, size: 14),
-                      SizedBox(width: 8),
-                      Text('Import Configuration'),
-                    ],
-                  ),
+                  icon: const Icon(Icons.upload, size: 18),
+                  label: const Text('Import Configuration'),
                 ),
               ],
             ),
             const SizedBox(height: 8),
             Text(
               'Export or import settings, profiles, keymaps, and SSH hosts.',
-              style: TextStyle(
-                color: FluentTheme.of(context).inactiveColor,
-                fontSize: 12,
-              ),
+              style: Theme.of(context).textTheme.bodySmall,
             ),
           ],
         ),
@@ -105,31 +90,19 @@ class AboutSettingsView extends ConsumerWidget {
       await File(exportPath).writeAsString(json);
 
       if (context.mounted) {
-        await displayInfoBar(
-          context,
-          builder: (ctx, close) => InfoBar(
-            title: const Text('Configuration Exported'),
-            content: Text('Saved to: $exportPath'),
-            severity: InfoBarSeverity.success,
-            action: IconButton(
-              icon: const Icon(FluentIcons.chrome_close),
-              onPressed: close,
-            ),
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Configuration exported to: $exportPath'),
+            backgroundColor: Colors.green,
           ),
         );
       }
     } catch (e) {
       if (context.mounted) {
-        await displayInfoBar(
-          context,
-          builder: (ctx, close) => InfoBar(
-            title: const Text('Export Failed'),
-            content: Text('$e'),
-            severity: InfoBarSeverity.error,
-            action: IconButton(
-              icon: const Icon(FluentIcons.chrome_close),
-              onPressed: close,
-            ),
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Export failed: $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
       }
@@ -144,7 +117,7 @@ class AboutSettingsView extends ConsumerWidget {
 
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (ctx) => ContentDialog(
+      builder: (ctx) => AlertDialog(
         title: const Text('Import Configuration'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -152,22 +125,25 @@ class AboutSettingsView extends ConsumerWidget {
           children: [
             const Text('Enter the path to the configuration file:'),
             const SizedBox(height: 12),
-            TextBox(
+            TextField(
               controller: controller,
-              placeholder: 'File path',
+              decoration: const InputDecoration(
+                labelText: 'File path',
+                border: OutlineInputBorder(),
+              ),
             ),
             const SizedBox(height: 8),
             Text(
               '⚠ Existing settings will be overwritten.',
               style: TextStyle(
-                color: Colors.warningPrimaryColor,
+                color: Theme.of(context).colorScheme.error,
                 fontSize: 12,
               ),
             ),
           ],
         ),
         actions: [
-          Button(
+          TextButton(
             child: const Text('Cancel'),
             onPressed: () => Navigator.of(ctx).pop(false),
           ),
@@ -186,16 +162,10 @@ class AboutSettingsView extends ConsumerWidget {
       final file = File(filePath);
       if (!await file.exists()) {
         if (context.mounted) {
-          await displayInfoBar(
-            context,
-            builder: (ctx, close) => InfoBar(
-              title: const Text('File Not Found'),
-              content: Text(filePath),
-              severity: InfoBarSeverity.error,
-              action: IconButton(
-                icon: const Icon(FluentIcons.chrome_close),
-                onPressed: close,
-              ),
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('File not found: $filePath'),
+              backgroundColor: Theme.of(context).colorScheme.error,
             ),
           );
         }
@@ -208,33 +178,21 @@ class AboutSettingsView extends ConsumerWidget {
       final result = await service.importConfig(data);
 
       if (context.mounted) {
-        await displayInfoBar(
-          context,
-          builder: (ctx, close) => InfoBar(
-            title: Text(result.success ? 'Import Successful' : 'Import Failed'),
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
             content: Text(result.message),
-            severity: result.success
-                ? InfoBarSeverity.success
-                : InfoBarSeverity.error,
-            action: IconButton(
-              icon: const Icon(FluentIcons.chrome_close),
-              onPressed: close,
-            ),
+            backgroundColor: result.success
+                ? Colors.green
+                : Theme.of(context).colorScheme.error,
           ),
         );
       }
     } catch (e) {
       if (context.mounted) {
-        await displayInfoBar(
-          context,
-          builder: (ctx, close) => InfoBar(
-            title: const Text('Import Failed'),
-            content: Text('$e'),
-            severity: InfoBarSeverity.error,
-            action: IconButton(
-              icon: const Icon(FluentIcons.chrome_close),
-              onPressed: close,
-            ),
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Import failed: $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
       }

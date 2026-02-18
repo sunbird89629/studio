@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:context_menus/context_menus.dart';
 import 'package:flex_tabs/flex_tabs.dart';
-import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
@@ -25,7 +25,7 @@ import 'package:terminal_studio/src/ui/copilot_sidebar.dart';
 import 'package:terminal_studio/src/ui/log_sidebar.dart';
 import 'package:terminal_studio/src/ui/platform_menu.dart';
 import 'package:terminal_studio/src/ui/shared/debug_indicator.dart';
-import 'package:terminal_studio/src/ui/shared/fluent_menu_card.dart';
+import 'package:terminal_studio/src/ui/shared/studio_menu_card.dart';
 import 'package:terminal_studio/src/ui/shared/release_notes_dialog.dart';
 import 'package:terminal_studio/src/ui/shortcut/global_actions.dart';
 import 'package:terminal_studio/src/ui/shortcut/global_shortcuts.dart';
@@ -99,13 +99,13 @@ class MyApp extends ConsumerWidget {
 
     widget = ContextMenuOverlay(
       child: widget,
-      cardBuilder: (context, children) => FluentMenuCard(children: children),
+      cardBuilder: (context, children) => StudioMenuCard(children: children),
     );
 
-    return FluentApp(
+    return MaterialApp(
       title: 'OpenTerm',
       debugShowCheckedModeBanner: false,
-      theme: theme.fluentTheme,
+      theme: theme.theme,
       home: widget,
     );
   }
@@ -193,7 +193,7 @@ class _HomeState extends ConsumerState<Home> {
       content = Row(
         children: [
           Expanded(child: content),
-          const Divider(direction: Axis.vertical),
+          const VerticalDivider(),
           const SizedBox(
             width: 600,
             child: CopilotSidebar(),
@@ -206,7 +206,7 @@ class _HomeState extends ConsumerState<Home> {
       content = Row(
         children: [
           Expanded(child: content),
-          const Divider(direction: Axis.vertical),
+          const VerticalDivider(),
           const SizedBox(
             width: 400,
             child: LogSidebar(),

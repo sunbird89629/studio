@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/material.dart';
 
 class DebugIndicator extends StatelessWidget {
   const DebugIndicator({super.key});
@@ -10,7 +10,8 @@ class DebugIndicator extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    final theme = FluentTheme.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
 
     String label = 'DEBUG';
     if (kProfileMode) {
@@ -22,7 +23,7 @@ class DebugIndicator extends StatelessWidget {
         margin: const EdgeInsets.all(8.0),
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
         decoration: BoxDecoration(
-          color: theme.accentColor.toAccentColor().darker,
+          color: colorScheme.primaryContainer,
           borderRadius: BorderRadius.circular(4),
           boxShadow: [
             BoxShadow(
@@ -34,8 +35,8 @@ class DebugIndicator extends StatelessWidget {
         ),
         child: Text(
           label,
-          style: theme.typography.caption?.copyWith(
-            color: Colors.white,
+          style: textTheme.labelSmall?.copyWith(
+            color: colorScheme.onPrimaryContainer,
             fontWeight: FontWeight.bold,
             fontSize: 10,
           ),

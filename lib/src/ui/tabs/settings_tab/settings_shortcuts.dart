@@ -1,9 +1,10 @@
-import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_studio/src/core/state/keymap.dart';
 import 'package:terminal_studio/src/ui/shortcuts.dart' as shortcuts;
-import 'package:terminal_studio/src/ui/shortcuts.dart' show ShortcutId, defaultKeymaps;
+import 'package:terminal_studio/src/ui/shortcuts.dart'
+    show ShortcutId, defaultKeymaps;
 
 /// Settings panel for viewing and customizing keyboard shortcuts.
 class ShortcutsSettingsView extends ConsumerWidget {
@@ -14,30 +15,27 @@ class ShortcutsSettingsView extends ConsumerWidget {
     final keymapAsync = ref.watch(keymapProvider);
 
     return keymapAsync.when(
-      data: (keymap) => ScaffoldPage(
-        header: PageHeader(
+      data: (keymap) => Scaffold(
+        appBar: AppBar(
           title: const Text('Keyboard Shortcuts'),
-          commandBar: CommandBar(
-            mainAxisAlignment: MainAxisAlignment.end,
-            primaryItems: [
-              CommandBarButton(
-                icon: const Icon(FluentIcons.refresh),
-                label: const Text('Reset All'),
-                onPressed: () => _confirmResetAll(context, ref),
-              ),
-            ],
-          ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              onPressed: () => _confirmResetAll(context, ref),
+              tooltip: 'Reset All',
+            ),
+          ],
         ),
-        content: ListView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+        body: ListView(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           children: ShortcutId.labels.entries.map((entry) {
             final actionId = entry.key;
             final label = entry.value;
             final activator = keymap[actionId];
             final isDefault = defaultKeymaps[actionId] == activator;
 
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 2),
+            return Card(
+              margin: const EdgeInsets.only(bottom: 4),
               child: ListTile(
                 title: Text(label),
                 subtitle: activator != null
@@ -52,22 +50,17 @@ class ShortcutsSettingsView extends ConsumerWidget {
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Tooltip(
-                      message: 'Record new shortcut',
-                      child: IconButton(
-                        icon:
-                            const Icon(FluentIcons.keyboard_classic, size: 16),
-                        onPressed: () =>
-                            _recordShortcut(context, ref, actionId, label),
-                      ),
+                    IconButton(
+                      icon: const Icon(Icons.keyboard),
+                      onPressed: () =>
+                          _recordShortcut(context, ref, actionId, label),
+                      tooltip: 'Record new shortcut',
                     ),
                     if (!isDefault)
-                      Tooltip(
-                        message: 'Reset to default',
-                        child: IconButton(
-                          icon: const Icon(FluentIcons.undo, size: 16),
-                          onPressed: () => resetKeymapBinding(ref, actionId),
-                        ),
+                      IconButton(
+                        icon: const Icon(Icons.undo),
+                        onPressed: () => resetKeymapBinding(ref, actionId),
+                        tooltip: 'Reset to default',
                       ),
                   ],
                 ),
@@ -76,7 +69,7 @@ class ShortcutsSettingsView extends ConsumerWidget {
           }).toList(),
         ),
       ),
-      loading: () => const Center(child: ProgressRing()),
+      loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, _) => Center(child: Text('Error: $e')),
     );
   }
@@ -101,7 +94,7 @@ class ShortcutsSettingsView extends ConsumerWidget {
       if (conflict != null && context.mounted) {
         final overwrite = await showDialog<bool>(
           context: context,
-          builder: (ctx) => ContentDialog(
+          builder: (ctx) => AlertDialog(
             title: const Text('Shortcut Conflict'),
             content: Text(
               '${shortcuts.formatActivator(result)} is already used by '
@@ -109,7 +102,7 @@ class ShortcutsSettingsView extends ConsumerWidget {
               'Override?',
             ),
             actions: [
-              Button(
+              TextButton(
                 child: const Text('Cancel'),
                 onPressed: () => Navigator.of(ctx).pop(false),
               ),
@@ -130,12 +123,12 @@ class ShortcutsSettingsView extends ConsumerWidget {
   Future<void> _confirmResetAll(BuildContext context, WidgetRef ref) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (ctx) => ContentDialog(
+      builder: (ctx) => AlertDialog(
         title: const Text('Reset All Shortcuts'),
         content: const Text(
             'Reset all shortcuts to defaults? Custom bindings will be lost.'),
         actions: [
-          Button(
+          TextButton(
             child: const Text('Cancel'),
             onPressed: () => Navigator.of(ctx).pop(false),
           ),
@@ -180,7 +173,7 @@ class _ShortcutRecorderDialogState extends State<_ShortcutRecorderDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return ContentDialog(
+    return AlertDialog(
       title: Text('Set shortcut for "${widget.actionLabel}"'),
       content: KeyboardListener(
         focusNode: _focusNode,
@@ -211,7 +204,7 @@ class _ShortcutRecorderDialogState extends State<_ShortcutRecorderDialog> {
           alignment: Alignment.center,
           decoration: BoxDecoration(
             border: Border.all(
-              color: FluentTheme.of(context).accentColor,
+              color: Theme.of(context).colorScheme.primary,
               width: 2,
             ),
             borderRadius: BorderRadius.circular(8),
@@ -232,7 +225,7 @@ class _ShortcutRecorderDialogState extends State<_ShortcutRecorderDialog> {
         ),
       ),
       actions: [
-        Button(
+        TextButton(
           child: const Text('Cancel'),
           onPressed: () => Navigator.of(context).pop(null),
         ),
@@ -256,5 +249,4 @@ class _ShortcutRecorderDialogState extends State<_ShortcutRecorderDialog> {
         key == LogicalKeyboardKey.altLeft ||
         key == LogicalKeyboardKey.altRight;
   }
-
 }

@@ -1,6 +1,4 @@
-import 'package:fluent_ui/fluent_ui.dart' hide Colors;
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart' show Material, Colors;
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_studio/src/core/service/vim_edit_service.dart';
 import 'package:terminal_studio/src/core/state/settings.dart';
@@ -35,7 +33,7 @@ class _VimEditOverlayState extends ConsumerState<VimEditOverlay> {
       });
     }
 
-    final theme = FluentTheme.of(context);
+    final theme = Theme.of(context);
 
     return Stack(
       children: [
@@ -49,8 +47,8 @@ class _VimEditOverlayState extends ConsumerState<VimEditOverlay> {
                   width: 800,
                   height: 600,
                   decoration: BoxDecoration(
-                    color: theme.micaBackgroundColor,
-                    borderRadius: BorderRadius.circular(8),
+                    color: theme.colorScheme.surface,
+                    borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withValues(alpha: 0.5),
@@ -58,9 +56,13 @@ class _VimEditOverlayState extends ConsumerState<VimEditOverlay> {
                         offset: const Offset(0, 10),
                       ),
                     ],
+                    border: Border.all(
+                      color: theme.dividerColor,
+                      width: 1,
+                    ),
                   ),
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(12),
                     child: VimTerminalView(
                       terminal: state.terminal,
                       controller: state.terminalController,
@@ -112,7 +114,7 @@ class VimTerminalView extends ConsumerWidget {
           backgroundOpacity: 1,
         );
       },
-      loading: () => const Center(child: CupertinoActivityIndicator()),
+      loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, s) => Center(child: Text('Error: $e')),
     );
   }

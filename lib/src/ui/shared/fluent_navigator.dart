@@ -1,18 +1,18 @@
-import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/material.dart';
 
 class FluentNavigatorCommandBar extends StatelessWidget {
   const FluentNavigatorCommandBar({super.key, required this.primaryItems});
 
-  final List<CommandBarItem> primaryItems;
+  final List<Widget> primaryItems;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.only(right: 8),
-      child: CommandBar(
+      child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         crossAxisAlignment: CrossAxisAlignment.center,
-        primaryItems: primaryItems,
+        children: primaryItems,
       ),
     );
   }

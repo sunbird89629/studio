@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_studio/src/core/plugin.dart';
 
@@ -44,24 +44,30 @@ class StarterPlugin extends Plugin {
 
   @override
   Widget build(BuildContext context) {
-    return NavigationView(
-      pane: NavigationPane(
-        displayMode: PaneDisplayMode.top,
-        selected: 0,
-        items: [
-          PaneItem(
-            icon: const Icon(FluentIcons.server),
-            title: const Text('Uptime'),
-            body: Center(
-              child: ValueListenableBuilder<String?>(
-                valueListenable: _uptime,
-                builder: (context, value, child) {
-                  return Text(value ?? 'Waiting...');
-                },
-              ),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Uptime'),
+        leading: const Icon(Icons.dns_outlined),
+        centerTitle: false,
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.timer_outlined, size: 48),
+            const SizedBox(height: 16),
+            ValueListenableBuilder<String?>(
+              valueListenable: _uptime,
+              builder: (context, value, child) {
+                return Text(
+                  value ?? 'Waiting...',
+                  style: Theme.of(context).textTheme.headlineSmall,
+                  textAlign: TextAlign.center,
+                );
+              },
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

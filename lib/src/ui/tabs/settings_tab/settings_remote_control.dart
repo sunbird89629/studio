@@ -1,4 +1,4 @@
-import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_studio/src/core/service/remote_control_service.dart';
@@ -12,25 +12,28 @@ class RemoteControlSettingsView extends ConsumerWidget {
     final remoteState = ref.watch(remoteControlServiceProvider);
     final tunnelState = ref.watch(tunnelServiceProvider);
 
-    return ScaffoldPage(
-      header: const PageHeader(title: Text('Remote Control')),
-      content: SingleChildScrollView(
+    return Scaffold(
+      appBar: AppBar(title: const Text('Remote Control')),
+      body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Allow remote management of your terminal sessions from other devices.',
-              style: TextStyle(color: Colors.grey),
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyMedium
+                  ?.copyWith(color: Colors.grey),
             ),
             const SizedBox(height: 24),
 
             // Toggle
-            ToggleSwitch(
-              checked: remoteState.isEnabled,
-              content: Text(remoteState.isEnabled
+            SwitchListTile(
+              title: Text(remoteState.isEnabled
                   ? 'Service Active'
                   : 'Service Disabled'),
+              value: remoteState.isEnabled,
               onChanged: (v) async {
                 if (v) {
                   await ref.read(remoteControlServiceProvider.notifier).start();
@@ -48,66 +51,71 @@ class RemoteControlSettingsView extends ConsumerWidget {
               const SizedBox(height: 16),
 
               // Token
-              InfoLabel(
-                label: 'Authentication Token',
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TextFormBox(
-                        readOnly: true,
-                        initialValue: remoteState.authToken,
+              const Text('Authentication Token'),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      readOnly: true,
+                      initialValue: remoteState.authToken,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        contentPadding:
+                            EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    Button(
-                      child: const Icon(FluentIcons.copy),
-                      onPressed: () {
-                        Clipboard.setData(
-                            ClipboardData(text: remoteState.authToken ?? ''));
-                      },
-                    ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    icon: const Icon(Icons.copy),
+                    onPressed: () {
+                      Clipboard.setData(
+                          ClipboardData(text: remoteState.authToken ?? ''));
+                    },
+                  ),
+                ],
               ),
 
               const SizedBox(height: 16),
 
               // Web Access URL
-              InfoLabel(
-                label: 'Web Console URL (Intranet)',
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TextFormBox(
-                        readOnly: true,
-                        initialValue: remoteState.localUrl,
+              const SizedBox(height: 16),
+              const Text('Web Console URL (Intranet)'),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      readOnly: true,
+                      initialValue: remoteState.localUrl,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        contentPadding:
+                            EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    Tooltip(
-                      message: 'Copy URL',
-                      child: Button(
-                        child: const Icon(FluentIcons.copy),
-                        onPressed: () {
-                          Clipboard.setData(
-                              ClipboardData(text: remoteState.localUrl ?? ''));
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Tooltip(
-                      message: 'Copy URL with Token',
-                      child: Button(
-                        child: const Icon(FluentIcons.share),
-                        onPressed: () {
-                          final urlWithToken =
-                              '${remoteState.localUrl}?token=${remoteState.authToken}';
-                          Clipboard.setData(ClipboardData(text: urlWithToken));
-                        },
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    icon: const Icon(Icons.copy),
+                    onPressed: () {
+                      Clipboard.setData(
+                          ClipboardData(text: remoteState.localUrl ?? ''));
+                    },
+                    tooltip: 'Copy URL',
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    icon: const Icon(Icons.share),
+                    onPressed: () {
+                      final urlWithToken =
+                          '${remoteState.localUrl}?token=${remoteState.authToken}';
+                      Clipboard.setData(ClipboardData(text: urlWithToken));
+                    },
+                    tooltip: 'Copy URL with Token',
+                  ),
+                ],
               ),
 
               const SizedBox(height: 24),
@@ -123,29 +131,32 @@ class RemoteControlSettingsView extends ConsumerWidget {
                   style: TextStyle(color: Colors.grey, fontSize: 13)),
               const SizedBox(height: 16),
 
-              InfoLabel(
-                label: 'Cloudflare Tunnel Token',
-                child: TextFormBox(
-                  placeholder: 'Paste your tunnel token here',
-                  initialValue: remoteState.cloudflaredToken,
-                  onChanged: (v) => ref
-                      .read(remoteControlServiceProvider.notifier)
-                      .setCloudflaredToken(v),
+              const Text('Cloudflare Tunnel Token'),
+              const SizedBox(height: 8),
+              TextFormField(
+                initialValue: remoteState.cloudflaredToken,
+                decoration: const InputDecoration(
+                  hintText: 'Paste your tunnel token here',
+                  border: OutlineInputBorder(),
                 ),
+                onChanged: (v) => ref
+                    .read(remoteControlServiceProvider.notifier)
+                    .setCloudflaredToken(v),
               ),
 
               const SizedBox(height: 16),
 
-              InfoLabel(
-                label: 'Lark (Feishu) Webhook URL',
-                child: TextFormBox(
-                  placeholder:
-                      'https://open.feishu.cn/open-apis/bot/v2/hook/xxx',
-                  initialValue: remoteState.larkWebhookUrl,
-                  onChanged: (v) => ref
-                      .read(remoteControlServiceProvider.notifier)
-                      .setLarkWebhookUrl(v),
+              const Text('Lark (Feishu) Webhook URL'),
+              const SizedBox(height: 8),
+              TextFormField(
+                initialValue: remoteState.larkWebhookUrl,
+                decoration: const InputDecoration(
+                  hintText: 'https://open.feishu.cn/open-apis/bot/v2/hook/xxx',
+                  border: OutlineInputBorder(),
                 ),
+                onChanged: (v) => ref
+                    .read(remoteControlServiceProvider.notifier)
+                    .setLarkWebhookUrl(v),
               ),
 
               const SizedBox(height: 16),
@@ -161,7 +172,7 @@ class RemoteControlSettingsView extends ConsumerWidget {
                     child: const Text('Quick Tunnel (TryCloudflare)'),
                   ),
                   const SizedBox(width: 8),
-                  Button(
+                  OutlinedButton(
                     onPressed: (tunnelState.isConnected ||
                             remoteState.cloudflaredToken == null ||
                             remoteState.cloudflaredToken!.isEmpty)
@@ -177,7 +188,7 @@ class RemoteControlSettingsView extends ConsumerWidget {
                   ),
                   if (tunnelState.status != TunnelStatus.stopped) ...[
                     const SizedBox(width: 8),
-                    Button(
+                    TextButton(
                       onPressed: () =>
                           ref.read(tunnelServiceProvider.notifier).disconnect(),
                       child: const Text('Stop'),
@@ -189,39 +200,46 @@ class RemoteControlSettingsView extends ConsumerWidget {
               if (tunnelState.publicUrl != null)
                 Padding(
                   padding: const EdgeInsets.only(top: 16.0),
-                  child: InfoLabel(
-                    label: 'Public Access URL',
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: TextFormBox(
-                            readOnly: true,
-                            initialValue: tunnelState.publicUrl,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Public Access URL'),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextFormField(
+                              readOnly: true,
+                              initialValue: tunnelState.publicUrl,
+                              decoration: const InputDecoration(
+                                border: OutlineInputBorder(),
+                                contentPadding: EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 8),
+                              ),
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        Button(
-                          child: const Icon(FluentIcons.copy),
-                          onPressed: () {
-                            Clipboard.setData(ClipboardData(
-                                text: tunnelState.publicUrl ?? ''));
-                          },
-                        ),
-                        const SizedBox(width: 8),
-                        Tooltip(
-                          message: 'Copy with Token',
-                          child: Button(
-                            child: const Icon(FluentIcons.share),
+                          const SizedBox(width: 8),
+                          IconButton(
+                            icon: const Icon(Icons.copy),
+                            onPressed: () {
+                              Clipboard.setData(ClipboardData(
+                                  text: tunnelState.publicUrl ?? ''));
+                            },
+                          ),
+                          const SizedBox(width: 8),
+                          IconButton(
+                            icon: const Icon(Icons.share),
                             onPressed: () {
                               final urlWithToken =
                                   '${tunnelState.publicUrl}?token=${remoteState.authToken}';
                               Clipboard.setData(
                                   ClipboardData(text: urlWithToken));
                             },
+                            tooltip: 'Copy with Token',
                           ),
-                        ),
-                      ],
-                    ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
 
@@ -236,7 +254,7 @@ class RemoteControlSettingsView extends ConsumerWidget {
                           child: SizedBox(
                             width: 16,
                             height: 16,
-                            child: ProgressRing(strokeWidth: 2),
+                            child: CircularProgressIndicator(strokeWidth: 2),
                           ),
                         ),
                       Text('Status: ${tunnelState.status.name}',
@@ -266,9 +284,10 @@ class RemoteControlSettingsView extends ConsumerWidget {
                       padding: const EdgeInsets.symmetric(vertical: 4.0),
                       child: Row(
                         children: [
-                          const Icon(FluentIcons.contact, size: 12),
+                          const Icon(Icons.person, size: 16),
                           const SizedBox(width: 8),
-                          Text(id, style: const TextStyle(fontSize: 12)),
+                          Text(id,
+                              style: Theme.of(context).textTheme.bodySmall),
                         ],
                       ),
                     )),

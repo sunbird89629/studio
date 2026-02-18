@@ -1,12 +1,11 @@
 import 'package:flex_tabs/flex_tabs.dart';
-import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_studio/src/core/record/ssh_host_record.dart';
 import 'package:terminal_studio/src/core/state/database.dart';
 import 'package:terminal_studio/src/ui/shared/fluent_back_button.dart';
 import 'package:terminal_studio/src/ui/shared/fluent_form.dart';
-import 'package:terminal_studio/src/ui/shared/fluent_navigator.dart';
 import 'package:terminal_studio/src/util/validators.dart';
 
 class HostEditPage extends ConsumerStatefulWidget {
@@ -23,45 +22,29 @@ class _HostEditDialogState extends ConsumerState<HostEditPage> {
 
   @override
   Widget build(BuildContext context) {
-    return NavigationView(
-      appBar: NavigationAppBar(
+    return Scaffold(
+      appBar: AppBar(
         title: Text(isEditing ? 'Edit Host' : 'Add Host'),
         leading:
             Navigator.of(context).canPop() ? const FluentBackButton() : null,
-        actions: FluentNavigatorCommandBar(
-          primaryItems: [
-            if (isEditing)
-              CommandBarButton(
-                icon: const Icon(FluentIcons.delete),
-                label: const Text('Delete'),
-                onPressed: () async {
-                  if (widget.record != null) {
-                    await widget.record!.delete();
-                  }
-                  close();
-                },
-              ),
-          ],
-        ),
-      ),
-      pane: NavigationPane(
-        displayMode: PaneDisplayMode.top,
-        selected: 0,
-        items: [
-          PaneItem(
-            icon: const Icon(FluentIcons.server),
-            title: const Text('Host'),
-            body: SSHHostEditForm(
-              record: widget.record,
-              onSaved: _onSaved,
+        actions: [
+          if (isEditing)
+            IconButton(
+              icon: const Icon(Icons.delete),
+              onPressed: () async {
+                if (widget.record != null) {
+                  await widget.record!.delete();
+                }
+                close();
+              },
+              tooltip: 'Delete',
             ),
-          ),
         ],
       ),
-      // content: SSHHostEditForm(
-      //   record: widget.record,
-      //   onSaved: _onSaved,
-      // ),
+      body: SSHHostEditForm(
+        record: widget.record,
+        onSaved: _onSaved,
+      ),
     );
   }
 
@@ -114,37 +97,45 @@ class _HostEditFormState extends ConsumerState<SSHHostEditForm> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const FluentFormHeader('Protocol'),
-              ComboboxFormField(
-                value: 'ssh',
+              DropdownButtonFormField<String>(
+                initialValue: 'ssh',
                 items: const [
-                  ComboBoxItem(
+                  DropdownMenuItem(
                     value: 'ssh',
                     child: Text('SSH'),
                   ),
                 ],
                 onChanged: (value) {},
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                ),
               ),
               const FluentFormDivider(),
-              InfoLabel(
-                label: 'Label',
-                child: TextFormBox(
-                  initialValue: record.name,
-                  onSaved: (value) => record.name = value!,
+              TextFormField(
+                initialValue: record.name,
+                decoration: const InputDecoration(
+                  labelText: 'Label',
+                  border: OutlineInputBorder(),
                 ),
+                onSaved: (value) => record.name = value!,
               ),
             ],
           ),
         ),
         const FluentFormSeparator(),
         Card(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              InfoLabel(
-                label: 'Host',
-                child: TextFormBox(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextFormField(
                   initialValue: record.host,
-                  placeholder: 'example.com / 1.2.3.4',
+                  decoration: const InputDecoration(
+                    labelText: 'Host',
+                    hintText: 'example.com / 1.2.3.4',
+                    border: OutlineInputBorder(),
+                  ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Host is required';
@@ -153,12 +144,13 @@ class _HostEditFormState extends ConsumerState<SSHHostEditForm> {
                   },
                   onSaved: (value) => record.host = value!,
                 ),
-              ),
-              const FluentFormDivider(),
-              InfoLabel(
-                label: 'Port',
-                child: TextFormBox(
+                const FluentFormDivider(),
+                TextFormField(
                   initialValue: record.port.toString(),
+                  decoration: const InputDecoration(
+                    labelText: 'Port',
+                    border: OutlineInputBorder(),
+                  ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Port is required';
@@ -170,59 +162,47 @@ class _HostEditFormState extends ConsumerState<SSHHostEditForm> {
                   ],
                   onSaved: (value) => record.port = int.parse(value!),
                 ),
-              ),
-              const FluentFormDivider(),
-              InfoLabel(
-                label: 'User',
-                child: TextFormBox(
+                const FluentFormDivider(),
+                TextFormField(
                   initialValue: record.username,
-                  placeholder: 'root',
+                  decoration: const InputDecoration(
+                    labelText: 'User',
+                    hintText: 'root',
+                    border: OutlineInputBorder(),
+                  ),
                   onSaved: (value) => record.username = value,
                 ),
-              ),
-              const FluentFormDivider(),
-              InfoLabel(
-                label: 'Password',
-                child: TextFormBox(
-                  placeholder: '',
+                const FluentFormDivider(),
+                TextFormField(
                   initialValue: record.password,
                   obscureText: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Password',
+                    border: OutlineInputBorder(),
+                  ),
                   onSaved: (value) => record.password = value,
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
         const FluentFormSeparator(),
-        // Card(
-        //   child: Column(
-        //     crossAxisAlignment: CrossAxisAlignment.start,
-        //     children: [
-        //       TextFormBox(
-        //         header: 'Private Key',
-        //         placeholder: '',
-        //       ),
-        //       const FluentFormDivider(),
-        //       TextFormBox(
-        //         header: 'Passphrase',
-        //         placeholder: '',
-        //       ),
-        //     ],
-        //   ),
-        // ),
         Card(
-          child: Row(
-            children: [
-              FilledButton(
-                onPressed: _submitForm,
-                child: const Text('Save'),
-              ),
-              const SizedBox(width: 8),
-              Button(
-                child: const Text('Test Connection'),
-                onPressed: () {},
-              ),
-            ],
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              children: [
+                FilledButton(
+                  onPressed: _submitForm,
+                  child: const Text('Save'),
+                ),
+                const SizedBox(width: 8),
+                OutlinedButton(
+                  child: const Text('Test Connection'),
+                  onPressed: () {},
+                ),
+              ],
+            ),
           ),
         ),
       ],

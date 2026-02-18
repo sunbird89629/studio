@@ -1,7 +1,7 @@
-import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/material.dart';
 
-class FluentMenuCard extends StatelessWidget {
-  const FluentMenuCard({
+class StudioMenuCard extends StatelessWidget {
+  const StudioMenuCard({
     super.key,
     required this.children,
     this.borderRadius,
@@ -20,7 +20,8 @@ class FluentMenuCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final shadowColor = FluentTheme.of(context).shadowColor;
+    final theme = Theme.of(context);
+    final shadowColor = theme.shadowColor;
     final radius = borderRadius ?? BorderRadius.circular(4);
     return ConstrainedBox(
       constraints: const BoxConstraints(minWidth: 250),
@@ -29,8 +30,8 @@ class FluentMenuCard extends StatelessWidget {
         child: Container(
           padding: padding ?? const EdgeInsets.symmetric(vertical: 5),
           decoration: BoxDecoration(
-            color: bgColor ?? FluentTheme.of(context).menuColor,
-            border: border ?? Border.all(color: Colors.grey[100]),
+            color: bgColor ?? theme.colorScheme.surfaceContainer,
+            border: border ?? Border.all(color: Colors.grey[100]!),
             borderRadius: radius,
             boxShadow: shadows ??
                 [
