@@ -6,8 +6,11 @@ import 'package:flutter_pty/flutter_pty.dart';
 import 'package:terminal_studio/src/core/fs.dart' hide File, Directory, Link;
 import 'package:terminal_studio/src/core/host.dart';
 import 'package:terminal_studio/src/hosts/local_fs.dart';
+import '../core/utils/ai_logger.dart';
 
 class LocalHost implements Host {
+  final _logger = AILogger(context: const LogContext(component: 'LocalHost'));
+
   @override
   Future<ExecutionResult> execute(
     String executable, {
@@ -43,8 +46,8 @@ class LocalHost implements Host {
           'Please ensure your shell is correctly configured.');
     }
 
-    print('Starting shell: $resolvedCommand ${shellCommand.args}');
-    print('Environment USER: ${io.Platform.environment['USER']}');
+    _logger.i('Starting shell: $resolvedCommand ${shellCommand.args}');
+    _logger.i('Environment USER: ${io.Platform.environment['USER']}');
 
     try {
       final env = {
@@ -62,10 +65,10 @@ class LocalHost implements Host {
         rows: height,
         columns: width,
       );
-      print('Pty started successfully: $pty');
+      _logger.i('Pty started successfully: $pty');
       return LocalExecutionSession(pty);
     } catch (e) {
-      print('Failed to start Pty: $e');
+      _logger.e('Failed to start Pty', error: e);
       rethrow;
     }
   }
@@ -126,13 +129,17 @@ class LocalExecutionSession implements ExecutionSession {
 
   LocalExecutionSession(this._pty);
 
+  final _logger =
+      AILogger(context: const LogContext(component: 'LocalExecutionSession'));
+
   @override
   Future<int> get exitCode => _pty.exitCode;
 
   @override
   Stream<Uint8List> get output {
     return _pty.output.map((data) {
-      print('Pty output: ${data.length} bytes: ${String.fromCharCodes(data)}');
+      _logger
+          .d('Pty output: ${data.length} bytes: ${String.fromCharCodes(data)}');
       return data;
     });
   }

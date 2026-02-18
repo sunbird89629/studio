@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:terminal_studio/src/core/host.dart';
+import 'package:terminal_studio/src/core/utils/ai_logger.dart';
 
 abstract class HostSpec {
   String get name;
@@ -20,6 +21,9 @@ abstract class HostConnector<T extends Host> with ChangeNotifier {
 
   T? get host => _host;
 
+  final _logger =
+      AILogger(context: const LogContext(component: 'HostConnector'));
+
   HostConnectorStatus _state = HostConnectorStatus.initialized;
   HostConnectorStatus get state => _state;
 
@@ -34,28 +38,31 @@ abstract class HostConnector<T extends Host> with ChangeNotifier {
   Future<T> createHost();
 
   Future<void> connect() async {
-    print('HostConnector: connect() called for $this. Current state: $state');
+    _logger
+        .i('HostConnector: connect() called for $this. Current state: $state');
     if (state == HostConnectorStatus.connected ||
         state == HostConnectorStatus.connecting) {
-      print('HostConnector: already connecting/connected. Aborting.');
+      _logger.i('HostConnector: already connecting/connected. Aborting.');
       return;
     }
 
     state = HostConnectorStatus.connecting;
-    print('HostConnector: state set to connecting. Notify called.');
+    _logger.i('HostConnector: state set to connecting. Notify called.');
 
     try {
-      print('HostConnector: calling createHost()...');
+      _logger.i('HostConnector: calling createHost()...');
       _host = await createHost();
-      print('HostConnector: createHost returned $_host. Notifying listeners.');
+      _logger
+          .i('HostConnector: createHost returned $_host. Notifying listeners.');
       notifyListeners();
 
       _host!.done.then((_) => _onDone(), onError: _onError);
 
       state = HostConnectorStatus.connected;
-      print('HostConnector: state set to connected. Notify called.');
+      _logger.i('HostConnector: state set to connected. Notify called.');
     } catch (e, st) {
-      print('HostConnector: error during connect: $e\n$st');
+      _logger.e('HostConnector: error during connect',
+          error: e, stackTrace: st);
       state = HostConnectorStatus.disconnected;
     }
   }

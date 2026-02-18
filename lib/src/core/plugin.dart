@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_studio/src/core/conn.dart';
 import 'package:terminal_studio/src/core/host.dart';
+import 'package:terminal_studio/src/core/utils/ai_logger.dart';
 
 abstract class Plugin {
   PluginManager? _manager;
@@ -85,6 +86,9 @@ class PluginManager with ChangeNotifier {
 
   PluginManager(this.hostSpec, this.ref);
 
+  final _logger =
+      AILogger(context: const LogContext(component: 'PluginManager'));
+
   final _plugins = <Plugin>[];
 
   List<Plugin> get plugins => List.unmodifiable(_plugins);
@@ -124,23 +128,23 @@ class PluginManager with ChangeNotifier {
   }
 
   void didConnected(Host host) {
-    print(
+    _logger.i(
         'PluginManager.didConnected called with host: $host. Current plugins: ${_plugins.length}');
     if (_host != null) {
       // throw Exception('plugin manager is already connected to $_host');
       // Relaxed for debugging/robustness
-      print(
+      _logger.w(
           'PluginManager: Warning - already connected to $_host. Replacing with $host.');
     }
 
     _host = host;
 
     for (final plugin in _plugins) {
-      print(
+      _logger.i(
           'PluginManager: notifying plugin ${plugin.runtimeType} of connection.');
       plugin._host = host;
       plugin.didConnected();
-      print(
+      _logger.i(
           'PluginManager: plugin ${plugin.runtimeType} didConnected completed.');
     }
   }

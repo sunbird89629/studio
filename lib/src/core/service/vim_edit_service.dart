@@ -8,6 +8,7 @@ import 'package:path/path.dart' as p;
 import 'package:terminal_studio/src/core/host.dart';
 import 'package:terminal_studio/src/hosts/local_host.dart';
 import 'package:xterm/xterm.dart';
+import '../utils/ai_logger.dart';
 
 class VimEditState {
   final bool isVisible;
@@ -49,6 +50,9 @@ class VimEditNotifier extends Notifier<VimEditState> {
   ExecutionSession? _session;
   File? _tempFile;
 
+  final _logger =
+      AILogger(context: const LogContext(component: 'VimEditNotifier'));
+
   @override
   VimEditState build() {
     return VimEditState.initial();
@@ -75,7 +79,7 @@ class VimEditNotifier extends Notifier<VimEditState> {
       final host = LocalHost(); // Use LocalHost directly for now
       // TODO: In the future, we might want to use the active tab's host if we want to run nvim on a remote server
 
-      print('Starting nvim on ${_tempFile!.path}');
+      _logger.i('Starting nvim on ${_tempFile!.path}');
 
       // Reset terminal
       state.terminal.write('\r\nStarting nvim...\r\n');
@@ -102,7 +106,7 @@ class VimEditNotifier extends Notifier<VimEditState> {
           },
           onDone: _onSessionExit,
           onError: (e) {
-            print('Vim session error: $e');
+            _logger.e('Vim session error', error: e);
             _onSessionExit();
           });
 
@@ -113,7 +117,7 @@ class VimEditNotifier extends Notifier<VimEditState> {
         previousFocusNode: currentFocus,
       );
     } catch (e) {
-      print('Failed to open vim edit mode: $e');
+      _logger.e('Failed to open vim edit mode', error: e);
       // Show error handling?
     }
   }
@@ -121,7 +125,7 @@ class VimEditNotifier extends Notifier<VimEditState> {
   void _onSessionExit() async {
     if (!state.isVisible) return; // Already closed
 
-    print('Vim session exited');
+    _logger.i('Vim session exited');
 
     // 1. Read file content
     if (_tempFile != null && await _tempFile!.exists()) {
@@ -129,10 +133,10 @@ class VimEditNotifier extends Notifier<VimEditState> {
         final content = await _tempFile!.readAsString();
         if (content.isNotEmpty) {
           await Clipboard.setData(ClipboardData(text: content));
-          print('Content copied to clipboard (${content.length} chars)');
+          _logger.i('Content copied to clipboard (${content.length} chars)');
         }
       } catch (e) {
-        print('Failed to read temp file: $e');
+        _logger.e('Failed to read temp file', error: e);
       } finally {
         // Cleanup
         try {

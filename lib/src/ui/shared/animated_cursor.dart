@@ -290,8 +290,9 @@ class _AnimatedCursorTerminalViewState extends State<AnimatedCursorTerminalView>
                 height: charHeight,
                 child: IgnorePointer(
                   child: Container(
-                    color: widget.theme.cursor.withOpacity(
-                        0.5), // Semi-transparent for "trail" look or full opacity?
+                    color: widget.theme.cursor.withValues(
+                        alpha:
+                            0.5), // Semi-transparent for "trail" look or full opacity?
                     // Kitty cursor usually inverse or block.
                     // Let's stick to simple block for now with the theme color.
                   ),
