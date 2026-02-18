@@ -185,23 +185,30 @@ class ConfigExportService {
     if (map['terminal_font_family'] is String) {
       s.terminalFontFamily = map['terminal_font_family'] as String;
     }
-    if (map['theme_id'] is String) s.themeId = map['theme_id'] as String;
+    if (map['theme_id'] is String) {
+      s.themeId = map['theme_id'] as String;
+    }
     if (map['cursor_shape'] is String) {
       s.cursorShape = map['cursor_shape'] as String;
     }
-    if (map['cursor_blink'] is bool)
+    if (map['cursor_blink'] is bool) {
       s.cursorBlink = map['cursor_blink'] as bool;
+    }
     if (map['cursor_color'] is String) {
       s.cursorColor = map['cursor_color'] as String;
     }
-    if (map['shell'] is String) s.shell = map['shell'] as String;
+    if (map['shell'] is String) {
+      s.shell = map['shell'] as String;
+    }
     if (map['shell_args'] is List) {
       s.shellArgs = (map['shell_args'] as List).cast<String>();
     }
     if (map['working_directory'] is String) {
       s.workingDirectory = map['working_directory'] as String;
     }
-    if (map['scrollback'] is int) s.scrollback = map['scrollback'] as int;
+    if (map['scrollback'] is int) {
+      s.scrollback = map['scrollback'] as int;
+    }
     if (map['line_height'] is num) {
       s.lineHeight = (map['line_height'] as num).toDouble();
     }
@@ -230,8 +237,12 @@ class ConfigExportService {
     if (map['ai_provider'] is String) {
       s.aiProvider = map['ai_provider'] as String;
     }
-    if (map['ai_model'] is String) s.aiModel = map['ai_model'] as String;
-    if (map['ai_api_key'] is String) s.aiApiKey = map['ai_api_key'] as String;
+    if (map['ai_model'] is String) {
+      s.aiModel = map['ai_model'] as String;
+    }
+    if (map['ai_api_key'] is String) {
+      s.aiApiKey = map['ai_api_key'] as String;
+    }
   }
 
   Map<String, dynamic> _sshHostToMap(SSHHostRecord h) => {

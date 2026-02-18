@@ -7,6 +7,7 @@ import 'package:path/path.dart' as p;
 import 'package:terminal_studio/src/core/record/profile_record.dart';
 import 'package:terminal_studio/src/core/record/settings_record.dart';
 import 'package:terminal_studio/src/core/state/settings.dart';
+import '../utils/ai_logger.dart';
 
 /// Service for reading/writing `~/.terminal_studio/config.jsonc`.
 ///
@@ -15,6 +16,9 @@ class ConfigFileService {
   ConfigFileService(this._ref);
 
   final Ref _ref;
+
+  final _logger =
+      AILogger(context: const LogContext(component: 'ConfigFileService'));
 
   StreamSubscription<FileSystemEvent>? _watcher;
 
@@ -119,7 +123,7 @@ class ConfigFileService {
       return true;
     } catch (e) {
       // Malformed JSONC — don't crash, just skip
-      print('[ConfigFileService] Failed to parse config.jsonc: $e');
+      _logger.e('Failed to parse config.jsonc', error: e);
       return false;
     } finally {
       // Delay clearing to let Hive listener fire first

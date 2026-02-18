@@ -16,11 +16,15 @@ import 'package:terminal_studio/src/plugins/terminal/xterm_fixes.dart'; // NEW
 import 'package:terminal_studio/src/ui/shortcut/intents.dart';
 import 'package:terminal_studio/src/ui/shortcuts.dart' as shortcuts;
 import 'package:xterm/xterm.dart';
+import '../../core/utils/ai_logger.dart';
 
 class TerminalPlugin extends Plugin {
   late final Terminal terminal;
 
   final terminalController = TerminalController();
+
+  final _logger =
+      AILogger(context: const LogContext(component: 'TerminalPlugin'));
 
   var terminalTitle = '';
 
@@ -52,7 +56,7 @@ class TerminalPlugin extends Plugin {
     };
 
     terminal.onOutput = (data) {
-      print('Terminal input (user typed): ${data.length} chars: $data');
+      _logger.d('Terminal input (user typed): ${data.length} chars');
       session?.write(const Utf8Encoder().convert(data));
     };
 
@@ -69,7 +73,7 @@ class TerminalPlugin extends Plugin {
   @override
   void didConnected() async {
     title.value = 'Terminal';
-    print('TerminalPlugin connected. requesting shell...');
+    _logger.i('TerminalPlugin connected. requesting shell...');
 
     // Read user settings for shell configuration
     final settings = ref.read(settingsProvider).value;
@@ -83,11 +87,11 @@ class TerminalPlugin extends Plugin {
       environment: settings?.env,
     );
 
-    print('Shell session created: $session');
+    _logger.i('Shell session created: $session');
 
     session!.output.cast<List<int>>().transform(const Utf8Decoder()).listen(
         (data) {
-      print('Terminal received output: ${data.length} chars');
+      _logger.d('Terminal received output: ${data.length} chars');
       terminal.write(data);
 
       // Broadcast to remote control clients
@@ -95,13 +99,13 @@ class TerminalPlugin extends Plugin {
           .read(remoteControlServiceProvider.notifier)
           .broadcastTerminalOutput(data);
     }, onError: (e) {
-      print('Terminal session error: $e');
+      _logger.e('Terminal session error', error: e);
     }, onDone: () {
-      print('Terminal session done');
+      _logger.i('Terminal session done');
     });
 
     session!.exitCode.then((code) {
-      print('Terminal session exited with code: $code');
+      _logger.i('Terminal session exited with code: $code');
       session = null;
       if (mounted) {
         manager.remove(this);
@@ -111,7 +115,7 @@ class TerminalPlugin extends Plugin {
 
   @override
   void didDisconnected() {
-    print('TerminalPlugin disconnected');
+    _logger.i('TerminalPlugin disconnected');
     session = null;
     title.value = 'Disconnected';
   }

@@ -1,5 +1,5 @@
 import 'package:xterm/xterm.dart';
-import 'package:xterm/src/core/input/keytab/keytab.dart';
+import 'package:xterm/src/core/input/keytab/keytab.dart'; // ignore: implementation_imports
 
 /// A [TerminalInputHandler] that translates key events according to a keytab
 /// file. Fixed to use [cursorKeysMode] instead of [appKeypadMode] for [appCursorKeys].

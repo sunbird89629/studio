@@ -14,7 +14,7 @@ class LarkUtils {
     final request = await client.postUrl(Uri.parse(url));
     request.headers.set("Content-Type", "application/json");
     request.write(jsonEncode(body));
-    final response = await request.close();
+    await request.close();
     return true;
   }
 }
