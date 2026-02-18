@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
@@ -14,13 +13,11 @@ class VimEditState {
   final bool isVisible;
   final Terminal terminal;
   final TerminalController terminalController;
-  final FocusNode? previousFocusNode;
 
   const VimEditState({
     required this.isVisible,
     required this.terminal,
     required this.terminalController,
-    this.previousFocusNode,
   });
 
   factory VimEditState.initial() {
@@ -35,13 +32,11 @@ class VimEditState {
     bool? isVisible,
     Terminal? terminal,
     TerminalController? terminalController,
-    FocusNode? previousFocusNode,
   }) {
     return VimEditState(
       isVisible: isVisible ?? this.isVisible,
       terminal: terminal ?? this.terminal,
       terminalController: terminalController ?? this.terminalController,
-      previousFocusNode: previousFocusNode ?? this.previousFocusNode,
     );
   }
 }
@@ -49,6 +44,7 @@ class VimEditState {
 class VimEditNotifier extends Notifier<VimEditState> {
   ExecutionSession? _session;
   File? _tempFile;
+  bool _isExiting = false;
 
   final _logger =
       AILogger(context: const LogContext(component: 'VimEditNotifier'));
@@ -61,11 +57,15 @@ class VimEditNotifier extends Notifier<VimEditState> {
   Future<void> open() async {
     if (state.isVisible) return;
 
-    try {
-      // Save current focus
-      final currentFocus = FocusManager.instance.primaryFocus;
+    _isExiting = false;
 
-      // 1. Create temp file
+    try {
+      // 1. Create fresh terminal for each session
+      final terminal = Terminal(maxLines: 10000);
+      final controller = TerminalController();
+      state = state.copyWith(terminal: terminal, terminalController: controller);
+
+      // 2. Create temp file
       final tempDir = Directory.systemTemp;
       _tempFile = File(
         p.join(
@@ -75,34 +75,31 @@ class VimEditNotifier extends Notifier<VimEditState> {
       );
       await _tempFile!.create();
 
-      // 2. Start nvim session
-      final host = LocalHost(); // Use LocalHost directly for now
+      // 3. Start nvim session
+      final host = LocalHost();
       // TODO: In the future, we might want to use the active tab's host if we want to run nvim on a remote server
 
       _logger.i('Starting nvim on ${_tempFile!.path}');
 
-      // Reset terminal
-      state.terminal.write('\r\nStarting nvim...\r\n');
-
       _session = await host.shell(
-        width: 80, // Initial size, will be resized by TerminalView
+        width: 80,
         height: 24,
         command: 'nvim',
         args: [_tempFile!.path],
       );
 
-      // 3. Connect session to terminal
-      state.terminal.onOutput = (data) {
+      // 4. Connect session to terminal
+      terminal.onOutput = (data) {
         _session?.write(const Utf8Encoder().convert(data));
       };
 
-      state.terminal.onResize = (w, h, pw, ph) {
+      terminal.onResize = (w, h, pw, ph) {
         _session?.resize(w, h);
       };
 
       _session!.output.cast<List<int>>().transform(const Utf8Decoder()).listen(
           (data) {
-            state.terminal.write(data);
+            terminal.write(data);
           },
           onDone: _onSessionExit,
           onError: (e) {
@@ -112,22 +109,23 @@ class VimEditNotifier extends Notifier<VimEditState> {
 
       _session!.exitCode.then((_) => _onSessionExit());
 
-      state = state.copyWith(
-        isVisible: true,
-        previousFocusNode: currentFocus,
-      );
+      state = state.copyWith(isVisible: true);
     } catch (e) {
       _logger.e('Failed to open vim edit mode', error: e);
-      // Show error handling?
     }
   }
 
   void _onSessionExit() async {
-    if (!state.isVisible) return; // Already closed
+    if (_isExiting) return;
+    _isExiting = true;
 
     _logger.i('Vim session exited');
 
-    // 1. Read file content
+    // 1. Clean up terminal callbacks
+    state.terminal.onOutput = null;
+    state.terminal.onResize = null;
+
+    // 2. Read file content and copy to clipboard
     if (_tempFile != null && await _tempFile!.exists()) {
       try {
         final content = await _tempFile!.readAsString();
@@ -138,7 +136,6 @@ class VimEditNotifier extends Notifier<VimEditState> {
       } catch (e) {
         _logger.e('Failed to read temp file', error: e);
       } finally {
-        // Cleanup
         try {
           await _tempFile!.delete();
         } catch (_) {}
@@ -148,17 +145,12 @@ class VimEditNotifier extends Notifier<VimEditState> {
 
     _session = null;
 
-    // Restore previous focus
-    final previousFocus = state.previousFocusNode;
-    if (previousFocus != null && previousFocus.canRequestFocus) {
-      previousFocus.requestFocus();
-    }
-
-    state = state.copyWith(isVisible: false, previousFocusNode: null);
+    // Setting isVisible to false triggers the dialog to pop via ref.listen in _VimEditDialog.
+    // Navigator handles focus restoration automatically.
+    state = state.copyWith(isVisible: false);
   }
 
   void close() {
-    // Force close if needed, usually triggered by UI or session exit
     _session?.close();
   }
 }

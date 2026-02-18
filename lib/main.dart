@@ -1,51 +1,23 @@
-import 'dart:async';
-import 'dart:io';
-
-import 'package:context_menus/context_menus.dart';
-import 'package:flex_tabs/flex_tabs.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_devtools/riverpod_devtools.dart';
 import 'package:terminal_studio/src/core/service/log_service.dart';
-import 'package:terminal_studio/src/core/service/notification_service.dart';
-import 'package:terminal_studio/src/core/service/release_notes_service.dart';
-import 'package:terminal_studio/src/core/service/tabs_service.dart';
-import 'package:terminal_studio/src/core/state/copilot.dart';
-import 'package:terminal_studio/src/core/state/log_visible.dart';
-import 'package:terminal_studio/src/core/state/tabs.dart';
-import 'package:terminal_studio/src/core/state/theme.dart';
 import 'package:terminal_studio/src/core/utils/ai_logger.dart';
-import 'package:terminal_studio/src/hosts/local_spec.dart';
-import 'package:terminal_studio/src/ui/command_palette/command_palette_overlay.dart';
-import 'package:terminal_studio/src/ui/context_menu.dart';
-import 'package:terminal_studio/src/ui/copilot_sidebar.dart';
-import 'package:terminal_studio/src/ui/log_sidebar.dart';
-import 'package:terminal_studio/src/ui/platform_menu.dart';
-import 'package:terminal_studio/src/ui/shared/debug_indicator.dart';
-import 'package:terminal_studio/src/ui/shared/studio_menu_card.dart';
-import 'package:terminal_studio/src/ui/shared/release_notes_dialog.dart';
-import 'package:terminal_studio/src/ui/shortcut/global_actions.dart';
-import 'package:terminal_studio/src/ui/shortcut/global_shortcuts.dart';
-import 'package:terminal_studio/src/ui/vim_edit/vim_edit_overlay.dart';
 import 'package:terminal_studio/src/util/provider_logger.dart';
 import 'package:window_manager/window_manager.dart';
+
+import 'app.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize custom logger
   final logger = AILogger();
   logger.i(
     'OpenTerm starting up...',
     context: const LogContext(component: 'Main'),
   );
 
-  initWindow();
-
-  // Initialize LogService
+  await initWindow();
   await LogService.instance.initialize();
 
   runApp(
@@ -54,7 +26,7 @@ Future<void> main() async {
         ProviderLogger(),
         RiverpodDevToolsObserver(),
       ],
-      child: MyApp(),
+      child: const MyApp(),
     ),
   );
 }
@@ -69,216 +41,4 @@ Future<void> initWindow() async {
     await windowManager.show();
     await windowManager.focus();
   });
-}
-
-class MyApp extends ConsumerWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    // Initialize tunnel observer
-    ref.watch(tunnelObserverProvider);
-
-    final theme = ref.watch(activeThemeProvider);
-
-    Widget widget = const GlobalActions(
-      child: GlobalShortcuts(
-        child: CommandPaletteOverlay(
-          child: VimEditOverlay(
-            child: Home(),
-          ),
-        ),
-      ),
-    );
-
-    if (defaultTargetPlatform == TargetPlatform.macOS) {
-      widget = GlobalPlatformMenu(
-        child: widget,
-      );
-    }
-
-    widget = ContextMenuOverlay(
-      child: widget,
-      cardBuilder: (context, children) => StudioMenuCard(children: children),
-    );
-
-    return MaterialApp(
-      title: 'OpenTerm',
-      debugShowCheckedModeBanner: false,
-      theme: theme.theme,
-      home: widget,
-    );
-  }
-}
-
-class Home extends ConsumerStatefulWidget {
-  const Home({super.key});
-
-  @override
-  ConsumerState<Home> createState() => _HomeState();
-}
-
-class _HomeState extends ConsumerState<Home> {
-  @override
-  void initState() {
-    SchedulerBinding.instance.addPostFrameCallback((_) async {
-      await initTabs();
-    });
-    super.initState();
-  }
-
-  Future<void> initTabs() async {
-    final root = Tabs();
-
-    ref
-        .read(tabsServiceProvider)
-        .openTerminal(const LocalHostSpec(), tabs: root);
-
-    final document = ref.watch(tabsProvider);
-
-    document.addListener(_onDocumentChanged);
-
-    document.setRoot(root);
-
-    // Check for release notes
-    final releaseNotesService = ref.read(releaseNotesServiceProvider);
-    if (await releaseNotesService.checkNewVersion()) {
-      if (!mounted) return;
-      showDialog(
-        context: context,
-        builder: (context) => const ReleaseNotesDialog(),
-      );
-      final version = await releaseNotesService.getAppVersion();
-      await releaseNotesService.markVersionAsSeen(version);
-    }
-  }
-
-  void _onDocumentChanged() {
-    final document = ref.read(tabsProvider);
-
-    document.root?.addListener(_onRootChanged);
-  }
-
-  void _onRootChanged() {
-    final document = ref.read(tabsProvider);
-
-    if (document.root == null || document.root!.children.isEmpty) {
-      exit(0);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // final tabsTheme = ref.watch(activeThemeProvider).tabsTheme;
-    final tabsTheme = TabsViewThemeData(
-      backgroundColor: Colors.transparent,
-      groupDividerColor: Colors.transparent,
-      selectedBackgroundColor: Colors.transparent,
-      tabSeparatorColor: Colors.transparent,
-      hoverBackgroundColor: Colors.transparent,
-      labelColor: Colors.white,
-    );
-    final brightness = ref.watch(activeThemeProvider).brightness;
-
-    final copilotVisible = ref.watch(copilotVisibleProvider);
-    final logVisible = ref.watch(logVisibleProvider);
-
-    Widget content = TabsView(
-      ref.watch(tabsProvider),
-      theme: tabsTheme,
-      actionBuilder: buildTabActions,
-    );
-
-    if (copilotVisible) {
-      content = Row(
-        children: [
-          Expanded(child: content),
-          const VerticalDivider(),
-          const SizedBox(
-            width: 600,
-            child: CopilotSidebar(),
-          ),
-        ],
-      );
-    }
-
-    if (logVisible) {
-      content = Row(
-        children: [
-          Expanded(child: content),
-          const VerticalDivider(),
-          const SizedBox(
-            width: 400,
-            child: LogSidebar(),
-          ),
-        ],
-      );
-    }
-
-    Widget widget = Column(
-      children: [
-        _buildTitlebar(context, tabsTheme, brightness),
-        Expanded(child: content),
-      ],
-    );
-
-    // if (defaultTargetPlatform == TargetPlatform.windows) {
-    //   widget = VirtualWindowFrame(child: widget);
-    // }
-
-    return Stack(
-      children: [
-        widget,
-        const Positioned(
-          bottom: 0,
-          right: 0,
-          child: DebugIndicator(),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTitlebar(
-    BuildContext context,
-    TabsViewThemeData tabsTheme,
-    Brightness brightness,
-  ) {
-    if (defaultTargetPlatform == TargetPlatform.macOS) {
-      // i like no tab
-      // return MacosTitlebar(
-      //   color: tabsTheme.selectedBackgroundColor,
-      // );
-      return SizedBox.shrink();
-    }
-
-    return SizedBox(
-      height: kWindowCaptionHeight,
-      child: WindowCaption(
-        backgroundColor: tabsTheme.selectedBackgroundColor,
-        brightness: brightness,
-        title: const Text('OpenTerm'),
-      ),
-    );
-  }
-
-  List<TabsViewAction> buildTabActions(Tabs tabs) {
-    return [
-      TabsViewAction(
-        icon: CupertinoIcons.chevron_down,
-        onPressed: () {
-          context.contextMenuOverlay.show(
-            DropdownContextMenu(tabs),
-          );
-        },
-      ),
-      TabsViewAction(
-        icon: CupertinoIcons.add,
-        onPressed: () {
-          ref
-              .watch(tabsServiceProvider)
-              .openTerminal(const LocalHostSpec(), tabs: tabs);
-        },
-      ),
-    ];
-  }
 }

@@ -6,22 +6,51 @@ import 'package:terminal_studio/src/core/service/command_palette_service.dart';
 import 'package:terminal_studio/src/core/state/keymap.dart';
 import 'package:terminal_studio/src/ui/shortcuts.dart';
 
-/// Command Palette 覆盖层组件
-///
-/// 在应用顶层使用此组件，通过 CommandPaletteService 控制显示/隐藏。
-class CommandPaletteOverlay extends ConsumerStatefulWidget {
-  const CommandPaletteOverlay({super.key, required this.child});
+class CommandPaletteListener extends ConsumerWidget {
+  const CommandPaletteListener({super.key, required this.child});
 
   final Widget child;
 
   @override
-  ConsumerState<CommandPaletteOverlay> createState() =>
-      _CommandPaletteOverlayState();
+  Widget build(BuildContext context, WidgetRef ref) {
+    ref.listen(commandPaletteServiceProvider.select((s) => s.isVisible),
+        (_, next) {
+      if (next == true) {
+        showDialog<void>(
+          context: context,
+          useRootNavigator: true,
+          barrierDismissible: true,
+          barrierColor: Colors.black38,
+          builder: (_) => const _CommandPaletteDialog(),
+        ).then((_) {
+          // Sync state when dismissed externally (barrier tap or Escape)
+          ref.read(commandPaletteServiceProvider.notifier).hide();
+        });
+      }
+    });
+    return child;
+  }
 }
 
-class _CommandPaletteOverlayState extends ConsumerState<CommandPaletteOverlay> {
+class _CommandPaletteDialog extends ConsumerStatefulWidget {
+  const _CommandPaletteDialog();
+
+  @override
+  ConsumerState<_CommandPaletteDialog> createState() =>
+      _CommandPaletteDialogState();
+}
+
+class _CommandPaletteDialogState extends ConsumerState<_CommandPaletteDialog> {
   final _textController = TextEditingController();
   final _focusNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _focusNode.requestFocus();
+    });
+  }
 
   @override
   void dispose() {
@@ -30,172 +59,100 @@ class _CommandPaletteOverlayState extends ConsumerState<CommandPaletteOverlay> {
     super.dispose();
   }
 
-  void _handleKeyEvent(KeyEvent event) {
-    if (event is! KeyDownEvent) return;
-
-    final notifier = ref.read(commandPaletteServiceProvider.notifier);
-
-    if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
-      notifier.selectNext();
-    } else if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
-      notifier.selectPrevious();
-    } else if (event.logicalKey == LogicalKeyboardKey.enter) {
-      notifier.executeSelected(context, ref);
-    } else if (event.logicalKey == LogicalKeyboardKey.escape) {
-      notifier.hide();
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(commandPaletteServiceProvider);
-
-    return Stack(
-      children: [
-        widget.child,
-        if (state.isVisible) ...[
-          // 背景遮罩
-          GestureDetector(
-            onTap: () =>
-                ref.read(commandPaletteServiceProvider.notifier).hide(),
-            child: Container(
-              color: Colors.black.withValues(alpha: 0.3),
-            ),
-          ),
-          // Command Palette 面板
-          Positioned(
-            top: 80,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: _CommandPalettePanel(
-                textController: _textController,
-                focusNode: _focusNode,
-                onKeyEvent: _handleKeyEvent,
-              ),
-            ),
-          ),
-        ],
-      ],
-    );
-  }
-}
-
-class _CommandPalettePanel extends ConsumerStatefulWidget {
-  const _CommandPalettePanel({
-    required this.textController,
-    required this.focusNode,
-    required this.onKeyEvent,
-  });
-
-  final TextEditingController textController;
-  final FocusNode focusNode;
-  final void Function(KeyEvent) onKeyEvent;
-
-  @override
-  ConsumerState<_CommandPalettePanel> createState() =>
-      _CommandPalettePanelState();
-}
-
-class _CommandPalettePanelState extends ConsumerState<_CommandPalettePanel> {
-  final _panelFocusNode = FocusNode();
-
-  @override
-  void initState() {
-    super.initState();
-    // 显示时自动聚焦
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      widget.focusNode.requestFocus();
-      widget.textController.clear();
+    ref.listen(commandPaletteServiceProvider.select((s) => s.isVisible),
+        (_, next) {
+      if (next == false && mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+      }
     });
-  }
 
-  @override
-  void dispose() {
-    _panelFocusNode.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
     final state = ref.watch(commandPaletteServiceProvider);
+    final notifier = ref.read(commandPaletteServiceProvider.notifier);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return KeyboardListener(
-      focusNode: _panelFocusNode,
-      onKeyEvent: widget.onKeyEvent,
-      child: Material(
-        elevation: 8,
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        clipBehavior: Clip.antiAlias,
-        child: Container(
-          width: 500,
-          constraints: const BoxConstraints(maxHeight: 400),
-          decoration: BoxDecoration(
-            border: Border.all(
-              color: theme.dividerColor,
-              width: 1,
+    return Align(
+      alignment: Alignment.topCenter,
+      child: Padding(
+        padding: const EdgeInsets.only(top: 80),
+        child: Material(
+          elevation: 8,
+          color: colorScheme.surface,
+          borderRadius: BorderRadius.circular(12),
+          clipBehavior: Clip.antiAlias,
+          child: Container(
+            width: 500,
+            constraints: const BoxConstraints(maxHeight: 400),
+            decoration: BoxDecoration(
+              border: Border.all(color: theme.dividerColor),
             ),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // 搜索输入框
-              Padding(
-                padding: const EdgeInsets.all(12),
-                child: TextField(
-                  controller: widget.textController,
-                  focusNode: widget.focusNode,
-                  decoration: InputDecoration(
-                    hintText: 'Type a command...',
-                    prefixIcon: const Icon(Icons.search, size: 20),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: theme.dividerColor),
-                    ),
-                    contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  ),
-                  onChanged: (value) {
-                    ref
-                        .read(commandPaletteServiceProvider.notifier)
-                        .setQuery(value);
-                  },
-                ),
-              ),
-              // 命令列表
-              if (state.filteredCommands.isNotEmpty)
-                Flexible(
-                  child: ListView.builder(
-                    shrinkWrap: true,
-                    padding: const EdgeInsets.only(bottom: 8),
-                    itemCount: state.filteredCommands.length,
-                    itemBuilder: (context, index) {
-                      final command = state.filteredCommands[index];
-                      final isSelected = index == state.selectedIndex;
-                      return _CommandPaletteItem(
-                        command: command,
-                        isSelected: isSelected,
-                        onTap: () {
-                          ref
-                              .read(commandPaletteServiceProvider.notifier)
-                              .executeCommand(command, context, ref);
-                        },
-                      );
-                    },
-                  ),
-                )
-              else
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
                 Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Text(
-                    'No commands found',
-                    style: TextStyle(color: theme.disabledColor),
+                  padding: const EdgeInsets.all(12),
+                  child: Focus(
+                    onKeyEvent: (_, event) {
+                      if (event is! KeyDownEvent) return KeyEventResult.ignored;
+                      if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
+                        notifier.selectNext();
+                        return KeyEventResult.handled;
+                      }
+                      if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
+                        notifier.selectPrevious();
+                        return KeyEventResult.handled;
+                      }
+                      return KeyEventResult.ignored;
+                    },
+                    child: TextField(
+                      controller: _textController,
+                      focusNode: _focusNode,
+                      decoration: InputDecoration(
+                        hintText: 'Type a command...',
+                        prefixIcon: const Icon(Icons.search, size: 20),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: theme.dividerColor),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 8),
+                      ),
+                      onChanged: notifier.setQuery,
+                      onSubmitted: (_) =>
+                          notifier.executeSelected(context, ref),
+                    ),
                   ),
                 ),
-            ],
+                if (state.filteredCommands.isNotEmpty)
+                  Flexible(
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      padding: const EdgeInsets.only(bottom: 8),
+                      itemCount: state.filteredCommands.length,
+                      itemBuilder: (context, index) {
+                        final command = state.filteredCommands[index];
+                        final isSelected = index == state.selectedIndex;
+                        return _CommandPaletteItem(
+                          command: command,
+                          isSelected: isSelected,
+                          onTap: () =>
+                              notifier.executeCommand(command, context, ref),
+                        );
+                      },
+                    ),
+                  )
+                else
+                  Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Text(
+                      'No commands found',
+                      style: TextStyle(color: theme.disabledColor),
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
       ),
@@ -236,7 +193,6 @@ class _CommandPaletteItem extends ConsumerWidget {
           ),
           child: Row(
             children: [
-              // 分类标签
               if (command.category != null) ...[
                 Container(
                   padding:
@@ -256,7 +212,6 @@ class _CommandPaletteItem extends ConsumerWidget {
                 ),
                 const SizedBox(width: 12),
               ],
-              // 命令名称
               Expanded(
                 child: Text(
                   command.label,
@@ -269,7 +224,6 @@ class _CommandPaletteItem extends ConsumerWidget {
                   ),
                 ),
               ),
-              // 快捷键
               if (shortcut != null) ...[
                 const SizedBox(width: 8),
                 _ShortcutLabel(shortcut: shortcut),
@@ -309,7 +263,6 @@ class _ShortcutLabel extends StatelessWidget {
       keys.add(isApple ? '⇧' : 'Shift');
     }
 
-    // 获取按键名称
     final keyLabel = _getKeyLabel(shortcut.trigger);
     keys.add(keyLabel);
 
@@ -322,10 +275,7 @@ class _ShortcutLabel extends StatelessWidget {
           decoration: BoxDecoration(
             color: colorScheme.surfaceContainerHighest,
             borderRadius: BorderRadius.circular(4),
-            border: Border.all(
-              color: theme.dividerColor,
-              width: 1,
-            ),
+            border: Border.all(color: theme.dividerColor),
           ),
           child: Text(
             key,
@@ -340,7 +290,6 @@ class _ShortcutLabel extends StatelessWidget {
   }
 
   String _getKeyLabel(LogicalKeyboardKey key) {
-    // 常见按键映射
     final keyLabels = <LogicalKeyboardKey, String>{
       LogicalKeyboardKey.keyA: 'A',
       LogicalKeyboardKey.keyB: 'B',
