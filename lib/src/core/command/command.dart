@@ -14,8 +14,8 @@ abstract class Command {
   /// 分类，如 'File', 'Edit', 'View'
   String? get category => null;
 
-  /// 快捷键（如有）
-  SingleActivator? get shortcut => null;
+  /// 快捷键 action ID（对应 ShortcutId 常量），如有
+  String? get shortcutId => null;
 
   /// 命令是否可用
   bool isEnabled(BuildContext context) => true;

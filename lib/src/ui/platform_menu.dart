@@ -5,7 +5,8 @@ import 'package:terminal_studio/src/core/service/active_tab_service.dart';
 import 'package:terminal_studio/src/core/service/tabs_service.dart';
 import 'package:terminal_studio/src/core/service/window_service.dart';
 import 'package:terminal_studio/src/hosts/local_spec.dart';
-import 'package:terminal_studio/src/ui/shortcuts.dart' as shortcuts;
+import 'package:terminal_studio/src/core/state/keymap.dart';
+import 'package:terminal_studio/src/ui/shortcuts.dart';
 import 'package:terminal_studio/src/ui/tabs/devtools_tab.dart';
 import 'package:terminal_studio/src/ui/tabs/settings_tab/settings_tab.dart';
 import 'package:terminal_studio/src/util/tabs_extension.dart';
@@ -22,6 +23,9 @@ class GlobalPlatformMenu extends ConsumerStatefulWidget {
 class _GlobalPlatformMenuState extends ConsumerState<GlobalPlatformMenu> {
   @override
   Widget build(BuildContext context) {
+    final keymapAsync = ref.watch(keymapProvider);
+    final keymap = keymapAsync.value ?? defaultKeymaps;
+
     return PlatformMenuBar(
       menus: <PlatformMenuItem>[
         PlatformMenu(
@@ -67,14 +71,14 @@ class _GlobalPlatformMenuState extends ConsumerState<GlobalPlatformMenu> {
           menus: [
             PlatformMenuItem(
               label: 'New Window',
-              shortcut: shortcuts.openNewWindow,
+              shortcut: keymap[ShortcutId.newWindow]!,
               onSelected: () {
                 ref.read(windowServiceProvider).createWindow();
               },
             ),
             PlatformMenuItem(
               label: 'New Tab',
-              shortcut: shortcuts.openNewTab,
+              shortcut: keymap[ShortcutId.newTab]!,
               onSelected: () {
                 ref
                     .read(tabsServiceProvider)
@@ -83,7 +87,7 @@ class _GlobalPlatformMenuState extends ConsumerState<GlobalPlatformMenu> {
             ),
             PlatformMenuItem(
               label: 'Close Tab',
-              shortcut: shortcuts.tabClose,
+              shortcut: keymap[ShortcutId.closeTab]!,
               onSelected: () {
                 ref.read(activeTabServiceProvider).closeCurrentTabOrWindow();
               },
@@ -92,14 +96,14 @@ class _GlobalPlatformMenuState extends ConsumerState<GlobalPlatformMenu> {
               members: [
                 PlatformMenuItem(
                   label: 'Show Previous Tab',
-                  shortcut: shortcuts.previousTab,
+                  shortcut: keymap[ShortcutId.previousTab]!,
                   onSelected: () {
                     ref.read(activeTabServiceProvider).selectPreviousTab();
                   },
                 ),
                 PlatformMenuItem(
                   label: 'Show Next Tab',
-                  shortcut: shortcuts.nextTab,
+                  shortcut: keymap[ShortcutId.nextTab]!,
                   onSelected: () {
                     ref.read(activeTabServiceProvider).selectNextTab();
                   },
@@ -115,7 +119,7 @@ class _GlobalPlatformMenuState extends ConsumerState<GlobalPlatformMenu> {
               members: [
                 PlatformMenuItem(
                   label: 'Copy',
-                  shortcut: shortcuts.terminalCopy,
+                  shortcut: keymap[ShortcutId.terminalCopy]!,
                   onSelected: () {
                     final primaryContext = primaryFocus?.context;
                     if (primaryContext == null) {
@@ -129,7 +133,7 @@ class _GlobalPlatformMenuState extends ConsumerState<GlobalPlatformMenu> {
                 ),
                 PlatformMenuItem(
                   label: 'Paste',
-                  shortcut: shortcuts.terminalPaste,
+                  shortcut: keymap[ShortcutId.terminalPaste]!,
                   onSelected: () {
                     final primaryContext = primaryFocus?.context;
                     if (primaryContext == null) {
@@ -143,7 +147,7 @@ class _GlobalPlatformMenuState extends ConsumerState<GlobalPlatformMenu> {
                 ),
                 PlatformMenuItem(
                   label: 'Select All',
-                  shortcut: shortcuts.terminalSelectAll,
+                  shortcut: keymap[ShortcutId.terminalSelectAll]!,
                   onSelected: () {
                     final primaryContext = primaryFocus?.context;
                     if (primaryContext == null) {
@@ -182,12 +186,12 @@ class _GlobalPlatformMenuState extends ConsumerState<GlobalPlatformMenu> {
                   type: PlatformProvidedMenuItemType.toggleFullScreen),
             PlatformMenuItem(
               label: 'Settings',
-              shortcut: shortcuts.openSettings,
+              shortcut: keymap[ShortcutId.openSettings]!,
               onSelected: () => ref.openTab(SettingsTab()),
             ),
             PlatformMenuItem(
               label: 'DevTools',
-              shortcut: shortcuts.openDevTools,
+              shortcut: keymap[ShortcutId.openDevTools]!,
               onSelected: () => ref.openTab(DevToolsTab()),
             ),
           ],

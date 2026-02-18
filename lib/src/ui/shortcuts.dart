@@ -67,10 +67,11 @@ Map<String, SingleActivator> get defaultKeymaps {
     ShortcutId.nextTab: apple
         ? const SingleActivator(LogicalKeyboardKey.bracketRight, meta: true)
         : const SingleActivator(LogicalKeyboardKey.pageDown, control: true),
-    ShortcutId.closeTab: apple
-        ? const SingleActivator(LogicalKeyboardKey.keyW, meta: true)
-        : const SingleActivator(LogicalKeyboardKey.keyW,
-            meta: true, shift: true),
+    ShortcutId.closeTab: SingleActivator(
+      LogicalKeyboardKey.keyW,
+      meta: apple,
+      control: !apple,
+    ),
     ShortcutId.terminalCopy: SingleActivator(
       LogicalKeyboardKey.keyC,
       meta: apple,
@@ -232,21 +233,16 @@ Map<String, SingleActivator> parseUserKeymaps(Map<String, String> bindings) {
   return result;
 }
 
-// ── Legacy Compatibility Getters ───────────────────
-// These keep existing consumers working until they're refactored
-// to use the keymapProvider.
+// ── Display Formatting ────────────────────────────
 
-SingleActivator get openSettings => defaultKeymaps[ShortcutId.openSettings]!;
-SingleActivator get openDevTools => defaultKeymaps[ShortcutId.openDevTools]!;
-SingleActivator get openNewWindow => defaultKeymaps[ShortcutId.newWindow]!;
-SingleActivator get openNewTab => defaultKeymaps[ShortcutId.newTab]!;
-SingleActivator get previousTab => defaultKeymaps[ShortcutId.previousTab]!;
-SingleActivator get nextTab => defaultKeymaps[ShortcutId.nextTab]!;
-SingleActivator get tabClose => defaultKeymaps[ShortcutId.closeTab]!;
-SingleActivator get terminalCopy => defaultKeymaps[ShortcutId.terminalCopy]!;
-SingleActivator get terminalPaste => defaultKeymaps[ShortcutId.terminalPaste]!;
-SingleActivator get terminalSelectAll =>
-    defaultKeymaps[ShortcutId.terminalSelectAll]!;
-SingleActivator get openCommandPalette =>
-    defaultKeymaps[ShortcutId.commandPalette]!;
-SingleActivator get vimEdit => defaultKeymaps[ShortcutId.vimEdit]!;
+/// Format a [SingleActivator] as a human-readable string with symbols (⌘/Ctrl/⌥/⇧).
+String formatActivator(SingleActivator a) {
+  final parts = <String>[];
+  if (a.meta) parts.add('⌘');
+  if (a.control) parts.add('Ctrl');
+  if (a.alt) parts.add('⌥');
+  if (a.shift) parts.add('⇧');
+  parts.add(a.trigger.keyLabel);
+  return parts.join(' + ');
+}
+

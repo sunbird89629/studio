@@ -25,6 +25,8 @@ class GlobalShortcuts extends ConsumerWidget {
         keymap[ShortcutId.closeTab]!: const CloseTabIntent(),
         keymap[ShortcutId.commandPalette]!: const OpenCommandPaletteIntent(),
         keymap[ShortcutId.vimEdit]!: const VimEditIntent(),
+        keymap[ShortcutId.openSettings]!: const OpenSettingsIntent(),
+        keymap[ShortcutId.openDevTools]!: const OpenDevToolsIntent(),
       },
       child: child,
     );

@@ -6,7 +6,7 @@ import 'package:terminal_studio/src/core/service/tabs_service.dart';
 import 'package:terminal_studio/src/core/service/window_service.dart';
 import 'package:terminal_studio/src/core/state/log_visible.dart';
 import 'package:terminal_studio/src/hosts/local_spec.dart';
-import 'package:terminal_studio/src/ui/shortcuts.dart' as shortcuts;
+import 'package:terminal_studio/src/ui/shortcuts.dart';
 import 'package:terminal_studio/src/ui/tabs/devtools_tab.dart';
 import 'package:terminal_studio/src/ui/tabs/settings_tab/settings_tab.dart';
 import 'package:terminal_studio/src/util/tabs_extension.dart';
@@ -45,7 +45,7 @@ class _NewWindowCommand extends Command {
   String get category => 'File';
 
   @override
-  SingleActivator? get shortcut => shortcuts.openNewWindow;
+  String? get shortcutId => ShortcutId.newWindow;
 
   @override
   void execute(BuildContext context, WidgetRef ref) {
@@ -64,7 +64,7 @@ class _NewTabCommand extends Command {
   String get category => 'File';
 
   @override
-  SingleActivator? get shortcut => shortcuts.openNewTab;
+  String? get shortcutId => ShortcutId.newTab;
 
   @override
   void execute(BuildContext context, WidgetRef ref) {
@@ -83,7 +83,7 @@ class _CloseTabCommand extends Command {
   String get category => 'File';
 
   @override
-  SingleActivator? get shortcut => shortcuts.tabClose;
+  String? get shortcutId => ShortcutId.closeTab;
 
   @override
   void execute(BuildContext context, WidgetRef ref) {
@@ -102,7 +102,7 @@ class _PreviousTabCommand extends Command {
   String get category => 'File';
 
   @override
-  SingleActivator? get shortcut => shortcuts.previousTab;
+  String? get shortcutId => ShortcutId.previousTab;
 
   @override
   void execute(BuildContext context, WidgetRef ref) {
@@ -121,7 +121,7 @@ class _NextTabCommand extends Command {
   String get category => 'File';
 
   @override
-  SingleActivator? get shortcut => shortcuts.nextTab;
+  String? get shortcutId => ShortcutId.nextTab;
 
   @override
   void execute(BuildContext context, WidgetRef ref) {
@@ -144,7 +144,7 @@ class _OpenSettingsCommand extends Command {
   String get category => 'View';
 
   @override
-  SingleActivator? get shortcut => shortcuts.openSettings;
+  String? get shortcutId => ShortcutId.openSettings;
 
   @override
   void execute(BuildContext context, WidgetRef ref) {
@@ -163,7 +163,7 @@ class _OpenDevToolsCommand extends Command {
   String get category => 'View';
 
   @override
-  SingleActivator? get shortcut => shortcuts.openDevTools;
+  String? get shortcutId => ShortcutId.openDevTools;
 
   @override
   void execute(BuildContext context, WidgetRef ref) {
@@ -203,7 +203,7 @@ class _VimEditCommand extends Command {
   String get category => 'Tools';
 
   @override
-  SingleActivator? get shortcut => shortcuts.vimEdit;
+  String? get shortcutId => ShortcutId.vimEdit;
 
   @override
   void execute(BuildContext context, WidgetRef ref) {

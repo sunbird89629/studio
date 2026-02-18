@@ -27,3 +27,11 @@ class OpenCommandPaletteIntent extends Intent {
 class VimEditIntent extends Intent {
   const VimEditIntent();
 }
+
+class OpenSettingsIntent extends Intent {
+  const OpenSettingsIntent();
+}
+
+class OpenDevToolsIntent extends Intent {
+  const OpenDevToolsIntent();
+}
