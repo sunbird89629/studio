@@ -14,7 +14,8 @@ import 'package:terminal_studio/src/core/state/settings.dart';
 import 'package:terminal_studio/src/plugins/terminal/terminal_menu.dart';
 import 'package:terminal_studio/src/plugins/terminal/xterm_fixes.dart'; // NEW
 import 'package:terminal_studio/src/ui/shortcut/intents.dart';
-import 'package:terminal_studio/src/ui/shortcuts.dart' as shortcuts;
+import 'package:terminal_studio/src/core/state/keymap.dart';
+import 'package:terminal_studio/src/ui/shortcuts.dart';
 import 'package:xterm/xterm.dart';
 import '../../core/utils/ai_logger.dart';
 
@@ -153,11 +154,13 @@ class TerminalTabView extends ConsumerStatefulWidget {
 }
 
 class _TerminalTabViewState extends ConsumerState<TerminalTabView> {
-  // Map of shortcut activators to their corresponding intents
-  static final List<(SingleActivator, Intent)> _passthroughShortcuts = [
-    (shortcuts.previousTab, const PreviousTabIntent()),
-    (shortcuts.nextTab, const NextTabIntent()),
-  ];
+  // ShortcutId → Intent mapping for shortcuts that should pass through xterm
+  static const _passthroughIntents = <String, Intent>{
+    ShortcutId.previousTab: PreviousTabIntent(),
+    ShortcutId.nextTab: NextTabIntent(),
+  };
+
+  Map<String, SingleActivator> _currentKeymap = defaultKeymaps;
 
   @override
   void initState() {
@@ -179,11 +182,12 @@ class _TerminalTabViewState extends ConsumerState<TerminalTabView> {
     // Only handle if this terminal tab is mounted and active
     if (!mounted) return false;
 
-    // Check if any of our passthrough shortcuts match
-    for (final (activator, intent) in _passthroughShortcuts) {
-      if (activator.accepts(event, HardwareKeyboard.instance)) {
-        // Invoke the action through the Actions widget
-        Actions.invoke(context, intent);
+    // Check if any of our passthrough shortcuts match using current keymap
+    for (final entry in _passthroughIntents.entries) {
+      final activator = _currentKeymap[entry.key];
+      if (activator != null &&
+          activator.accepts(event, HardwareKeyboard.instance)) {
+        Actions.invoke(context, entry.value);
         return true;
       }
     }
@@ -193,6 +197,7 @@ class _TerminalTabViewState extends ConsumerState<TerminalTabView> {
 
   @override
   Widget build(BuildContext context) {
+    _currentKeymap = ref.watch(keymapProvider).value ?? defaultKeymaps;
     final settingsAsync = ref.watch(settingsProvider);
 
     return settingsAsync.when(

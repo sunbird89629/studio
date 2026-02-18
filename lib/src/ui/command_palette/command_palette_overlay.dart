@@ -4,6 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_studio/src/core/command/command.dart';
 import 'package:terminal_studio/src/core/service/command_palette_service.dart';
+import 'package:terminal_studio/src/core/state/keymap.dart';
+import 'package:terminal_studio/src/ui/shortcuts.dart';
 import 'package:terminal_studio/src/util/target_platform.dart';
 
 /// Command Palette 覆盖层组件
@@ -192,7 +194,7 @@ class _CommandPalettePanelState extends ConsumerState<_CommandPalettePanel> {
   }
 }
 
-class _CommandPaletteItem extends StatelessWidget {
+class _CommandPaletteItem extends ConsumerWidget {
   const _CommandPaletteItem({
     required this.command,
     required this.isSelected,
@@ -204,8 +206,11 @@ class _CommandPaletteItem extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = FluentTheme.of(context);
+    final keymap = ref.watch(keymapProvider).value ?? defaultKeymaps;
+    final shortcut =
+        command.shortcutId != null ? keymap[command.shortcutId!] : null;
 
     return GestureDetector(
       onTap: onTap,
@@ -250,9 +255,9 @@ class _CommandPaletteItem extends StatelessWidget {
               ),
             ),
             // 快捷键
-            if (command.shortcut != null) ...[
+            if (shortcut != null) ...[
               const SizedBox(width: 8),
-              _ShortcutLabel(shortcut: command.shortcut!),
+              _ShortcutLabel(shortcut: shortcut),
             ],
           ],
         ),

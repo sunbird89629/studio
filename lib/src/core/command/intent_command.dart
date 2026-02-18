@@ -4,8 +4,6 @@ import 'package:terminal_studio/src/core/command/command.dart';
 
 /// 将现有 Intent 包装为 Command 的适配器
 class IntentCommand extends Command {
-  final Intent _intent;
-
   @override
   final String id;
 
@@ -16,14 +14,16 @@ class IntentCommand extends Command {
   final String? category;
 
   @override
-  final SingleActivator? shortcut;
+  final String? shortcutId;
+
+  final Intent _intent;
 
   IntentCommand({
     required this.id,
     required this.label,
     required Intent intent,
     this.category,
-    this.shortcut,
+    this.shortcutId,
   }) : _intent = intent;
 
   @override

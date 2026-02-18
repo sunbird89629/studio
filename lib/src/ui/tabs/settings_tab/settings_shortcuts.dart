@@ -2,7 +2,8 @@ import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_studio/src/core/state/keymap.dart';
-import 'package:terminal_studio/src/ui/shortcuts.dart';
+import 'package:terminal_studio/src/ui/shortcuts.dart' as shortcuts;
+import 'package:terminal_studio/src/ui/shortcuts.dart' show ShortcutId, defaultKeymaps;
 
 /// Settings panel for viewing and customizing keyboard shortcuts.
 class ShortcutsSettingsView extends ConsumerWidget {
@@ -41,7 +42,7 @@ class ShortcutsSettingsView extends ConsumerWidget {
                 title: Text(label),
                 subtitle: activator != null
                     ? Text(
-                        _formatActivator(activator),
+                        shortcuts.formatActivator(activator),
                         style: TextStyle(
                           color: isDefault ? null : Colors.blue,
                           fontFamily: 'monospace',
@@ -80,16 +81,6 @@ class ShortcutsSettingsView extends ConsumerWidget {
     );
   }
 
-  String _formatActivator(SingleActivator a) {
-    final parts = <String>[];
-    if (a.meta) parts.add('⌘');
-    if (a.control) parts.add('Ctrl');
-    if (a.alt) parts.add('⌥');
-    if (a.shift) parts.add('⇧');
-    parts.add(a.trigger.keyLabel);
-    return parts.join(' + ');
-  }
-
   Future<void> _recordShortcut(
     BuildContext context,
     WidgetRef ref,
@@ -113,7 +104,7 @@ class ShortcutsSettingsView extends ConsumerWidget {
           builder: (ctx) => ContentDialog(
             title: const Text('Shortcut Conflict'),
             content: Text(
-              '${_formatActivator(result)} is already used by '
+              '${shortcuts.formatActivator(result)} is already used by '
               '"${ShortcutId.label(conflict.key)}".\n\n'
               'Override?',
             ),
@@ -227,7 +218,7 @@ class _ShortcutRecorderDialogState extends State<_ShortcutRecorderDialog> {
           ),
           child: _recorded != null
               ? Text(
-                  _formatRecorded(_recorded!),
+                  shortcuts.formatActivator(_recorded!),
                   style: const TextStyle(
                     fontSize: 18,
                     fontFamily: 'monospace',
@@ -266,13 +257,4 @@ class _ShortcutRecorderDialogState extends State<_ShortcutRecorderDialog> {
         key == LogicalKeyboardKey.altRight;
   }
 
-  String _formatRecorded(SingleActivator a) {
-    final parts = <String>[];
-    if (a.meta) parts.add('⌘');
-    if (a.control) parts.add('Ctrl');
-    if (a.alt) parts.add('⌥');
-    if (a.shift) parts.add('⇧');
-    parts.add(a.trigger.keyLabel);
-    return parts.join(' + ');
-  }
 }
