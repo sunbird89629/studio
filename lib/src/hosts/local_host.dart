@@ -6,10 +6,10 @@ import 'package:flutter_pty/flutter_pty.dart';
 import 'package:terminal_studio/src/core/fs.dart' hide File, Directory, Link;
 import 'package:terminal_studio/src/core/host.dart';
 import 'package:terminal_studio/src/hosts/local_fs.dart';
-import '../core/utils/ai_logger.dart';
+import '../core/utils/app_logger.dart';
 
 class LocalHost implements Host {
-  final _logger = AILogger(context: const LogContext(component: 'LocalHost'));
+  final _logger = AppLogger(context: const LogContext(component: 'LocalHost'));
 
   @override
   Future<ExecutionResult> execute(
@@ -130,7 +130,7 @@ class LocalExecutionSession implements ExecutionSession {
   LocalExecutionSession(this._pty);
 
   final _logger =
-      AILogger(context: const LogContext(component: 'LocalExecutionSession'));
+      AppLogger(context: const LogContext(component: 'LocalExecutionSession'));
 
   @override
   Future<int> get exitCode => _pty.exitCode;

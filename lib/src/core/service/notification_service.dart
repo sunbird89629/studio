@@ -4,10 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:terminal_studio/src/core/service/remote_control_service.dart';
 import 'package:terminal_studio/src/core/service/tunnel_service.dart';
-import 'package:terminal_studio/src/core/utils/ai_logger.dart';
+import 'package:terminal_studio/src/core/utils/app_logger.dart';
 
 class NotificationService {
-  final _logger = AILogger();
+  final _logger =
+      AppLogger(context: const LogContext(component: 'NotificationService'));
 
   Future<void> sendLarkNotification(String webhookUrl, String content) async {
     if (webhookUrl.isEmpty) return;
@@ -25,21 +26,12 @@ class NotificationService {
       );
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
-        _logger.i(
-          'Lark notification sent successfully',
-          context: const LogContext(component: 'NotificationService'),
-        );
+        _logger.i('Lark notification sent successfully');
       } else {
-        _logger.e(
-          'Failed to send Lark notification: ${response.body}',
-          context: const LogContext(component: 'NotificationService'),
-        );
+        _logger.e('Failed to send Lark notification: ${response.body}');
       }
     } catch (e) {
-      _logger.e(
-        'Error sending Lark notification: $e',
-        context: const LogContext(component: 'NotificationService'),
-      );
+      _logger.e('Error sending Lark notification: $e');
     }
   }
 }

@@ -1,11 +1,12 @@
 import 'dart:async';
+import 'dart:collection';
 
 import 'log_entry.dart';
 
 /// 环形缓冲区，保留最近的日志条目
 class LogBuffer {
   final int maxSize;
-  final List<LogEntry> _entries = [];
+  final Queue<LogEntry> _entries = Queue<LogEntry>();
   final StreamController<LogEntry> _controller =
       StreamController<LogEntry>.broadcast();
 
@@ -15,20 +16,15 @@ class LogBuffer {
   Stream<LogEntry> get stream => _controller.stream;
 
   /// 当前缓冲区中的所有条目
-  List<LogEntry> get entries => List.unmodifiable(_entries);
+  List<LogEntry> get entries => _entries.toList();
 
   /// 条目数量
   int get length => _entries.length;
 
   /// 添加日志条目
   void add(LogEntry entry) {
-    _entries.add(entry);
-
-    // 超出容量时移除最旧的条目
-    while (_entries.length > maxSize) {
-      _entries.removeAt(0);
-    }
-
+    if (_entries.length >= maxSize) _entries.removeFirst();
+    _entries.addLast(entry);
     _controller.add(entry);
   }
 

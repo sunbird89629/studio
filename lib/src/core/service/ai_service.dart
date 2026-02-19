@@ -1,7 +1,7 @@
 import 'package:dart_openai/dart_openai.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../state/settings.dart';
-import '../utils/ai_logger.dart';
+import '../utils/app_logger.dart';
 
 final aiCopilotServiceProvider = Provider((ref) {
   // We can still watch settings if we want to allow overriding,
@@ -14,8 +14,8 @@ final aiCopilotServiceProvider = Provider((ref) {
 });
 
 class AICopilotService {
-  final AILogger _logger =
-      AILogger(context: const LogContext(component: 'AICopilotService'));
+  final AppLogger _logger =
+      AppLogger(context: const LogContext(component: 'AICopilotService'));
 
   static const String _baseUrl = "https://cliapi.aaaabb.cc";
   static const String _apiKey = "390ea36cb435840c2ad7823c5ffb7d5c";

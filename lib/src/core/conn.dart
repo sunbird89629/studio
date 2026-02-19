@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:terminal_studio/src/core/host.dart';
-import 'package:terminal_studio/src/core/utils/ai_logger.dart';
+import 'package:terminal_studio/src/core/utils/app_logger.dart';
 
 abstract class HostSpec {
   String get name;
@@ -22,7 +22,7 @@ abstract class HostConnector<T extends Host> with ChangeNotifier {
   T? get host => _host;
 
   final _logger =
-      AILogger(context: const LogContext(component: 'HostConnector'));
+      AppLogger(context: const LogContext(component: 'HostConnector'));
 
   HostConnectorStatus _state = HostConnectorStatus.initialized;
   HostConnectorStatus get state => _state;

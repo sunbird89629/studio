@@ -2,7 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_studio/src/core/conn.dart';
 import 'package:terminal_studio/src/core/host.dart';
-import 'package:terminal_studio/src/core/utils/ai_logger.dart';
+import 'package:terminal_studio/src/core/utils/app_logger.dart';
 
 abstract class Plugin {
   PluginManager? _manager;
@@ -87,7 +87,7 @@ class PluginManager with ChangeNotifier {
   PluginManager(this.hostSpec, this.ref);
 
   final _logger =
-      AILogger(context: const LogContext(component: 'PluginManager'));
+      AppLogger(context: const LogContext(component: 'PluginManager'));
 
   final _plugins = <Plugin>[];
 

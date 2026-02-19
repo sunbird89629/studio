@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_studio/src/core/conn.dart';
 import 'package:terminal_studio/src/core/host.dart';
-import '../utils/ai_logger.dart';
+import '../utils/app_logger.dart';
 
-final _logger = AILogger(context: const LogContext(component: 'HostState'));
+final _logger = AppLogger(context: const LogContext(component: 'HostState'));
 
 final connectorProvider = Provider.family(
   name: 'connectorProvider',

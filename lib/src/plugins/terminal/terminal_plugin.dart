@@ -17,7 +17,7 @@ import 'package:terminal_studio/src/ui/shortcut/intents.dart';
 import 'package:terminal_studio/src/core/state/keymap.dart';
 import 'package:terminal_studio/src/ui/shortcuts.dart';
 import 'package:xterm/xterm.dart';
-import '../../core/utils/ai_logger.dart';
+import '../../core/utils/app_logger.dart';
 
 class TerminalPlugin extends Plugin {
   late final Terminal terminal;
@@ -25,7 +25,7 @@ class TerminalPlugin extends Plugin {
   final terminalController = TerminalController();
 
   final _logger =
-      AILogger(context: const LogContext(component: 'TerminalPlugin'));
+      AppLogger(context: const LogContext(component: 'TerminalPlugin'));
 
   var terminalTitle = '';
 

@@ -8,7 +8,7 @@ import 'package:shelf/shelf_io.dart' as io;
 import 'package:shelf_router/shelf_router.dart';
 import 'package:shelf_web_socket/shelf_web_socket.dart';
 import 'package:terminal_studio/src/core/service/active_tab_service.dart';
-import 'package:terminal_studio/src/core/utils/ai_logger.dart';
+import 'package:terminal_studio/src/core/utils/app_logger.dart';
 import 'package:terminal_studio/src/plugins/terminal/terminal_plugin.dart';
 import 'package:terminal_studio/src/ui/tabs/plugin_tab.dart';
 import 'package:uuid/uuid.dart';
@@ -68,7 +68,8 @@ class RemoteControlState {
 
 class RemoteControlNotifier extends Notifier<RemoteControlState> {
   HttpServer? _server;
-  final _logger = AILogger();
+  final _logger =
+      AppLogger(context: const LogContext(component: 'RemoteControlService'));
   final _connections = <String, WebSocketChannel>{};
 
   @override
@@ -117,12 +118,9 @@ class RemoteControlNotifier extends Notifier<RemoteControlState> {
         localUrl: localUrl,
       );
 
-      _logger.i(
-          'Remote Control Server started at $localUrl (Token: $authToken)',
-          context: const LogContext(component: 'RemoteControlService'));
+      _logger.i('Remote Control Server started at $localUrl (Token: $authToken)');
     } catch (e) {
-      _logger.e('Failed to start Remote Control Server: $e',
-          context: const LogContext(component: 'RemoteControlService'));
+      _logger.e('Failed to start Remote Control Server: $e');
       rethrow;
     }
   }
@@ -141,10 +139,7 @@ class RemoteControlNotifier extends Notifier<RemoteControlState> {
       activeClients: [],
     );
 
-    _logger.i(
-      'Remote Control Server stopped',
-      context: const LogContext(component: 'RemoteControlService'),
-    );
+    _logger.i('Remote Control Server stopped');
   }
 
   void setCloudflaredToken(String token) {
@@ -176,8 +171,7 @@ class RemoteControlNotifier extends Notifier<RemoteControlState> {
               'type': 'auth_success',
               'clientId': clientId,
             }));
-            _logger.i('Remote client $clientId authenticated',
-                context: const LogContext(component: 'RemoteControlService'));
+            _logger.i('Remote client $clientId authenticated');
           } else {
             channel.sink.add(jsonEncode({'type': 'auth_failed'}));
             channel.sink.close();
@@ -191,8 +185,7 @@ class RemoteControlNotifier extends Notifier<RemoteControlState> {
           _forwardInputToActiveTerminal(input);
         }
       } catch (e) {
-        _logger.e('Error handling remote message: $e',
-            context: const LogContext(component: 'RemoteControlService'));
+        _logger.e('Error handling remote message: $e');
       }
     }, onDone: () {
       if (clientId != null) {
@@ -200,8 +193,7 @@ class RemoteControlNotifier extends Notifier<RemoteControlState> {
         state = state.copyWith(
             activeClients:
                 state.activeClients.where((id) => id != clientId).toList());
-        _logger.i('Remote client $clientId disconnected',
-            context: const LogContext(component: 'RemoteControlService'));
+        _logger.i('Remote client $clientId disconnected');
       }
     });
   }
@@ -226,13 +218,11 @@ class RemoteControlNotifier extends Notifier<RemoteControlState> {
       final plugin = activeTab.plugin;
       if (plugin is TerminalPlugin) {
         plugin.session?.write(utf8.encode(input));
-        _logger.d('Forwarded remote input to active terminal',
-            context: const LogContext(component: 'RemoteControlService'));
+        _logger.d('Forwarded remote input to active terminal');
         return;
       }
     }
-    _logger.w('No active Terminal session found to forward input',
-        context: const LogContext(component: 'RemoteControlService'));
+    _logger.w('No active Terminal session found to forward input');
   }
 
   String _buildWebConsoleHtml({String authToken = ''}) {

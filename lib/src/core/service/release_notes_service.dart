@@ -2,7 +2,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_ce/hive.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:terminal_studio/src/core/utils/ai_logger.dart';
+import 'package:terminal_studio/src/core/utils/app_logger.dart';
 
 final releaseNotesServiceProvider = Provider<ReleaseNotesService>((ref) {
   return ReleaseNotesService();
@@ -11,6 +11,9 @@ final releaseNotesServiceProvider = Provider<ReleaseNotesService>((ref) {
 class ReleaseNotesService {
   static const String _boxName = 'release_notes';
   static const String _lastSeenVersionKey = 'last_seen_version';
+
+  final _logger =
+      AppLogger(context: const LogContext(component: 'ReleaseNotesService'));
 
   Future<Box> _getBox() async {
     if (!Hive.isBoxOpen(_boxName)) {
@@ -56,10 +59,7 @@ class ReleaseNotesService {
       // You need to ensure this file exists in your assets and is declared in pubspec.yaml
       return await rootBundle.loadString('assets/release_notes.md');
     } catch (e, stack) {
-      AILogger().w('Error loading release notes: $e',
-          error: e,
-          stackTrace: stack,
-          context: const LogContext(component: 'ReleaseNotesService'));
+      _logger.w('Error loading release notes: $e', error: e, stackTrace: stack);
       return 'Release notes not found.';
     }
   }

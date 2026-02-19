@@ -7,7 +7,7 @@ import 'package:path/path.dart' as p;
 import 'package:terminal_studio/src/core/record/profile_record.dart';
 import 'package:terminal_studio/src/core/record/settings_record.dart';
 import 'package:terminal_studio/src/core/state/settings.dart';
-import '../utils/ai_logger.dart';
+import '../utils/app_logger.dart';
 
 /// Service for reading/writing `~/.terminal_studio/config.jsonc`.
 ///
@@ -18,7 +18,7 @@ class ConfigFileService {
   final Ref _ref;
 
   final _logger =
-      AILogger(context: const LogContext(component: 'ConfigFileService'));
+      AppLogger(context: const LogContext(component: 'ConfigFileService'));
 
   StreamSubscription<FileSystemEvent>? _watcher;
 

@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
+import 'package:terminal_studio/src/core/log/log_entry.dart';
+import 'package:terminal_studio/src/core/service/log_service.dart';
 
 /// Context associated with a log entry.
 class LogContext {
@@ -27,29 +29,49 @@ class LogContext {
   }
 }
 
-/// A wrapper around [Logger] that provides AI-friendly structured logging.
-class AILogger {
+/// LogOutput that bridges logger events into [LogService].
+class LogServiceOutput extends LogOutput {
+  final String channel;
+
+  LogServiceOutput(this.channel);
+
+  @override
+  void output(OutputEvent event) {
+    final level = switch (event.level) {
+      Level.trace || Level.debug => LogLevel.debug,
+      Level.info => LogLevel.info,
+      Level.warning => LogLevel.warning,
+      Level.error || Level.fatal => LogLevel.error,
+      _ => LogLevel.info,
+    };
+    LogService.instance.log(channel, level, event.lines.join('\n'));
+  }
+}
+
+/// A wrapper around [Logger] that provides structured logging.
+class AppLogger {
   final Logger _logger;
   final LogContext _globalContext;
 
-  AILogger({
+  AppLogger({
     Logger? logger,
     LogContext context = const LogContext(),
-  })  : _logger = logger ??
+  })  : _globalContext = context,
+        _logger = logger ??
             Logger(
-              printer: kReleaseMode ? AIJsonPrinter() : AIPrettyPrinter(),
+              printer: kReleaseMode ? JsonLogPrinter() : PrettyLogPrinter(),
               output: MultiOutput([
                 ConsoleOutput(),
+                LogServiceOutput(context.component ?? 'app'),
               ]),
-            ),
-        _globalContext = context;
+            );
 
   // Create a child logger with additional context
-  AILogger child({
+  AppLogger child({
     String? component,
     Map<String, dynamic>? additional,
   }) {
-    return AILogger(
+    return AppLogger(
       logger: _logger,
       context: LogContext(
         traceId: _globalContext.traceId,
@@ -65,7 +87,6 @@ class AILogger {
 
   void d(
     String message, {
-    LogContext? context,
     Object? error,
     StackTrace? stackTrace,
   }) {
@@ -79,7 +100,6 @@ class AILogger {
 
   void i(
     String message, {
-    LogContext? context,
     Object? error,
     StackTrace? stackTrace,
   }) {
@@ -93,7 +113,6 @@ class AILogger {
 
   void w(
     String message, {
-    LogContext? context,
     Object? error,
     StackTrace? stackTrace,
   }) {
@@ -107,7 +126,6 @@ class AILogger {
 
   void e(
     String message, {
-    LogContext? context,
     Object? error,
     StackTrace? stackTrace,
   }) {
@@ -120,8 +138,8 @@ class AILogger {
   }
 }
 
-/// Printer that outputs logs in a compressed JSON format suitable for AI ingestion.
-class AIJsonPrinter extends LogPrinter {
+/// Printer that outputs logs in a compressed JSON format.
+class JsonLogPrinter extends LogPrinter {
   @override
   List<String> log(LogEvent event) {
     var message = event.message;
@@ -130,8 +148,7 @@ class AIJsonPrinter extends LogPrinter {
 
     Map<String, dynamic> logData = {
       'ts': event.time.toUtc().toIso8601String(),
-      'lv':
-          event.level.name.toUpperCase().substring(0, 3), // ERR, WRN, INF, DBG
+      'lv': event.level.name.toUpperCase().substring(0, 3),
       'msg': message.toString(),
     };
 
@@ -143,11 +160,6 @@ class AIJsonPrinter extends LogPrinter {
       logData['stk'] = stack.toString();
     }
 
-    // We can't access AILogger context here directly as LogEvent doesn't carry custom data easily
-    // in the standard Logger package without wrapping the message.
-    // For now, we rely on the message being the primary payload or injecting context into the message.
-    // A more advanced implementation would wrap the LogEvent.
-
     try {
       return [jsonEncode(logData)];
     } catch (e) {
@@ -157,8 +169,8 @@ class AIJsonPrinter extends LogPrinter {
 }
 
 /// Printer that outputs logs in a human-readable format for development.
-class AIPrettyPrinter extends PrettyPrinter {
-  AIPrettyPrinter()
+class PrettyLogPrinter extends PrettyPrinter {
+  PrettyLogPrinter()
       : super(
           methodCount: 1,
           errorMethodCount: 8,

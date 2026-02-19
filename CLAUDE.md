@@ -25,6 +25,7 @@ UI Layer → Service Layer → Core Layer → State (Riverpod + Hive) → Platfo
 - `Host` — connection interface (shell, execute, connectFileSystem)
 - `HostConnector` — state machine: initialized → connecting → connected/disconnected/aborted
 - `FileSystem` — local and SSH (SFTP) implementations
+- **Tab tree** (`tabsProvider → TabsDocument`): `root` → layout containers (`TabsRow`/`TabsColumn`) → `Tabs` (leaf, holds `TabItem`). Branch on `is Tabs` to collect items. `TabItem.isActivated` = `parent!.activeTab == this`. `PluginTab.plugin.title` is `ValueNotifier<String?>` (raw); `PluginTab.title` is `ValueNotifier<Widget?>` (display row).
 
 ### State Management
 
@@ -132,7 +133,8 @@ GitHub Actions (`.github/workflows/`):
 
 ## Important Files
 
-- `lib/main.dart` — 入口，初始化 window_manager + ProviderScope
+- `lib/main.dart` — 入口，初始化 window_manager + ProviderContainer（全局单例通过 initX(container) 注入）
+- `lib/src/core/open_term.dart` — 全局 OO API: openTerm singleton (tabCount, tabs, activeTab, OpenTermTab, OpenTermTerminal)
 - `lib/src/core/plugin.dart` — Plugin 抽象和 PluginManager
 - `lib/src/core/conn.dart` — HostConnector 状态机
 - `lib/src/core/host.dart` — Host 接口

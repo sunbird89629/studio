@@ -7,7 +7,7 @@ import 'package:path/path.dart' as p;
 import 'package:terminal_studio/src/core/host.dart';
 import 'package:terminal_studio/src/hosts/local_host.dart';
 import 'package:xterm/xterm.dart';
-import '../utils/ai_logger.dart';
+import '../utils/app_logger.dart';
 
 class VimEditState {
   final bool isVisible;
@@ -47,7 +47,7 @@ class VimEditNotifier extends Notifier<VimEditState> {
   bool _isExiting = false;
 
   final _logger =
-      AILogger(context: const LogContext(component: 'VimEditNotifier'));
+      AppLogger(context: const LogContext(component: 'VimEditNotifier'));
 
   @override
   VimEditState build() {
