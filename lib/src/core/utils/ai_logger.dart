@@ -63,10 +63,18 @@ class AILogger {
     );
   }
 
-  void d(String message,
-      {LogContext? context, Object? error, StackTrace? stackTrace}) {
-    _logger.d(message,
-        error: error, stackTrace: stackTrace, time: DateTime.now());
+  void d(
+    String message, {
+    LogContext? context,
+    Object? error,
+    StackTrace? stackTrace,
+  }) {
+    _logger.d(
+      message,
+      error: error,
+      stackTrace: stackTrace,
+      time: DateTime.now(),
+    );
   }
 
   void i(
@@ -83,16 +91,32 @@ class AILogger {
     );
   }
 
-  void w(String message,
-      {LogContext? context, Object? error, StackTrace? stackTrace}) {
-    _logger.w(message,
-        error: error, stackTrace: stackTrace, time: DateTime.now());
+  void w(
+    String message, {
+    LogContext? context,
+    Object? error,
+    StackTrace? stackTrace,
+  }) {
+    _logger.w(
+      message,
+      error: error,
+      stackTrace: stackTrace,
+      time: DateTime.now(),
+    );
   }
 
-  void e(String message,
-      {LogContext? context, Object? error, StackTrace? stackTrace}) {
-    _logger.e(message,
-        error: error, stackTrace: stackTrace, time: DateTime.now());
+  void e(
+    String message, {
+    LogContext? context,
+    Object? error,
+    StackTrace? stackTrace,
+  }) {
+    _logger.e(
+      message,
+      error: error,
+      stackTrace: stackTrace,
+      time: DateTime.now(),
+    );
   }
 }
 
@@ -136,7 +160,7 @@ class AIJsonPrinter extends LogPrinter {
 class AIPrettyPrinter extends PrettyPrinter {
   AIPrettyPrinter()
       : super(
-          methodCount: 2,
+          methodCount: 1,
           errorMethodCount: 8,
           lineLength: 120,
           colors: true,

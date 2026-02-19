@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_devtools/riverpod_devtools.dart';
+import 'package:terminal_studio/src/core/open_term.dart';
 import 'package:terminal_studio/src/core/service/log_service.dart';
 import 'package:terminal_studio/src/core/utils/ai_logger.dart';
 import 'package:terminal_studio/src/util/provider_logger.dart';
@@ -20,12 +21,17 @@ Future<void> main() async {
   await initWindow();
   await LogService.instance.initialize();
 
+  final container = ProviderContainer(
+    observers: [
+      ProviderLogger(),
+      RiverpodDevToolsObserver(),
+    ],
+  );
+  initOpenTerm(container);
+
   runApp(
-    ProviderScope(
-      observers: [
-        ProviderLogger(),
-        RiverpodDevToolsObserver(),
-      ],
+    UncontrolledProviderScope(
+      container: container,
       child: const MyApp(),
     ),
   );

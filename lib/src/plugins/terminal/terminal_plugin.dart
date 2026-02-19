@@ -31,6 +31,12 @@ class TerminalPlugin extends Plugin {
 
   ExecutionSession? session;
 
+  String _currentInput = '';
+  final List<String> _commandHistory = [];
+
+  String get currentInput => _currentInput;
+  List<String> get commandHistory => List.unmodifiable(_commandHistory);
+
   void _updateTitle() {
     if (session != null) {
       title.value =
@@ -59,6 +65,7 @@ class TerminalPlugin extends Plugin {
     terminal.onOutput = (data) {
       _logger.d('Terminal input (user typed): ${data.length} chars');
       session?.write(const Utf8Encoder().convert(data));
+      _trackInput(data);
     };
 
     terminal.onResize = (w, h, pw, ph) {
@@ -114,10 +121,44 @@ class TerminalPlugin extends Plugin {
     });
   }
 
+  void _trackInput(String data) {
+    for (final char in data.runes) {
+      if (char == 0x0D || char == 0x0A) {
+        // Enter: commit current input to history
+        final trimmed = _currentInput.trim();
+        if (trimmed.isNotEmpty) {
+          _commandHistory.add(trimmed);
+          if (_commandHistory.length > 500) {
+            _commandHistory.removeAt(0);
+          }
+        }
+        _currentInput = '';
+      } else if (char == 0x7F || char == 0x08) {
+        // Backspace / DEL
+        if (_currentInput.isNotEmpty) {
+          _currentInput = _currentInput.substring(0, _currentInput.length - 1);
+        }
+      } else if (char == 0x03 || char == 0x15 || char == 0x1B) {
+        // Ctrl-C, Ctrl-U, ESC: clear line
+        _currentInput = '';
+      } else if (char == 0x17) {
+        // Ctrl-W: remove last word
+        _currentInput = _currentInput.trimRight();
+        final lastSpace = _currentInput.lastIndexOf(' ');
+        _currentInput =
+            lastSpace == -1 ? '' : _currentInput.substring(0, lastSpace + 1);
+      } else if (char >= 0x20 && char != 0x7F) {
+        // Printable character
+        _currentInput += String.fromCharCode(char);
+      }
+    }
+  }
+
   @override
   void didDisconnected() {
     _logger.i('TerminalPlugin disconnected');
     session = null;
+    _currentInput = '';
     title.value = 'Disconnected';
   }
 
