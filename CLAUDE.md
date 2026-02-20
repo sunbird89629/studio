@@ -23,7 +23,7 @@ UI Layer → Service Layer → Core Layer → State (Riverpod + Hive) → Platfo
 
 - `Plugin` — lifecycle: didMounted → didConnected → didDisconnected → didUnmounted
 - `Host` — connection interface (shell, execute, connectFileSystem)
-- `HostConnector` — state machine: initialized → connecting → connected/disconnected/aborted
+- `HostConnector` — state machine: initialized → connecting → connected/disconnected/aborted; uses `StreamController.broadcast()` (`connector.stream`); `connector.dispose()` called via `ref.onDispose` in `connectorProvider`
 - `FileSystem` — local and SSH (SFTP) implementations
 - **Tab tree** (`tabsProvider → TabsDocument`): `root` → layout containers (`TabsRow`/`TabsColumn`) → `Tabs` (leaf, holds `TabItem`). Branch on `is Tabs` to collect items. `TabItem.isActivated` = `parent!.activeTab == this`. `PluginTab.plugin.title` is `ValueNotifier<String?>` (raw); `PluginTab.title` is `ValueNotifier<Widget?>` (display row).
 
@@ -40,6 +40,9 @@ Riverpod providers + Hive local DB. Key providers: tabs, connector, connectorSta
 ## Build & Run
 
 ```bash
+# Run only core unit tests
+flutter test test/core/
+
 # Get dependencies
 flutter pub get
 
@@ -106,6 +109,8 @@ GitHub Actions (`.github/workflows/`):
 
 - 遵循 `flutter_lints` 规则
 - 使用 `logger` 替代 `print`（参见 commit c52f88c）
+- `AppLogger.forComponent('Name')` — 用缓存工厂（不要直接用 `AppLogger(context: LogContext(...))`）
+- 抛出 `exceptions.dart` 中的类型化异常（如 `SSHConnectionException`），不用裸字符串 throw
 - State management 统一使用 Riverpod providers
 - 新功能优先以 Plugin 形式实现
 - Host 相关功能实现 Host/HostConnector/FileSystem 接口
@@ -140,6 +145,13 @@ GitHub Actions (`.github/workflows/`):
 - `LogicalKeyboardKey` cannot be a `const` map key (overrides `==`/`hashCode`); use `final` map
 - `part` directives must appear after all `import` statements in Dart files
 
+## Testing Gotchas
+
+- `@visibleForTesting` methods must not be called from non-test production code — test generic abstractions (e.g. `ConnectionPool<T>`) directly, not via wrappers
+- `Provider((_) => null)` infers type `Null`; always write `Provider<YourType>((ref) => ...)` with explicit type
+- Library-private fields (`_field`) are inaccessible from test files even via `dynamic` cast — expose public getters for testable state
+- All `import` directives must precede declarations; appending at file bottom causes `directive_after_declaration` error
+
 ## Important Files
 
 - `lib/main.dart` — 入口，初始化 window_manager + ProviderContainer（全局单例通过 initX(container) 注入）
@@ -163,4 +175,7 @@ GitHub Actions (`.github/workflows/`):
 - `lib/src/core/utils/osc_parser.dart` — OscParser.parse(String) → OscParseResult{cleanData, events}, strips OSC 133 from raw PTY output
 - `lib/src/core/utils/shell_integration.dart` — ShellIntegration.zsh/bash/fish static script constants (not auto-injected; for Settings UI display)
 - `lib/src/hosts/ssh_connection_pool.dart` — SSHConnectionPool singleton, reference-counted by "user@host:port" key
+- `lib/src/core/exceptions.dart` — AppException hierarchy: SSHConnectionException, SSHAuthException, PluginException, ConfigException
+- `lib/src/core/constants/log_channels.dart` — LogChannels string constants; use instead of hardcoded channel strings
+- `lib/src/hosts/connection_pool.dart` — Generic ConnectionPool<T>(getDone, doClose): ref-counted pool, injectable for testing
 - `ARCHITECTURE.md` — 详细架构文档（中文）
