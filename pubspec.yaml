@@ -88,7 +88,7 @@ dependencies:
   web_socket_channel: ^3.0.3
   path_provider: ^2.1.5
   package_info_plus: ^9.0.0
-  flutter_markdown: ^0.7.7+1
+  flutter_markdown_plus: ^1.0.3
   dart_openai: ^6.1.1
   freezed_annotation: ^3.0.0
 
@@ -111,8 +111,8 @@ dev_dependencies:
   icons_launcher: ^3.0.3
 
   msix: ^3.6.6
-  hive_ce_generator: ^1.9.3
-  freezed: ^3.0.0
+  hive_ce_generator: ^1.10.0
+  freezed: ^3.2.3
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
