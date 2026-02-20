@@ -144,6 +144,9 @@ GitHub Actions (`.github/workflows/`):
 - `freezed` must be `^3.0.0` — v2 conflicts with `hive_ce_generator ^1.9.x` (incompatible `build` dep ranges)
 - `LogicalKeyboardKey` cannot be a `const` map key (overrides `==`/`hashCode`); use `final` map
 - `part` directives must appear after all `import` statements in Dart files
+- `xterm` fork: `TerminalGestureDetector.onTapUp` was dead code (never called in `_handleTapUp`) — patched in pub-cache `~/.pub-cache/git/xterm.dart-e57fa91.../lib/src/ui/gesture/gesture_detector.dart` (adds `widget.onTapUp?.call(details)` after `widget.onSingleTapUp?.call(details)`)
+- xterm `CellOffset.y` from `onTapUp` is buffer-absolute (includes scroll offset) — confirmed in `render.dart`
+- No `url_launcher` dep — use `LauncherService` (`Process.run('open'/'xdg-open'/'start')`) for platform-native file/URL opening
 
 ## Testing Gotchas
 
@@ -178,4 +181,6 @@ GitHub Actions (`.github/workflows/`):
 - `lib/src/core/exceptions.dart` — AppException hierarchy: SSHConnectionException, SSHAuthException, PluginException, ConfigException
 - `lib/src/core/constants/log_channels.dart` — LogChannels string constants; use instead of hardcoded channel strings
 - `lib/src/hosts/connection_pool.dart` — Generic ConnectionPool<T>(getDone, doClose): ref-counted pool, injectable for testing
+- `lib/src/core/utils/link_detector.dart` — detects URLs/file paths in terminal line text at a given column
+- `lib/src/core/service/launcher_service.dart` — platform-native open via Process.run (macOS: open, Linux: xdg-open, Windows: start)
 - `ARCHITECTURE.md` — 详细架构文档（中文）

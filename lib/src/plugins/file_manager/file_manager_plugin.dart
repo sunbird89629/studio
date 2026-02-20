@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_studio/src/core/fs.dart';
 import 'package:terminal_studio/src/core/plugin.dart';
+import 'package:terminal_studio/src/core/service/launcher_service.dart';
 import 'package:terminal_studio/src/core/service/tabs_service.dart';
 import 'package:terminal_studio/src/plugins/file_manager/navigation_breadcrumbs.dart';
 import 'package:terminal_studio/src/plugins/file_manager/navigation_stack.dart';
@@ -245,6 +246,13 @@ class FileListViewState extends ConsumerState<FileListView> {
           ref.read(tabsServiceProvider).openFile(file);
         }
       },
+      onCellSecondaryTap: (details) {
+        final rowIndex = details.rowColumnIndex.rowIndex;
+        if (rowIndex == 0) return;
+
+        final row = source.effectiveRows[rowIndex - 1] as _FileDataGridRow;
+        _showFileContextMenu(context, details.globalPosition, row.file);
+      },
       columns: [
         GridColumn(
           columnName: 'name',
@@ -271,6 +279,36 @@ class FileListViewState extends ConsumerState<FileListView> {
       ],
       source: source,
     );
+  }
+
+  void _showFileContextMenu(
+      BuildContext context, Offset globalPosition, FileSystemEntity file) {
+    final overlay =
+        Overlay.of(context).context.findRenderObject() as RenderBox;
+
+    showMenu<String>(
+      context: context,
+      position: RelativeRect.fromRect(
+        Rect.fromLTWH(globalPosition.dx, globalPosition.dy, 0, 0),
+        Offset.zero & overlay.size,
+      ),
+      items: [
+        PopupMenuItem<String>(
+          value: 'open',
+          child: const Row(
+            children: [
+              Icon(Icons.open_in_new, size: 18),
+              SizedBox(width: 8),
+              Text('Open with Default App'),
+            ],
+          ),
+        ),
+      ],
+    ).then((value) {
+      if (value == 'open') {
+        LauncherService.open(file.path);
+      }
+    });
   }
 }
 

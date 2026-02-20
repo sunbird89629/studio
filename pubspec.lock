@@ -1290,8 +1290,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: e57fa91224dd86000fffcf218a95a49b1c7f0456
-      resolved-ref: e57fa91224dd86000fffcf218a95a49b1c7f0456
+      ref: bc93eec5b5ce874fd02996807191b09d0fd1a231
+      resolved-ref: bc93eec5b5ce874fd02996807191b09d0fd1a231
       url: "https://github.com/sunbird89629/xterm.dart.git"
     source: git
     version: "4.0.0"

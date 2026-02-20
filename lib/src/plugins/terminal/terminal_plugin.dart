@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io' as io;
 
 import 'package:context_menus/context_menus.dart';
 import 'package:flutter/cupertino.dart';
@@ -14,6 +15,8 @@ import 'package:terminal_studio/src/core/model/terminal_session.dart';
 import 'package:terminal_studio/src/core/plugin.dart';
 import 'package:terminal_studio/src/core/service/terminal_event_bus.dart';
 import 'package:terminal_studio/src/core/state/settings.dart';
+import 'package:terminal_studio/src/core/service/launcher_service.dart';
+import 'package:terminal_studio/src/core/utils/link_detector.dart';
 import 'package:terminal_studio/src/core/utils/osc_parser.dart';
 import 'package:terminal_studio/src/plugins/terminal/terminal_menu.dart';
 import 'package:terminal_studio/src/plugins/terminal/xterm_fixes.dart';
@@ -263,7 +266,13 @@ class _TerminalTabViewState extends ConsumerState<TerminalTabView> {
     ShortcutId.nextTab: NextTabIntent(),
   };
 
+  final _logger = AppLogger.forComponent('TerminalTabView');
+
   Map<String, SingleActivator> _currentKeymap = defaultKeymaps;
+
+  /// True while the Cmd (macOS) or Ctrl (Win/Linux) key is held.
+  /// Used to show a pointer cursor and enable click-to-open for links.
+  bool _openModifierActive = false;
 
   @override
   void initState() {
@@ -278,12 +287,23 @@ class _TerminalTabViewState extends ConsumerState<TerminalTabView> {
   }
 
   bool _handleGlobalKeyEvent(KeyEvent event) {
+    if (!mounted) return false;
+
+    // Track Cmd (macOS) / Ctrl (Win/Linux) for link-opening cursor and click.
+    final isModActive = HardwareKeyboard.instance.logicalKeysPressed.any(
+      (key) => io.Platform.isMacOS
+          ? key == LogicalKeyboardKey.metaLeft ||
+              key == LogicalKeyboardKey.metaRight
+          : key == LogicalKeyboardKey.controlLeft ||
+              key == LogicalKeyboardKey.controlRight,
+    );
+    if (isModActive != _openModifierActive) {
+      setState(() => _openModifierActive = isModActive);
+    }
+
     if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
       return false;
     }
-
-    // Only handle if this terminal tab is mounted and active
-    if (!mounted) return false;
 
     // Check if any of our passthrough shortcuts match using current keymap
     for (final entry in _passthroughIntents.entries) {
@@ -296,6 +316,33 @@ class _TerminalTabViewState extends ConsumerState<TerminalTabView> {
     }
 
     return false;
+  }
+
+  void _handleTapUp(TapUpDetails _, CellOffset cellOffset) {
+    _logger.d('onTapUp cell=(${cellOffset.x},${cellOffset.y}) modActive=$_openModifierActive');
+    if (!_openModifierActive) return;
+
+    final plugin = widget.plugin;
+    final buffer = plugin.terminal.buffer;
+    // CellOffset.y from onTapUp is buffer-absolute (accounts for scroll).
+    final safeY = cellOffset.y.clamp(0, buffer.lines.length - 1);
+
+    _logger.d('buffer: lines=${buffer.lines.length} viewWidth=${buffer.viewWidth} viewHeight=${plugin.terminal.viewHeight} safeY=$safeY');
+
+    final lineText = buffer.getText(
+      BufferRangeLine(
+        CellOffset(0, safeY),
+        CellOffset(buffer.viewWidth - 1, safeY),
+      ),
+    );
+
+    _logger.d('lineText: "${lineText.trimRight()}"');
+
+    final target = LinkDetector.detectAt(lineText, cellOffset.x);
+    _logger.d('target: $target');
+    if (target == null) return;
+
+    LauncherService.open(target);
   }
 
   @override
@@ -322,7 +369,11 @@ class _TerminalTabViewState extends ConsumerState<TerminalTabView> {
               widget.plugin.terminal,
               textStyle: style,
               controller: widget.plugin.terminalController,
+              onTapUp: _handleTapUp,
               onSecondaryTapDown: (_, __) => showMenu(),
+              mouseCursor: _openModifierActive
+                  ? SystemMouseCursors.click
+                  : SystemMouseCursors.text,
               backgroundOpacity: settings.backgroundOpacity,
               padding: EdgeInsets.all(settings.padding),
               autofocus: true,
