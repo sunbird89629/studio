@@ -3,11 +3,15 @@ import 'package:terminal_studio/src/core/conn.dart';
 import 'package:terminal_studio/src/core/host.dart';
 import '../utils/app_logger.dart';
 
-final _logger = AppLogger(context: const LogContext(component: 'HostState'));
+final _logger = AppLogger.forComponent('HostState');
 
-final connectorProvider = Provider.family(
+final connectorProvider = Provider.family<HostConnector, HostSpec>(
   name: 'connectorProvider',
-  (ref, HostSpec config) => config.createConnector(),
+  (ref, HostSpec config) {
+    final connector = config.createConnector();
+    ref.onDispose(connector.dispose);
+    return connector;
+  },
 );
 
 final connectorStatusProvider =
@@ -16,23 +20,19 @@ final connectorStatusProvider =
   (ref, HostSpec config) {
     final connector = ref.watch(connectorProvider(config));
 
-    return Stream<({HostConnectorStatus status, Host? host})>.multi(
-        (controller) {
-      _logger.i('connectorStatusProvider: Stream created for $connector');
+    _logger.i('connectorStatusProvider: Stream created for $connector');
+
+    // Yield the current state immediately, then follow the connector's stream.
+    return Stream.multi((controller) {
       controller.add((status: connector.state, host: connector.host));
 
-      void listener() {
-        _logger.i(
-            'connectorStatusProvider: listener called. State: ${connector.state}, Host: ${connector.host}');
-        controller.add((status: connector.state, host: connector.host));
-      }
+      final sub = connector.stream.listen(
+        controller.add,
+        onError: controller.addError,
+        onDone: controller.close,
+      );
 
-      connector.addListener(listener);
-
-      controller.onCancel = () {
-        _logger.i('connectorStatusProvider: Stream cancelled');
-        connector.removeListener(listener);
-      };
+      controller.onCancel = sub.cancel;
     });
   },
 );

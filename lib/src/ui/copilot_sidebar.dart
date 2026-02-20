@@ -4,7 +4,65 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/service/ai_service.dart';
 import '../core/state/settings.dart';
 
+// ── Models ────────────────────────────────────────────────────────────────────
+
+class Message {
+  final String text;
+  final bool isUser;
+
+  const Message({required this.text, required this.isUser});
+}
+
+// ── State ─────────────────────────────────────────────────────────────────────
+
+class CopilotChatState {
+  final List<Message> messages;
+  final bool isLoading;
+
+  const CopilotChatState({this.messages = const [], this.isLoading = false});
+
+  CopilotChatState copyWith({List<Message>? messages, bool? isLoading}) =>
+      CopilotChatState(
+        messages: messages ?? this.messages,
+        isLoading: isLoading ?? this.isLoading,
+      );
+}
+
+// ── Notifier ──────────────────────────────────────────────────────────────────
+
+class CopilotChatNotifier extends Notifier<CopilotChatState> {
+  @override
+  CopilotChatState build() => const CopilotChatState();
+
+  Future<void> send(String text, {String? model}) async {
+    if (text.isEmpty) return;
+    state = state.copyWith(
+      messages: [...state.messages, Message(text: text, isUser: true)],
+      isLoading: true,
+    );
+
+    final response =
+        await ref.read(aiCopilotServiceProvider).chat(text, model: model);
+
+    state = state.copyWith(
+      messages: [...state.messages, Message(text: response, isUser: false)],
+      isLoading: false,
+    );
+  }
+
+  void clear() => state = const CopilotChatState();
+}
+
+final copilotChatProvider =
+    NotifierProvider<CopilotChatNotifier, CopilotChatState>(
+  CopilotChatNotifier.new,
+);
+
+// ── Model provider ────────────────────────────────────────────────────────────
+
 final aiModelsProvider = FutureProvider<List<String>>((ref) async {
+  // Re-fetch when the API key changes so the list stays in sync with settings.
+  ref.watch(settingsProvider.select((s) => s.value?.aiApiKey));
   final service = ref.read(aiCopilotServiceProvider);
   final models = await service.listModels();
   return models.map((e) => e.id).toList();
@@ -29,29 +87,13 @@ class CopilotSidebar extends ConsumerStatefulWidget {
 
 class _CopilotSidebarState extends ConsumerState<CopilotSidebar> {
   final TextEditingController _controller = TextEditingController();
-  final List<Message> _messages = [];
-  bool _isLoading = false;
 
-  void _handleSend() async {
+  void _handleSend() {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
-
-    setState(() {
-      _messages.add(Message(text: text, isUser: true));
-      _controller.clear();
-      _isLoading = true;
-    });
-
-    final aiService = ref.read(aiCopilotServiceProvider);
+    _controller.clear();
     final selectedModel = ref.read(selectedModelProvider);
-    final response = await aiService.chat(text, model: selectedModel);
-
-    if (mounted) {
-      setState(() {
-        _messages.add(Message(text: response, isUser: false));
-        _isLoading = false;
-      });
-    }
+    ref.read(copilotChatProvider.notifier).send(text, model: selectedModel);
   }
 
   @override
@@ -59,6 +101,8 @@ class _CopilotSidebarState extends ConsumerState<CopilotSidebar> {
     final settingsAsync = ref.watch(settingsProvider);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+
+    final chatState = ref.watch(copilotChatProvider);
 
     return settingsAsync.when(
       data: (settings) {
@@ -90,7 +134,7 @@ class _CopilotSidebarState extends ConsumerState<CopilotSidebar> {
                     IconButton(
                       icon: const Icon(Icons.delete_outline),
                       tooltip: 'Clear Chat',
-                      onPressed: () => setState(() => _messages.clear()),
+                      onPressed: () => ref.read(copilotChatProvider.notifier).clear(),
                     ),
                   ],
                 ),
@@ -98,9 +142,9 @@ class _CopilotSidebarState extends ConsumerState<CopilotSidebar> {
               Expanded(
                 child: ListView.builder(
                   padding: const EdgeInsets.all(12),
-                  itemCount: _messages.length,
+                  itemCount: chatState.messages.length,
                   itemBuilder: (context, index) {
-                    final msg = _messages[index];
+                    final msg = chatState.messages[index];
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 12),
                       child: Column(
@@ -136,7 +180,7 @@ class _CopilotSidebarState extends ConsumerState<CopilotSidebar> {
                   },
                 ),
               ),
-              if (_isLoading) const LinearProgressIndicator(),
+              if (chatState.isLoading) const LinearProgressIndicator(),
               Padding(
                 padding: const EdgeInsets.all(12),
                 child: Row(
@@ -216,9 +260,3 @@ class _CopilotSidebarState extends ConsumerState<CopilotSidebar> {
   }
 }
 
-class Message {
-  final String text;
-  final bool isUser;
-
-  Message({required this.text, required this.isUser});
-}

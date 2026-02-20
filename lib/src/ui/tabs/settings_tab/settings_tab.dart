@@ -2,6 +2,7 @@ import 'package:flex_tabs/flex_tabs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_studio/src/core/state/settings.dart';
+import 'package:terminal_studio/src/ui/shared/fluent_form.dart';
 import 'package:terminal_studio/src/ui/tabs/settings_tab/settings_profiles.dart';
 import 'package:terminal_studio/src/ui/tabs/settings_tab/settings_remote_control.dart';
 import 'package:terminal_studio/src/ui/tabs/settings_tab/settings_shortcuts.dart';
@@ -69,30 +70,22 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
           ),
           const VerticalDivider(thickness: 1, width: 1),
           Expanded(
-            child: _buildBody(),
+            child: IndexedStack(
+              index: _selectedIndex,
+              children: const [
+                GeneralSettingsView(),      // 0
+                ProfilesSettingsView(),     // 1
+                ShortcutsSettingsView(),    // 2
+                HostsSettingView(),         // 3
+                SizedBox.shrink(),          // 4 SSH Keys (TODO)
+                RemoteControlSettingsView(), // 5
+                AboutSettingsView(),        // 6
+              ],
+            ),
           ),
         ],
       ),
     );
-  }
-
-  Widget _buildBody() {
-    switch (_selectedIndex) {
-      case 0:
-        return const GeneralSettingsView();
-      case 1:
-        return const ProfilesSettingsView();
-      case 2:
-        return const ShortcutsSettingsView();
-      case 3:
-        return const HostsSettingView();
-      case 5:
-        return const RemoteControlSettingsView();
-      case 6:
-        return const AboutSettingsView();
-      default:
-        return const SizedBox.shrink();
-    }
   }
 }
 
@@ -114,8 +107,8 @@ class GeneralSettingsView extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // ── Terminal Section ──
-              Text('Terminal', style: Theme.of(context).textTheme.titleLarge),
-              const SizedBox(height: 16),
+              FluentFormHeader('Terminal',
+                  style: Theme.of(context).textTheme.titleLarge),
               Text('Font Size: ${settings.terminalFontSize.toInt()}'),
               Slider(
                 value: settings.terminalFontSize,
@@ -126,7 +119,7 @@ class GeneralSettingsView extends ConsumerWidget {
                   settings.save();
                 },
               ),
-              const SizedBox(height: 16),
+              const FluentFormSeparator(),
               TextFormField(
                 initialValue: settings.terminalFontFamily,
                 decoration: const InputDecoration(
@@ -139,7 +132,7 @@ class GeneralSettingsView extends ConsumerWidget {
                   settings.save();
                 },
               ),
-              const SizedBox(height: 16),
+              const FluentFormSeparator(),
               Text('Line Height: ${settings.lineHeight.toStringAsFixed(1)}'),
               Slider(
                 value: settings.lineHeight,
@@ -151,7 +144,7 @@ class GeneralSettingsView extends ConsumerWidget {
                   settings.save();
                 },
               ),
-              const SizedBox(height: 16),
+              const FluentFormSeparator(),
               Text(
                   'Letter Spacing: ${settings.letterSpacing.toStringAsFixed(1)}'),
               Slider(
@@ -164,7 +157,7 @@ class GeneralSettingsView extends ConsumerWidget {
                   settings.save();
                 },
               ),
-              const SizedBox(height: 16),
+              const FluentFormSeparator(),
               TextFormField(
                 initialValue: settings.scrollback.toString(),
                 keyboardType: TextInputType.number,
@@ -180,7 +173,7 @@ class GeneralSettingsView extends ConsumerWidget {
                   }
                 },
               ),
-              const SizedBox(height: 16),
+              const FluentFormSeparator(),
               DropdownButtonFormField<String>(
                 initialValue: settings.cursorShape,
                 decoration: const InputDecoration(
@@ -200,7 +193,7 @@ class GeneralSettingsView extends ConsumerWidget {
                   }
                 },
               ),
-              const SizedBox(height: 16),
+              const FluentFormSeparator(),
               SwitchListTile(
                 title: const Text('Cursor Blink'),
                 value: settings.cursorBlink,
@@ -209,7 +202,7 @@ class GeneralSettingsView extends ConsumerWidget {
                   settings.save();
                 },
               ),
-              const SizedBox(height: 16),
+              const FluentFormSeparator(),
               Text(
                   'Background Opacity: ${settings.backgroundOpacity.toStringAsFixed(2)}'),
               Slider(
@@ -222,7 +215,7 @@ class GeneralSettingsView extends ConsumerWidget {
                   settings.save();
                 },
               ),
-              const SizedBox(height: 16),
+              const FluentFormSeparator(),
               Text('Padding: ${settings.padding.toInt()}'),
               Slider(
                 value: settings.padding,
@@ -234,7 +227,7 @@ class GeneralSettingsView extends ConsumerWidget {
                   settings.save();
                 },
               ),
-              const SizedBox(height: 16),
+              const FluentFormSeparator(),
               SwitchListTile(
                 title: const Text('Copy on Select'),
                 value: settings.copyOnSelect,
@@ -245,9 +238,9 @@ class GeneralSettingsView extends ConsumerWidget {
               ),
 
               // ── Shell Section ──
-              const SizedBox(height: 32),
-              Text('Shell', style: Theme.of(context).textTheme.titleLarge),
-              const SizedBox(height: 16),
+              const FluentFormDivider(),
+              FluentFormHeader('Shell',
+                  style: Theme.of(context).textTheme.titleLarge),
               TextFormField(
                 initialValue: settings.shell ?? '',
                 decoration: const InputDecoration(
@@ -260,7 +253,7 @@ class GeneralSettingsView extends ConsumerWidget {
                   settings.save();
                 },
               ),
-              const SizedBox(height: 16),
+              const FluentFormSeparator(),
               TextFormField(
                 initialValue: settings.shellArgs?.join(', ') ?? '',
                 decoration: const InputDecoration(
@@ -275,7 +268,7 @@ class GeneralSettingsView extends ConsumerWidget {
                   settings.save();
                 },
               ),
-              const SizedBox(height: 16),
+              const FluentFormSeparator(),
               TextFormField(
                 initialValue: settings.workingDirectory ?? '',
                 decoration: const InputDecoration(
@@ -288,7 +281,7 @@ class GeneralSettingsView extends ConsumerWidget {
                   settings.save();
                 },
               ),
-              const SizedBox(height: 16),
+              const FluentFormSeparator(),
               SwitchListTile(
                 title: const Text('Preserve Working Directory on New Tab'),
                 value: settings.preserveCWD,
@@ -299,9 +292,9 @@ class GeneralSettingsView extends ConsumerWidget {
               ),
 
               // ── AI Section ──
-              const SizedBox(height: 32),
-              Text('AI Copilot', style: Theme.of(context).textTheme.titleLarge),
-              const SizedBox(height: 16),
+              const FluentFormDivider(),
+              FluentFormHeader('AI Copilot',
+                  style: Theme.of(context).textTheme.titleLarge),
               TextFormField(
                 initialValue: settings.aiApiKey,
                 obscureText: true,
@@ -315,7 +308,7 @@ class GeneralSettingsView extends ConsumerWidget {
                   settings.save();
                 },
               ),
-              const SizedBox(height: 16),
+              const FluentFormSeparator(),
               TextFormField(
                 initialValue: settings.aiModel,
                 decoration: const InputDecoration(

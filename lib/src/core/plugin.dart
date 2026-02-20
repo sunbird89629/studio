@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_studio/src/core/conn.dart';
+import 'package:terminal_studio/src/core/exceptions.dart';
 import 'package:terminal_studio/src/core/host.dart';
 import 'package:terminal_studio/src/core/utils/app_logger.dart';
 
@@ -10,7 +11,7 @@ abstract class Plugin {
   /// The plugin manager that manages the lifecycle of this plugin.
   PluginManager get manager {
     if (_manager == null) {
-      throw StateError('Plugin is not attached to a manager');
+      throw PluginException('Plugin is not attached to a manager');
     }
 
     return _manager!;
@@ -24,7 +25,7 @@ abstract class Plugin {
   /// This is available after [didMounted] is called.
   HostSpec get hostSpec {
     if (_hostSpec == null) {
-      throw Exception('Plugin has not been mounted');
+      throw PluginException('Plugin has not been mounted');
     }
     return _hostSpec!;
   }
@@ -35,7 +36,7 @@ abstract class Plugin {
   /// to this property will throw an exception if the host has not been connected.
   Host get host {
     if (_host == null) {
-      throw Exception('Plugin has not been connected to a host.');
+      throw PluginException('Plugin has not been connected to a host.');
     }
     return _host!;
   }
@@ -70,10 +71,6 @@ abstract class Plugin {
   /// Called when the state of the host that this plugin is mounted to changes.
   void onConnectionStatus(HostConnectorStatus status) {}
 
-  // void onConnectionMessage(String message) {}
-
-  // void onConnectionError(Object error, StackTrace stackTrace) {}
-
   /// Builds the UI for this plugin. This may be called multiple times during
   /// the lifetime of the plugin, for example when the plugin is moved to a new
   /// tab group.
@@ -86,8 +83,7 @@ class PluginManager with ChangeNotifier {
 
   PluginManager(this.hostSpec, this.ref);
 
-  final _logger =
-      AppLogger(context: const LogContext(component: 'PluginManager'));
+  final _logger = AppLogger.forComponent('PluginManager');
 
   final _plugins = <Plugin>[];
 
@@ -97,10 +93,11 @@ class PluginManager with ChangeNotifier {
 
   void add(Plugin plugin) {
     if (plugin._manager != null) {
-      throw Exception('Plugin is already mounted');
+      throw PluginException('Plugin is already mounted');
     }
-    _plugins.add(plugin);
 
+    // Assign manager and spec BEFORE calling lifecycle methods so that
+    // didMounted() / didConnected() can safely access [manager] and [hostSpec].
     plugin._manager = this;
     plugin._hostSpec = hostSpec;
     plugin.didMounted();
@@ -110,29 +107,32 @@ class PluginManager with ChangeNotifier {
       plugin.didConnected();
     }
 
+    _plugins.add(plugin);
     notifyListeners();
   }
 
   void remove(Plugin plugin) {
     if (plugin._manager != this) {
-      throw Exception('Plugin is not mounted');
+      throw PluginException('Plugin is not mounted');
     }
     _plugins.remove(plugin);
 
-    plugin.didUnmounted();
-    plugin._manager = null;
-    plugin._hostSpec = null;
-    plugin._host = null;
-
-    notifyListeners();
+    // Use try/finally so the plugin is always fully detached from this manager
+    // even if didUnmounted() throws, preventing a dangling _manager reference.
+    try {
+      plugin.didUnmounted();
+    } finally {
+      plugin._manager = null;
+      plugin._hostSpec = null;
+      plugin._host = null;
+      notifyListeners();
+    }
   }
 
   void didConnected(Host host) {
     _logger.i(
         'PluginManager.didConnected called with host: $host. Current plugins: ${_plugins.length}');
     if (_host != null) {
-      // throw Exception('plugin manager is already connected to $_host');
-      // Relaxed for debugging/robustness
       _logger.w(
           'PluginManager: Warning - already connected to $_host. Replacing with $host.');
     }
@@ -151,7 +151,7 @@ class PluginManager with ChangeNotifier {
 
   void didDisconnected() {
     if (_host == null) {
-      throw Exception('plugin manager is not connected');
+      throw PluginException('plugin manager is not connected');
     }
 
     _host = null;
@@ -167,16 +167,4 @@ class PluginManager with ChangeNotifier {
       plugin.onConnectionStatus(status);
     }
   }
-
-  // void didConnectionMessageChanged(String message) {
-  //   for (final plugin in _plugins) {
-  //     plugin.onConnectionMessage(message);
-  //   }
-  // }
-
-  // void didConnectionError(Object error, StackTrace stackTrace) {
-  //   for (final plugin in _plugins) {
-  //     plugin.onConnectionError(error, stackTrace);
-  //   }
-  // }
 }

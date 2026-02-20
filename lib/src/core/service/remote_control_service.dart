@@ -3,78 +3,49 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as io;
 import 'package:shelf_router/shelf_router.dart';
 import 'package:shelf_web_socket/shelf_web_socket.dart';
 import 'package:terminal_studio/src/core/service/active_tab_service.dart';
+import 'package:terminal_studio/src/core/service/terminal_event_bus.dart';
+import 'package:terminal_studio/src/core/service/terminal_output_event.dart';
 import 'package:terminal_studio/src/core/utils/app_logger.dart';
 import 'package:terminal_studio/src/plugins/terminal/terminal_plugin.dart';
 import 'package:terminal_studio/src/ui/tabs/plugin_tab.dart';
 import 'package:uuid/uuid.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
-class RemoteControlState {
-  final bool isEnabled;
-  final int port;
-  final String? authToken;
-  final String? localUrl;
-  final String? publicUrl;
-  final List<String> activeClients;
+part 'remote_control_service.freezed.dart';
 
-  final String? cloudflaredToken;
-  final String? larkWebhookUrl;
-
-  RemoteControlState({
-    required this.isEnabled,
-    required this.port,
-    this.authToken,
-    this.localUrl,
-    this.publicUrl,
-    this.activeClients = const [],
-    this.cloudflaredToken,
-    this.larkWebhookUrl,
-  });
-
-  factory RemoteControlState.initial() {
-    return RemoteControlState(
-      isEnabled: false,
-      port: 8080,
-    );
-  }
-
-  RemoteControlState copyWith({
-    bool? isEnabled,
-    int? port,
+@freezed
+abstract class RemoteControlState with _$RemoteControlState {
+  const factory RemoteControlState({
+    @Default(false) bool isEnabled,
+    @Default(8080) int port,
     String? authToken,
     String? localUrl,
     String? publicUrl,
-    List<String>? activeClients,
+    @Default([]) List<String> activeClients,
     String? cloudflaredToken,
     String? larkWebhookUrl,
-  }) {
-    return RemoteControlState(
-      isEnabled: isEnabled ?? this.isEnabled,
-      port: port ?? this.port,
-      authToken: authToken ?? this.authToken,
-      localUrl: localUrl ?? this.localUrl,
-      publicUrl: publicUrl ?? this.publicUrl,
-      activeClients: activeClients ?? this.activeClients,
-      cloudflaredToken: cloudflaredToken ?? this.cloudflaredToken,
-      larkWebhookUrl: larkWebhookUrl ?? this.larkWebhookUrl,
-    );
-  }
+  }) = _RemoteControlState;
 }
 
 class RemoteControlNotifier extends Notifier<RemoteControlState> {
   HttpServer? _server;
-  final _logger =
-      AppLogger(context: const LogContext(component: 'RemoteControlService'));
+  final _logger = AppLogger.forComponent('RemoteControlService');
   final _connections = <String, WebSocketChannel>{};
 
   @override
   RemoteControlState build() {
-    return RemoteControlState.initial();
+    final subscription = ref
+        .watch(terminalEventBusProvider)
+        .outputStream
+        .listen(_broadcastOutput);
+    ref.onDispose(subscription.cancel);
+    return const RemoteControlState();
   }
 
   Future<void> start({int port = 8080, String? token}) async {
@@ -198,13 +169,13 @@ class RemoteControlNotifier extends Notifier<RemoteControlState> {
     });
   }
 
-  /// Broadcast terminal output to all authenticated clients
-  void broadcastTerminalOutput(String output) {
+  void _broadcastOutput(TerminalOutputEvent event) {
     if (!state.isEnabled || _connections.isEmpty) return;
 
     final message = jsonEncode({
       'type': 'output',
-      'data': output,
+      'sessionId': event.sessionId,
+      'data': event.data,
     });
 
     for (final channel in _connections.values) {

@@ -43,8 +43,8 @@ Riverpod providers + Hive local DB. Key providers: tabs, connector, connectorSta
 # Get dependencies
 flutter pub get
 
-# Code generation (Hive models)
-dart run build_runner build
+# Code generation (Hive models + freezed)
+dart run build_runner build --delete-conflicting-outputs
 
 # Run (debug)
 flutter run -d macos    # or: -d windows, -d linux
@@ -114,6 +114,9 @@ GitHub Actions (`.github/workflows/`):
 - 快捷键系统：`ShortcutId`(ID 常量) → `defaultKeymaps`(平台默认) → `keymapProvider`(合并用户覆盖)。消费者应通过 `keymapProvider` 读取，不直接用 `defaultKeymaps`
 - `Command` 子类通过 `shortcutId` 返回 `ShortcutId` 字符串，UI 层从 `keymapProvider` 解析实际键位
 - `flutter analyze lib/` — 只检查项目代码，避免 ci/tmp 目录的 avoid_print 噪音
+- 非 UI 状态用静态单例（`ClassName._()`），参考 `SessionManager`、`SSHConnectionPool`、`LogService.instance`
+- Event sealed class 建模参考 `ShellCommandEvent`（同 `CloudflaredEvent` 模式）
+- Plugin 中的 `StreamSubscription` 必须显式存储，在 `didDisconnected()` 和 `didUnmounted()` 两处 cancel
 
 ## Key Dependencies
 
@@ -131,6 +134,12 @@ GitHub Actions (`.github/workflows/`):
 | `window_manager` | Window control |
 | `flex_tabs` (fork) | Tab management |
 
+## Dependency Gotchas
+
+- `freezed` must be `^3.0.0` — v2 conflicts with `hive_ce_generator ^1.9.x` (incompatible `build` dep ranges)
+- `LogicalKeyboardKey` cannot be a `const` map key (overrides `==`/`hashCode`); use `final` map
+- `part` directives must appear after all `import` statements in Dart files
+
 ## Important Files
 
 - `lib/main.dart` — 入口，初始化 window_manager + ProviderContainer（全局单例通过 initX(container) 注入）
@@ -144,4 +153,14 @@ GitHub Actions (`.github/workflows/`):
 - `lib/src/core/state/keymap.dart` — keymapProvider（合并默认+用户自定义键位）
 - `lib/src/core/command/command.dart` — Command 抽象基类（shortcutId）
 - `lib/src/ui/command_palette/command_palette_overlay.dart` — Command Palette UI
+- `lib/src/ui/shared/fluent_form.dart` — FluentFormHeader(style?)/Separator/Divider form layout widgets
+- `lib/src/ui/shared/shortcut_label.dart` — ShortcutLabel(shortcutId) widget, looks up keymapProvider, renders key-cap badges
+- `lib/src/core/service/terminal_event_bus.dart` — TerminalEventBus, decouples TerminalPlugin output from RemoteControlService
+- `lib/src/util/hive_box_ext.dart` — HiveSingleBox extension: getOrCreate(), saveOrAdd()
+- `lib/src/core/model/terminal_session.dart` — TerminalSession domain object + SessionStatus enum + SessionManager singleton
+- `lib/src/core/model/shell_command_event.dart` — ShellCommandEvent sealed class (PromptStart/CommandStart/CommandExecute/CommandDone), OSC 133 events
+- `lib/src/core/service/terminal_output_event.dart` — TerminalOutputEvent{sessionId, data, timestamp}, typed EventBus payload
+- `lib/src/core/utils/osc_parser.dart` — OscParser.parse(String) → OscParseResult{cleanData, events}, strips OSC 133 from raw PTY output
+- `lib/src/core/utils/shell_integration.dart` — ShellIntegration.zsh/bash/fish static script constants (not auto-injected; for Settings UI display)
+- `lib/src/hosts/ssh_connection_pool.dart` — SSHConnectionPool singleton, reference-counted by "user@host:port" key
 - `ARCHITECTURE.md` — 详细架构文档（中文）

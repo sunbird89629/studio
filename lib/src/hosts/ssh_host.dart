@@ -6,9 +6,13 @@ import 'package:terminal_studio/src/core/host.dart';
 import 'package:terminal_studio/src/hosts/ssh_fs.dart';
 
 class SSHHost implements Host {
-  SSHHost(this.client);
+  /// [onDispose] is called by [disconnect] instead of directly closing the
+  /// client, allowing [SSHConnectionPool] to manage the actual TCP lifetime
+  /// via reference counting.
+  SSHHost(this.client, [this._onDispose]);
 
   final SSHClient client;
+  final void Function()? _onDispose;
 
   @override
   Future<ExecutionResult> execute(
@@ -50,7 +54,12 @@ class SSHHost implements Host {
 
   @override
   Future<void> disconnect() async {
-    client.close();
+    if (_onDispose != null) {
+      // Pool manages the actual client lifetime via reference counting.
+      _onDispose!();
+    } else {
+      client.close();
+    }
   }
 
   @override

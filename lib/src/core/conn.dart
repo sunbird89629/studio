@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:terminal_studio/src/core/host.dart';
 import 'package:terminal_studio/src/core/utils/app_logger.dart';
@@ -16,13 +18,28 @@ enum HostConnectorStatus {
   aborted,
 }
 
-abstract class HostConnector<T extends Host> with ChangeNotifier {
+/// Manages the connection lifecycle for a [Host].
+///
+/// State changes are broadcast on [stream] — a broadcast [StreamController]
+/// that replaces the previous [ChangeNotifier] integration. Consumers should
+/// use [connectorStatusProvider] (a Riverpod [StreamProvider]) rather than
+/// listening directly.
+///
+/// Call [dispose] (wired via `ref.onDispose` in [connectorProvider]) to close
+/// the underlying stream when the provider is torn down.
+abstract class HostConnector<T extends Host> {
   T? _host;
 
   T? get host => _host;
 
-  final _logger =
-      AppLogger(context: const LogContext(component: 'HostConnector'));
+  final _logger = AppLogger.forComponent('HostConnector');
+
+  final _controller =
+      StreamController<({HostConnectorStatus status, Host? host})>.broadcast();
+
+  /// Stream of status+host snapshots emitted on every state change.
+  Stream<({HostConnectorStatus status, Host? host})> get stream =>
+      _controller.stream;
 
   HostConnectorStatus _state = HostConnectorStatus.initialized;
   HostConnectorStatus get state => _state;
@@ -30,7 +47,13 @@ abstract class HostConnector<T extends Host> with ChangeNotifier {
   set state(HostConnectorStatus value) {
     if (_state != value) {
       _state = value;
-      notifyListeners();
+      _notify();
+    }
+  }
+
+  void _notify() {
+    if (!_controller.isClosed) {
+      _controller.add((status: _state, host: _host));
     }
   }
 
@@ -47,19 +70,19 @@ abstract class HostConnector<T extends Host> with ChangeNotifier {
     }
 
     state = HostConnectorStatus.connecting;
-    _logger.i('HostConnector: state set to connecting. Notify called.');
+    _logger.i('HostConnector: state set to connecting. Notified stream.');
 
     try {
       _logger.i('HostConnector: calling createHost()...');
       _host = await createHost();
       _logger
-          .i('HostConnector: createHost returned $_host. Notifying listeners.');
-      notifyListeners();
+          .i('HostConnector: createHost returned $_host. Notifying stream.');
+      _notify(); // emit new host before setting state to connected
 
       _host!.done.then((_) => _onDone(), onError: _onError);
 
       state = HostConnectorStatus.connected;
-      _logger.i('HostConnector: state set to connected. Notify called.');
+      _logger.i('HostConnector: state set to connected. Notified stream.');
     } catch (e, st) {
       _logger.e('HostConnector: error during connect',
           error: e, stackTrace: st);
@@ -71,6 +94,12 @@ abstract class HostConnector<T extends Host> with ChangeNotifier {
     await _host?.disconnect();
     _host = null;
     state = HostConnectorStatus.disconnected;
+  }
+
+  /// Closes the broadcast stream. Called by [connectorProvider] via
+  /// `ref.onDispose` when the provider is torn down.
+  void dispose() {
+    _controller.close();
   }
 
   void _onDone() {

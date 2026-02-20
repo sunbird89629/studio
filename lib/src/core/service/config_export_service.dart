@@ -7,6 +7,7 @@ import 'package:terminal_studio/src/core/record/settings_record.dart';
 import 'package:terminal_studio/src/core/record/ssh_host_record.dart';
 import 'package:terminal_studio/src/core/state/database.dart';
 import 'package:terminal_studio/src/core/state/keymap.dart';
+import 'package:terminal_studio/src/util/hive_box_ext.dart';
 
 final configExportServiceProvider = Provider(ConfigExportService.new);
 
@@ -26,7 +27,7 @@ class ConfigExportService {
     // Settings
     final settingsBox = await _ref.read(settingsBoxProvider.future);
     if (settingsBox.isNotEmpty) {
-      result['settings'] = _settingsToMap(settingsBox.getAt(0)!);
+      result['settings'] = settingsBox.getAt(0)!.toFlatMap();
     }
 
     // Profiles
@@ -77,14 +78,9 @@ class ConfigExportService {
     // Settings
     if (json['settings'] is Map<String, dynamic>) {
       final settingsBox = await _ref.read(settingsBoxProvider.future);
-      final settings =
-          settingsBox.isNotEmpty ? settingsBox.getAt(0)! : SettingsRecord();
-      _applySettings(settings, json['settings'] as Map<String, dynamic>);
-      if (settingsBox.isEmpty) {
-        await settingsBox.add(settings);
-      } else {
-        await settings.save();
-      }
+      final settings = settingsBox.getOrCreate(SettingsRecord.new);
+      settings.applyFlatMap(json['settings'] as Map<String, dynamic>);
+      await settingsBox.saveOrAdd(settings);
       imported++;
     }
 
@@ -152,98 +148,6 @@ class ConfigExportService {
   }
 
   // ── Helpers ──────────────────────────────────────
-
-  Map<String, dynamic> _settingsToMap(SettingsRecord s) => {
-        'terminal_font_size': s.terminalFontSize,
-        'terminal_font_family': s.terminalFontFamily,
-        'theme_id': s.themeId,
-        'cursor_shape': s.cursorShape,
-        'cursor_blink': s.cursorBlink,
-        'cursor_color': s.cursorColor,
-        'shell': s.shell,
-        'shell_args': s.shellArgs,
-        'working_directory': s.workingDirectory,
-        'scrollback': s.scrollback,
-        'line_height': s.lineHeight,
-        'letter_spacing': s.letterSpacing,
-        'copy_on_select': s.copyOnSelect,
-        'background_opacity': s.backgroundOpacity,
-        'background_color': s.backgroundColor,
-        'padding': s.padding,
-        'env': s.env,
-        'preserve_cwd': s.preserveCWD,
-        'disable_underline': s.disableUnderline,
-        'ai_provider': s.aiProvider,
-        'ai_model': s.aiModel,
-        'ai_api_key': s.aiApiKey,
-      };
-
-  void _applySettings(SettingsRecord s, Map<String, dynamic> map) {
-    if (map['terminal_font_size'] is num) {
-      s.terminalFontSize = (map['terminal_font_size'] as num).toDouble();
-    }
-    if (map['terminal_font_family'] is String) {
-      s.terminalFontFamily = map['terminal_font_family'] as String;
-    }
-    if (map['theme_id'] is String) {
-      s.themeId = map['theme_id'] as String;
-    }
-    if (map['cursor_shape'] is String) {
-      s.cursorShape = map['cursor_shape'] as String;
-    }
-    if (map['cursor_blink'] is bool) {
-      s.cursorBlink = map['cursor_blink'] as bool;
-    }
-    if (map['cursor_color'] is String) {
-      s.cursorColor = map['cursor_color'] as String;
-    }
-    if (map['shell'] is String) {
-      s.shell = map['shell'] as String;
-    }
-    if (map['shell_args'] is List) {
-      s.shellArgs = (map['shell_args'] as List).cast<String>();
-    }
-    if (map['working_directory'] is String) {
-      s.workingDirectory = map['working_directory'] as String;
-    }
-    if (map['scrollback'] is int) {
-      s.scrollback = map['scrollback'] as int;
-    }
-    if (map['line_height'] is num) {
-      s.lineHeight = (map['line_height'] as num).toDouble();
-    }
-    if (map['letter_spacing'] is num) {
-      s.letterSpacing = (map['letter_spacing'] as num).toDouble();
-    }
-    if (map['copy_on_select'] is bool) {
-      s.copyOnSelect = map['copy_on_select'] as bool;
-    }
-    if (map['background_opacity'] is num) {
-      s.backgroundOpacity = (map['background_opacity'] as num).toDouble();
-    }
-    if (map['background_color'] is String) {
-      s.backgroundColor = map['background_color'] as String;
-    }
-    if (map['padding'] is num) s.padding = (map['padding'] as num).toDouble();
-    if (map['env'] is Map) {
-      s.env = (map['env'] as Map).cast<String, String>();
-    }
-    if (map['preserve_cwd'] is bool) {
-      s.preserveCWD = map['preserve_cwd'] as bool;
-    }
-    if (map['disable_underline'] is bool) {
-      s.disableUnderline = map['disable_underline'] as bool;
-    }
-    if (map['ai_provider'] is String) {
-      s.aiProvider = map['ai_provider'] as String;
-    }
-    if (map['ai_model'] is String) {
-      s.aiModel = map['ai_model'] as String;
-    }
-    if (map['ai_api_key'] is String) {
-      s.aiApiKey = map['ai_api_key'] as String;
-    }
-  }
 
   Map<String, dynamic> _sshHostToMap(SSHHostRecord h) => {
         'uuid': h.uuid,

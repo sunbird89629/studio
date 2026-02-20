@@ -1,38 +1,25 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:terminal_studio/src/core/command/command.dart';
 import 'package:terminal_studio/src/core/command/command_registry.dart';
 import 'package:terminal_studio/src/core/command/builtin_commands.dart';
 import 'package:terminal_studio/src/core/command/theme_commands.dart';
 import 'package:terminal_studio/src/core/state/theme.dart';
 
+part 'command_palette_service.freezed.dart';
+
 /// Command Palette 状态
-class CommandPaletteState {
-  final bool isVisible;
-  final String query;
-  final List<Command> filteredCommands;
-  final int selectedIndex;
+@freezed
+abstract class CommandPaletteState with _$CommandPaletteState {
+  const CommandPaletteState._();
 
-  const CommandPaletteState({
-    this.isVisible = false,
-    this.query = '',
-    this.filteredCommands = const [],
-    this.selectedIndex = 0,
-  });
-
-  CommandPaletteState copyWith({
-    bool? isVisible,
-    String? query,
-    List<Command>? filteredCommands,
-    int? selectedIndex,
-  }) {
-    return CommandPaletteState(
-      isVisible: isVisible ?? this.isVisible,
-      query: query ?? this.query,
-      filteredCommands: filteredCommands ?? this.filteredCommands,
-      selectedIndex: selectedIndex ?? this.selectedIndex,
-    );
-  }
+  const factory CommandPaletteState({
+    @Default(false) bool isVisible,
+    @Default('') String query,
+    @Default([]) List<Command> filteredCommands,
+    @Default(0) int selectedIndex,
+  }) = _CommandPaletteState;
 
   /// 当前选中的命令
   Command? get selectedCommand =>

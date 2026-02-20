@@ -4,6 +4,56 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/log/log_entry.dart';
 import '../core/service/log_service.dart';
 
+// ── State ─────────────────────────────────────────────────────────────────────
+
+class LogFilterState {
+  final LogLevel? levelFilter;
+  final String? channelFilter;
+  final bool autoScroll;
+
+  const LogFilterState({
+    this.levelFilter,
+    this.channelFilter,
+    this.autoScroll = true,
+  });
+
+  LogFilterState copyWith({
+    Object? levelFilter = _sentinel,
+    Object? channelFilter = _sentinel,
+    bool? autoScroll,
+  }) =>
+      LogFilterState(
+        levelFilter:
+            levelFilter == _sentinel ? this.levelFilter : levelFilter as LogLevel?,
+        channelFilter:
+            channelFilter == _sentinel ? this.channelFilter : channelFilter as String?,
+        autoScroll: autoScroll ?? this.autoScroll,
+      );
+}
+
+const _sentinel = Object();
+
+// ── Notifier ──────────────────────────────────────────────────────────────────
+
+class LogFilterNotifier extends Notifier<LogFilterState> {
+  @override
+  LogFilterState build() => const LogFilterState();
+
+  void setLevelFilter(LogLevel? level) =>
+      state = state.copyWith(levelFilter: level ?? _sentinel);
+
+  void setChannelFilter(String? channel) =>
+      state = state.copyWith(channelFilter: channel ?? _sentinel);
+
+  void toggleAutoScroll() =>
+      state = state.copyWith(autoScroll: !state.autoScroll);
+}
+
+final logFilterProvider =
+    NotifierProvider<LogFilterNotifier, LogFilterState>(LogFilterNotifier.new);
+
+// ── Widget ────────────────────────────────────────────────────────────────────
+
 /// 日志侧边栏面板
 class LogSidebar extends ConsumerStatefulWidget {
   const LogSidebar({super.key});
@@ -13,10 +63,7 @@ class LogSidebar extends ConsumerStatefulWidget {
 }
 
 class _LogSidebarState extends ConsumerState<LogSidebar> {
-  LogLevel? _levelFilter;
-  String? _channelFilter;
   final ScrollController _scrollController = ScrollController();
-  bool _autoScroll = true;
 
   @override
   void dispose() {
@@ -24,8 +71,8 @@ class _LogSidebarState extends ConsumerState<LogSidebar> {
     super.dispose();
   }
 
-  void _scrollToBottom() {
-    if (_autoScroll && _scrollController.hasClients) {
+  void _scrollToBottom(bool autoScroll) {
+    if (autoScroll && _scrollController.hasClients) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _scrollController.animateTo(
           _scrollController.position.maxScrollExtent,
@@ -36,10 +83,15 @@ class _LogSidebarState extends ConsumerState<LogSidebar> {
     }
   }
 
-  List<LogEntry> _filterEntries(List<LogEntry> entries) {
+  List<LogEntry> _filterEntries(
+      List<LogEntry> entries, LogFilterState filter) {
     return entries.where((e) {
-      if (_levelFilter != null && e.level != _levelFilter) return false;
-      if (_channelFilter != null && e.channel != _channelFilter) return false;
+      if (filter.levelFilter != null && e.level != filter.levelFilter) {
+        return false;
+      }
+      if (filter.channelFilter != null && e.channel != filter.channelFilter) {
+        return false;
+      }
       return true;
     }).toList();
   }
@@ -60,6 +112,8 @@ class _LogSidebarState extends ConsumerState<LogSidebar> {
   @override
   Widget build(BuildContext context) {
     final logService = ref.watch(logServiceProvider);
+    final filter = ref.watch(logFilterProvider);
+    final filterNotifier = ref.read(logFilterProvider.notifier);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -81,22 +135,21 @@ class _LogSidebarState extends ConsumerState<LogSidebar> {
               const Spacer(),
               // 自动滚动开关
               IconButton(
-                icon: Icon(_autoScroll
+                icon: Icon(filter.autoScroll
                     ? Icons.vertical_align_bottom
                     : Icons.vertical_align_bottom_outlined),
-                tooltip: _autoScroll ? 'Auto-scroll ON' : 'Auto-scroll OFF',
-                color: _autoScroll ? colorScheme.primary : theme.disabledColor,
-                onPressed: () => setState(() => _autoScroll = !_autoScroll),
+                tooltip:
+                    filter.autoScroll ? 'Auto-scroll ON' : 'Auto-scroll OFF',
+                color:
+                    filter.autoScroll ? colorScheme.primary : theme.disabledColor,
+                onPressed: filterNotifier.toggleAutoScroll,
               ),
               const SizedBox(width: 4),
               // 清空按钮
               IconButton(
                 icon: const Icon(Icons.delete_outline),
                 tooltip: 'Clear Logs',
-                onPressed: () {
-                  logService.buffer.clear();
-                  setState(() {});
-                },
+                onPressed: () => logService.buffer.clear(),
               ),
             ],
           ),
@@ -112,7 +165,7 @@ class _LogSidebarState extends ConsumerState<LogSidebar> {
                 child: DropdownButton<LogLevel?>(
                   isExpanded: true,
                   hint: const Text('All Levels'),
-                  value: _levelFilter,
+                  value: filter.levelFilter,
                   items: [
                     const DropdownMenuItem(
                         value: null, child: Text('All Levels')),
@@ -121,7 +174,7 @@ class _LogSidebarState extends ConsumerState<LogSidebar> {
                           child: Text(l.shortName),
                         )),
                   ],
-                  onChanged: (v) => setState(() => _levelFilter = v),
+                  onChanged: filterNotifier.setLevelFilter,
                 ),
               ),
               const SizedBox(width: 8),
@@ -130,7 +183,7 @@ class _LogSidebarState extends ConsumerState<LogSidebar> {
                 child: DropdownButton<String?>(
                   isExpanded: true,
                   hint: const Text('All Channels'),
-                  value: _channelFilter,
+                  value: filter.channelFilter,
                   items: [
                     const DropdownMenuItem(
                         value: null, child: Text('All Channels')),
@@ -139,7 +192,7 @@ class _LogSidebarState extends ConsumerState<LogSidebar> {
                           child: Text(c, overflow: TextOverflow.ellipsis),
                         )),
                   ],
-                  onChanged: (v) => setState(() => _channelFilter = v),
+                  onChanged: filterNotifier.setChannelFilter,
                 ),
               ),
             ],
@@ -151,10 +204,11 @@ class _LogSidebarState extends ConsumerState<LogSidebar> {
           child: StreamBuilder<LogEntry>(
             stream: logService.stream,
             builder: (context, snapshot) {
-              final entries = _filterEntries(logService.buffer.entries);
+              final entries =
+                  _filterEntries(logService.buffer.entries, filter);
 
               if (snapshot.hasData) {
-                _scrollToBottom();
+                _scrollToBottom(filter.autoScroll);
               }
 
               if (entries.isEmpty) {

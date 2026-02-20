@@ -4,27 +4,19 @@ import '../state/settings.dart';
 import '../utils/app_logger.dart';
 
 final aiCopilotServiceProvider = Provider((ref) {
-  // We can still watch settings if we want to allow overriding,
-  // but for now, we'll initialize with the hardcoded values as requested.
-  // If the user changes settings, this provider will rebuild, but the service
-  // constructor might not need them if we hardcode inside the service or pass them here.
-  // Let's passed the hardcoded values here for now to match the "referencing tmp/test.dart" request.
-  ref.watch(settingsProvider); // Keep watching to allow future flexibility
-  return AICopilotService();
+  final apiKey = ref.watch(settingsProvider).value?.aiApiKey;
+  return AICopilotService(apiKey: apiKey);
 });
 
 class AICopilotService {
-  final AppLogger _logger =
-      AppLogger(context: const LogContext(component: 'AICopilotService'));
+  final AppLogger _logger = AppLogger.forComponent('AICopilotService');
 
   static const String _baseUrl = "https://cliapi.aaaabb.cc";
-  static const String _apiKey = "390ea36cb435840c2ad7823c5ffb7d5c";
   static const String _defaultModel = "gemini-3-flash";
 
-  AICopilotService() {
+  AICopilotService({String? apiKey}) {
     OpenAI.baseUrl = _baseUrl;
-    OpenAI.apiKey = _apiKey;
-    // Optional: Set timeout
+    OpenAI.apiKey = (apiKey != null && apiKey.isNotEmpty) ? apiKey : '';
     OpenAI.requestsTimeOut = const Duration(seconds: 60);
   }
 

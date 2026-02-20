@@ -46,8 +46,7 @@ class VimEditNotifier extends Notifier<VimEditState> {
   File? _tempFile;
   bool _isExiting = false;
 
-  final _logger =
-      AppLogger(context: const LogContext(component: 'VimEditNotifier'));
+  final _logger = AppLogger.forComponent('VimEditNotifier');
 
   @override
   VimEditState build() {

@@ -2,10 +2,14 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:terminal_studio/src/core/constants/log_channels.dart';
 import 'package:terminal_studio/src/core/model/cloudflared_event.dart';
 import 'package:terminal_studio/src/core/service/log_service.dart';
 import 'package:terminal_studio/src/core/utils/cloudflared_log_parser.dart';
+
+part 'tunnel_service.freezed.dart';
 
 enum TunnelStatus {
   stopped,
@@ -24,46 +28,23 @@ class ExecCommand {
   });
 }
 
-class TunnelState {
-  final TunnelStatus status;
-  final String? publicUrl;
-  final String? error;
-  final String? tunnelId;
-  final List<String> connections;
+@freezed
+abstract class TunnelState with _$TunnelState {
+  const TunnelState._();
 
-  TunnelState({
-    required this.status,
-    this.publicUrl,
-    this.error,
-    this.tunnelId,
-    this.connections = const [],
-  });
-
-  bool get isConnected => status == TunnelStatus.connected;
-
-  factory TunnelState.initial() {
-    return TunnelState(status: TunnelStatus.stopped);
-  }
-
-  TunnelState copyWith({
-    TunnelStatus? status,
+  const factory TunnelState({
+    @Default(TunnelStatus.stopped) TunnelStatus status,
     String? publicUrl,
     String? error,
     String? tunnelId,
-    List<String>? connections,
-  }) {
-    return TunnelState(
-      status: status ?? this.status,
-      publicUrl: publicUrl ?? this.publicUrl,
-      error: error ?? this.error,
-      tunnelId: tunnelId ?? this.tunnelId,
-      connections: connections ?? this.connections,
-    );
-  }
+    @Default([]) List<String> connections,
+  }) = _TunnelState;
+
+  bool get isConnected => status == TunnelStatus.connected;
 }
 
 class TunnelNotifier extends Notifier<TunnelState> {
-  static const _channel = 'tunnel';
+  static const _channel = LogChannels.tunnel;
   Process? _process;
   StreamSubscription? _stdoutSub;
   StreamSubscription? _stderrSub;
@@ -76,7 +57,7 @@ class TunnelNotifier extends Notifier<TunnelState> {
 
   @override
   TunnelState build() {
-    return TunnelState.initial();
+    return const TunnelState();
   }
 
   ExecCommand get tunnelCommand {
@@ -306,7 +287,7 @@ class TunnelNotifier extends Notifier<TunnelState> {
   Future<void> disconnect() async {
     _process?.kill();
     _cleanup();
-    state = TunnelState.initial();
+    state = const TunnelState();
     LogService.instance.info(_channel, 'Tunnel disconnected');
   }
 }

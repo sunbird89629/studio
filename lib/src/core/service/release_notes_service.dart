@@ -12,8 +12,7 @@ class ReleaseNotesService {
   static const String _boxName = 'release_notes';
   static const String _lastSeenVersionKey = 'last_seen_version';
 
-  final _logger =
-      AppLogger(context: const LogContext(component: 'ReleaseNotesService'));
+  final _logger = AppLogger.forComponent('ReleaseNotesService');
 
   Future<Box> _getBox() async {
     if (!Hive.isBoxOpen(_boxName)) {

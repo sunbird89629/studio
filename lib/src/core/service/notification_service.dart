@@ -7,8 +7,7 @@ import 'package:terminal_studio/src/core/service/tunnel_service.dart';
 import 'package:terminal_studio/src/core/utils/app_logger.dart';
 
 class NotificationService {
-  final _logger =
-      AppLogger(context: const LogContext(component: 'NotificationService'));
+  final _logger = AppLogger.forComponent('NotificationService');
 
   Future<void> sendLarkNotification(String webhookUrl, String content) async {
     if (webhookUrl.isEmpty) return;

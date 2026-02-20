@@ -17,8 +17,7 @@ class ConfigFileService {
 
   final Ref _ref;
 
-  final _logger =
-      AppLogger(context: const LogContext(component: 'ConfigFileService'));
+  final _logger = AppLogger.forComponent('ConfigFileService');
 
   StreamSubscription<FileSystemEvent>? _watcher;
 

@@ -53,6 +53,19 @@ class AppLogger {
   final Logger _logger;
   final LogContext _globalContext;
 
+  static final Map<String, AppLogger> _cache = {};
+
+  /// Returns a cached [AppLogger] for [component], creating one if needed.
+  ///
+  /// Prefer this over the default constructor for class-level loggers to avoid
+  /// allocating a new [Logger] per instance.
+  static AppLogger forComponent(String component) {
+    return _cache.putIfAbsent(
+      component,
+      () => AppLogger(context: LogContext(component: component)),
+    );
+  }
+
   AppLogger({
     Logger? logger,
     LogContext context = const LogContext(),

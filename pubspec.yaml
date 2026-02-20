@@ -39,7 +39,7 @@ dependencies:
   xterm:
     git:
       url: https://github.com/sunbird89629/xterm.dart.git
-      ref: master
+      ref: e57fa91224dd86000fffcf218a95a49b1c7f0456
   flutter_riverpod: ^3.2.0
   riverpod_devtools: ^0.4.4
   google_generative_ai: ^0.4.5
@@ -56,6 +56,7 @@ dependencies:
   flex_tabs:
     git:
       url: https://github.com/sunbird89629/tabs.git
+      ref: bb380f0826f9cfca2e2d459988f76eda34a83664
 
   file: ^7.0.1
 
@@ -89,6 +90,7 @@ dependencies:
   package_info_plus: ^9.0.0
   flutter_markdown: ^0.7.7+1
   dart_openai: ^6.1.1
+  freezed_annotation: ^3.0.0
 
 dependency_overrides:
   fading_edge_scrollview: ^4.1.1
@@ -110,6 +112,7 @@ dev_dependencies:
 
   msix: ^3.6.6
   hive_ce_generator: ^1.9.3
+  freezed: ^3.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

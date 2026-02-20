@@ -115,24 +115,18 @@ class _AppLayout extends ConsumerWidget {
       actionBuilder: (tabs) => _buildTabActions(context, ref, tabs),
     );
 
-    if (copilotVisible) {
-      content = Row(
-        children: [
-          Expanded(child: content),
-          const VerticalDivider(),
-          const SizedBox(width: 600, child: CopilotSidebar()),
-        ],
-      );
-    }
-
-    if (logVisible) {
-      content = Row(
-        children: [
-          Expanded(child: content),
-          const VerticalDivider(),
-          const SizedBox(width: 400, child: LogSidebar()),
-        ],
-      );
+    final sidebars = <Widget>[
+      if (copilotVisible) ...[
+        const VerticalDivider(),
+        const SizedBox(width: 600, child: CopilotSidebar()),
+      ],
+      if (logVisible) ...[
+        const VerticalDivider(),
+        const SizedBox(width: 400, child: LogSidebar()),
+      ],
+    ];
+    if (sidebars.isNotEmpty) {
+      content = Row(children: [Expanded(child: content), ...sidebars]);
     }
 
     return Stack(

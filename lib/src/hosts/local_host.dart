@@ -9,7 +9,7 @@ import 'package:terminal_studio/src/hosts/local_fs.dart';
 import '../core/utils/app_logger.dart';
 
 class LocalHost implements Host {
-  final _logger = AppLogger(context: const LogContext(component: 'LocalHost'));
+  final _logger = AppLogger.forComponent('LocalHost');
 
   @override
   Future<ExecutionResult> execute(
@@ -129,8 +129,7 @@ class LocalExecutionSession implements ExecutionSession {
 
   LocalExecutionSession(this._pty);
 
-  final _logger =
-      AppLogger(context: const LogContext(component: 'LocalExecutionSession'));
+  final _logger = AppLogger.forComponent('LocalExecutionSession');
 
   @override
   Future<int> get exitCode => _pty.exitCode;
