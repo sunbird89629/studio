@@ -228,6 +228,7 @@ ThemeService (主题服务)
 - `ssh_hosts`: SSH 主机配置
 - `ssh_keys`: SSH 密钥
 - `settings`: 用户设置（主题、字体、AI API Key 等）
+- 配置文件：`~/.config/openterm/config.jsonc` (跨平台)
 
 ---
 

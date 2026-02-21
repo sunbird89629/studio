@@ -9,7 +9,7 @@ import 'package:terminal_studio/src/core/record/settings_record.dart';
 import 'package:terminal_studio/src/core/state/settings.dart';
 import '../utils/app_logger.dart';
 
-/// Service for reading/writing `~/.terminal_studio/config.jsonc`.
+/// Service for reading/writing `~/.config/openterm/config.jsonc`.
 ///
 /// Priority: JSONC file > Hive stored value > code default.
 class ConfigFileService {
@@ -24,13 +24,19 @@ class ConfigFileService {
   /// Guard to prevent infinite sync loops between file watcher and Hive.
   bool _isSyncing = false;
 
-  /// Config directory: `~/.terminal_studio/`
+  /// Config directory: `~/.config/openterm/` (cross-platform)
   String get configDir {
+    if (Platform.isWindows) {
+      // Windows: C:\Users\用户名\.config\openterm\
+      final home = Platform.environment['USERPROFILE'] ?? '.';
+      return p.join(home, '.config', 'openterm');
+    }
+    // macOS/Linux: ~/.config/openterm/
     final home = Platform.environment['HOME'] ?? '.';
-    return p.join(home, '.terminal_studio');
+    return p.join(home, '.config', 'openterm');
   }
 
-  /// Config file: `~/.terminal_studio/config.jsonc`
+  /// Config file: `~/.config/openterm/config.jsonc`
   String get configFilePath => p.join(configDir, 'config.jsonc');
 
   // ── JSONC Parsing ──────────────────────────────────

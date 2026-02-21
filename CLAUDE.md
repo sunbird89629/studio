@@ -183,4 +183,5 @@ GitHub Actions (`.github/workflows/`):
 - `lib/src/hosts/connection_pool.dart` — Generic ConnectionPool<T>(getDone, doClose): ref-counted pool, injectable for testing
 - `lib/src/core/utils/link_detector.dart` — detects URLs/file paths in terminal line text at a given column
 - `lib/src/core/service/launcher_service.dart` — platform-native open via Process.run (macOS: open, Linux: xdg-open, Windows: start)
+- `~/.config/openterm/config.jsonc` — Configuration file (cross-platform)
 - `ARCHITECTURE.md` — 详细架构文档（中文）
