@@ -134,7 +134,8 @@ class _CopilotSidebarState extends ConsumerState<CopilotSidebar> {
                     IconButton(
                       icon: const Icon(Icons.delete_outline),
                       tooltip: 'Clear Chat',
-                      onPressed: () => ref.read(copilotChatProvider.notifier).clear(),
+                      onPressed: () =>
+                          ref.read(copilotChatProvider.notifier).clear(),
                     ),
                   ],
                 ),
@@ -259,4 +260,3 @@ class _CopilotSidebarState extends ConsumerState<CopilotSidebar> {
     );
   }
 }
-

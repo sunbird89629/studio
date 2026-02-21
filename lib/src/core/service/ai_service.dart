@@ -25,8 +25,14 @@ class AICopilotService {
       final models = await OpenAI.instance.model.list();
       return models;
     } catch (e, stack) {
-      _logger.e('Failed to list models', error: e, stackTrace: stack);
-      return [];
+      _logger.w('Failed to list models, using default model',
+          error: e, stackTrace: stack);
+      return [
+        OpenAIModelModel(
+            id: _defaultModel,
+            ownedBy: 'openai',
+            created: DateTime.now().millisecondsSinceEpoch ~/ 1000),
+      ];
     }
   }
 
