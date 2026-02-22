@@ -18,6 +18,7 @@ import 'package:terminal_studio/src/core/state/settings.dart';
 import 'package:terminal_studio/src/core/service/launcher_service.dart';
 import 'package:terminal_studio/src/core/utils/link_detector.dart';
 import 'package:terminal_studio/src/core/utils/osc_parser.dart';
+import 'package:terminal_studio/src/plugins/terminal/inline_image.dart';
 import 'package:terminal_studio/src/plugins/terminal/terminal_menu.dart';
 import 'package:terminal_studio/src/plugins/terminal/xterm_fixes.dart';
 import 'package:terminal_studio/src/ui/shortcut/intents.dart';
@@ -36,6 +37,15 @@ class TerminalPlugin extends Plugin {
   final _logger = AppLogger.forComponent('TerminalPlugin');
 
   var terminalTitle = '';
+
+  /// Inline images received via OSC 1337 (iTerm2 Inline Image Protocol).
+  final inlineImages = ValueNotifier<List<InlineImageEntry>>([]);
+
+  bool _wasUsingAltBuffer = false;
+
+  /// True after [notifyListeners] has fired at least once since the last image
+  /// was stored. Used to avoid clearing an image the moment it arrives.
+  bool _imageFullyRendered = false;
 
   ExecutionSession? session;
   StreamSubscription<String>? _outputSubscription;
@@ -78,6 +88,11 @@ class TerminalPlugin extends Plugin {
       _updateTitle();
     };
 
+    terminal.onPrivateOSC = _handlePrivateOSC;
+    terminal.onEraseDisplay = _onEraseDisplay;
+    terminal.onWriteChar = _onWriteChar;
+    terminal.addListener(_onTerminalChange);
+
     terminal.onOutput = (data) {
       _logger.d('Terminal input (user typed): ${data.length} chars');
       session?.write(const Utf8Encoder().convert(data));
@@ -106,13 +121,20 @@ class TerminalPlugin extends Plugin {
     // Read user settings for shell configuration
     final settings = ref.read(settingsProvider).value;
 
+    // Inject TERM_PROGRAM=iTerm.app so apps like yazi detect iTerm2 inline
+    // image support. User env takes precedence over this default.
+    final environment = {
+      'TERM_PROGRAM': 'iTerm.app',
+      ...?settings?.env,
+    };
+
     session = await host.shell(
       width: terminal.viewWidth,
       height: terminal.viewHeight,
       command: settings?.shell,
       args: settings?.shellArgs,
       workingDirectory: settings?.workingDirectory,
-      environment: settings?.env,
+      environment: environment,
     );
 
     _logger.i('Shell session created: $session');
@@ -169,6 +191,115 @@ class TerminalPlugin extends Plugin {
     _currentInput = processInput(_currentInput, data, _commandHistory);
   }
 
+  /// Handles the iTerm2 Inline Image Protocol (OSC 1337).
+  ///
+  /// Format: `ESC ] 1337 ; File=[inline=1;width=N;height=N;...] : <base64> BEL`
+  void _handlePrivateOSC(String code, List<String> args) {
+    if (code != '1337') return;
+
+    // Reconstruct full arg string from semicolon-split parts.
+    final fullArgs = args.join(';');
+
+    // Strip "File=" prefix if present (iTerm2 convention).
+    final argsPart =
+        fullArgs.startsWith('File=') ? fullArgs.substring(5) : fullArgs;
+
+    // Split params from base64 data on the first ':'.
+    final colonIdx = argsPart.indexOf(':');
+    if (colonIdx == -1) return;
+
+    final paramsStr = argsPart.substring(0, colonIdx);
+    final base64Str = argsPart.substring(colonIdx + 1);
+    if (base64Str.isEmpty) return;
+
+    // Parse key=value pairs.
+    final params = <String, String>{};
+    for (final kv in paramsStr.split(';')) {
+      final eqIdx = kv.indexOf('=');
+      if (eqIdx == -1) continue;
+      params[kv.substring(0, eqIdx)] = kv.substring(eqIdx + 1);
+    }
+
+    if (params['inline'] != '1') return;
+
+    // Decode image bytes.
+    final Uint8List bytes;
+    try {
+      bytes = base64Decode(base64Str);
+    } catch (e) {
+      _logger.w('OSC 1337: failed to decode base64 image', error: e);
+      return;
+    }
+
+    final widthCells = int.tryParse(params['width'] ?? '');
+    final heightCells = int.tryParse(params['height'] ?? '');
+
+    // Cursor position at the time of the OSC is where the image should appear.
+    final col = terminal.buffer.cursorX;
+    final row = terminal.buffer.cursorY;
+
+    // Replace any existing image — each yazi preview frame is a single image.
+    _imageFullyRendered = false;
+    inlineImages.value = [
+      InlineImageEntry(
+        bytes: bytes,
+        col: col,
+        row: row,
+        widthCells: widthCells,
+        heightCells: heightCells,
+      ),
+    ];
+  }
+
+  /// Clears inline images triggered by `ESC[2J` (full screen erase).
+  void _onEraseDisplay() {
+    if (inlineImages.value.isNotEmpty) {
+      inlineImages.value = [];
+    }
+  }
+
+  /// Clears inline images on alt → main buffer switch (TUI app exited).
+  /// Also marks the image as fully rendered so [_onWriteChar] can start
+  /// watching for overwrites.
+  void _onTerminalChange() {
+    final isAlt = terminal.isUsingAltBuffer;
+
+    if (_wasUsingAltBuffer && !isAlt) {
+      inlineImages.value = [];
+      _imageFullyRendered = false;
+      _wasUsingAltBuffer = isAlt;
+      return;
+    }
+    _wasUsingAltBuffer = isAlt;
+
+    // After notifyListeners fires, the image is displayed — allow onWriteChar
+    // to start watching for overwrites.
+    if (inlineImages.value.isNotEmpty) {
+      _imageFullyRendered = true;
+    }
+  }
+
+  /// Clears the image overlay when Ratatui overwrites any cell inside the
+  /// image's bounding box. This handles the common case where yazi navigates
+  /// to a file without a new image (e.g. a directory) — Ratatui writes new
+  /// text characters into the preview pane, overwriting the image area.
+  void _onWriteChar(int col, int row) {
+    if (inlineImages.value.isEmpty || !_imageFullyRendered) return;
+
+    for (final img in inlineImages.value) {
+      final imgWidth = img.widthCells ?? (terminal.viewWidth - img.col);
+      final imgHeight = img.heightCells ?? (terminal.viewHeight - img.row);
+      if (row >= img.row &&
+          row < img.row + imgHeight &&
+          col >= img.col &&
+          col < img.col + imgWidth) {
+        inlineImages.value = [];
+        _imageFullyRendered = false;
+        return;
+      }
+    }
+  }
+
   /// Pure function that advances the terminal input state machine for [data].
   ///
   /// [history] is mutated in-place when Enter is pressed (same as the instance
@@ -215,14 +346,18 @@ class TerminalPlugin extends Plugin {
     _outputSubscription = null;
     session = null;
     _currentInput = '';
+    inlineImages.value = [];
+    _imageFullyRendered = false;
     title.value = 'Disconnected';
     SessionManager.instance.get(sessionId)?.status = SessionStatus.disconnected;
   }
 
   @override
   void didUnmounted() {
+    terminal.removeListener(_onTerminalChange);
     _outputSubscription?.cancel();
     _outputSubscription = null;
+    inlineImages.dispose();
     SessionManager.instance.remove(sessionId);
     super.didUnmounted();
   }
@@ -365,18 +500,27 @@ class _TerminalTabViewState extends ConsumerState<TerminalTabView> {
           key: ValueKey(widget.plugin),
           backgroundColor: Colors.transparent,
           child: SafeArea(
-            child: TerminalView(
-              widget.plugin.terminal,
-              textStyle: style,
-              controller: widget.plugin.terminalController,
-              onTapUp: _handleTapUp,
-              onSecondaryTapDown: (_, __) => showMenu(),
-              mouseCursor: _openModifierActive
-                  ? SystemMouseCursors.click
-                  : SystemMouseCursors.text,
-              backgroundOpacity: settings.backgroundOpacity,
-              padding: EdgeInsets.all(settings.padding),
-              autofocus: true,
+            child: Stack(
+              children: [
+                TerminalView(
+                  widget.plugin.terminal,
+                  textStyle: style,
+                  controller: widget.plugin.terminalController,
+                  onTapUp: _handleTapUp,
+                  onSecondaryTapDown: (_, __) => showMenu(),
+                  mouseCursor: _openModifierActive
+                      ? SystemMouseCursors.click
+                      : SystemMouseCursors.text,
+                  backgroundOpacity: settings.backgroundOpacity,
+                  padding: EdgeInsets.all(settings.padding),
+                  autofocus: true,
+                ),
+                _InlineImageOverlay(
+                  terminal: widget.plugin.terminal,
+                  images: widget.plugin.inlineImages,
+                  padding: settings.padding,
+                ),
+              ],
             ),
           ),
         );
@@ -393,5 +537,63 @@ class _TerminalTabViewState extends ConsumerState<TerminalTabView> {
   void showMenu() {
     final menu = TerminalContextMenu(plugin: widget.plugin);
     context.contextMenuOverlay.show(menu);
+  }
+}
+
+/// Overlays inline images (from OSC 1337) on top of the terminal view.
+///
+/// Images are positioned by converting the cursor (col, row) at the time
+/// of the OSC sequence into pixel coordinates based on cell size.
+class _InlineImageOverlay extends StatelessWidget {
+  const _InlineImageOverlay({
+    required this.terminal,
+    required this.images,
+    required this.padding,
+  });
+
+  final Terminal terminal;
+  final ValueNotifier<List<InlineImageEntry>> images;
+  final double padding;
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder(
+      valueListenable: images,
+      builder: (context, entries, _) {
+        if (entries.isEmpty) return const SizedBox.shrink();
+
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final viewWidth = terminal.viewWidth;
+            final viewHeight = terminal.viewHeight;
+            final innerWidth = constraints.maxWidth - padding * 2;
+            final innerHeight = constraints.maxHeight - padding * 2;
+            final cellWidth = innerWidth / viewWidth;
+            final cellHeight = innerHeight / viewHeight;
+
+            return Stack(
+              children: [
+                for (final entry in entries)
+                  Positioned(
+                    left: padding + entry.col * cellWidth,
+                    top: padding + entry.row * cellHeight,
+                    width: (entry.widthCells ?? (viewWidth - entry.col)) *
+                        cellWidth,
+                    height:
+                        (entry.heightCells ?? (viewHeight - entry.row)) *
+                            cellHeight,
+                    child: Image.memory(
+                      entry.bytes,
+                      fit: BoxFit.contain,
+                      filterQuality: FilterQuality.medium,
+                      gaplessPlayback: true,
+                    ),
+                  ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 }

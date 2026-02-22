@@ -64,13 +64,25 @@ flutter build linux
 dart run icons_launcher:create
 ```
 
-### Git Submodules
+### Fork 本地开发工作流
 
-项目依赖自定义 fork 的 `xterm` 和 `flex_tabs`：
+`xterm` 和 `flex_tabs` 是自维护 fork，通过 pubspec.yaml git 依赖引用，不是 git submodule。
 
-```bash
-git submodule update --init --recursive
+**开发阶段**（path dep，修改即生效）：
+```yaml
+xterm:
+  path: ../xterm.dart   # ~/work/flutter/xterm.dart
 ```
+
+**提交阶段**（push fork 到 GitHub，切回 git ref）：
+```yaml
+xterm:
+  git:
+    url: https://github.com/sunbird89629/xterm.dart.git
+    ref: <new-commit-hash>
+```
+
+**禁止直接修改 `~/.pub-cache/`**，改动不会被提交，且会被 `flutter pub get` 覆盖。
 
 ## Git Conventions
 
@@ -143,7 +155,7 @@ GitHub Actions (`.github/workflows/`):
 - Riverpod 3.x: `WidgetRef` is `sealed class WidgetRef implements MutationTarget` — does NOT extend `Ref`; functions taking `Ref` will reject `WidgetRef` from ConsumerWidget. Inline save logic in `Ref` contexts instead of calling a shared helper that takes `WidgetRef`
 - `LogicalKeyboardKey` cannot be a `const` map key (overrides `==`/`hashCode`); use `final` map
 - `part` directives must appear after all `import` statements in Dart files
-- `xterm` fork: `TerminalGestureDetector.onTapUp` was dead code (never called in `_handleTapUp`) — patched in pub-cache `~/.pub-cache/git/xterm.dart-e57fa91.../lib/src/ui/gesture/gesture_detector.dart` (adds `widget.onTapUp?.call(details)` after `widget.onSingleTapUp?.call(details)`)
+- `xterm` fork: `TerminalGestureDetector.onTapUp` was dead code — fixed in `~/work/flutter/xterm.dart` (adds `widget.onTapUp?.call(details)` after `widget.onSingleTapUp?.call(details)` in `gesture_detector.dart`). Use path dep during dev, push to GitHub and update pubspec ref to release.
 - xterm `CellOffset.y` from `onTapUp` is buffer-absolute (includes scroll offset) — confirmed in `render.dart`
 - No `url_launcher` dep — use `LauncherService` (`Process.run('open'/'xdg-open'/'start')`) for platform-native file/URL opening
 
@@ -185,6 +197,18 @@ GitHub Actions (`.github/workflows/`):
 - `lib/src/core/utils/link_detector.dart` — detects URLs/file paths in terminal line text at a given column
 - `lib/src/core/service/launcher_service.dart` — platform-native open via Process.run (macOS: open, Linux: xdg-open, Windows: start)
 - `ARCHITECTURE.md` — 详细架构文档（中文）
+
+## Terminal Plugin — Inline Image Protocol
+
+Implements iTerm2 Inline Image Protocol (OSC 1337) for image preview in yazi and similar tools.
+
+- `lib/src/plugins/terminal/inline_image.dart` — `InlineImageEntry` data class
+- `lib/src/plugins/terminal/terminal_plugin.dart` — OSC 1337 parser, `inlineImages` ValueNotifier, Stack overlay
+- `didConnected()` injects `TERM_PROGRAM=iTerm.app` → yazi detects iTerm2 support
+- Clear triggers: `onEraseDisplay` (ESC[2J), `onWriteChar` bounding-box overwrite detection, alt→main buffer switch
+- **`Terminal.notifyListeners()` fires once per `write()` call, at the very end** — `cursorY` in a listener reflects the frame's final position; intermediate cursor movements are invisible. Cursor-position-based clear logic does NOT work.
+- `_imageFullyRendered` flag: prevents `onWriteChar` from clearing the image the moment it arrives (before `notifyListeners` fires)
+- xterm.dart callback pattern: declare field → add constructor param → call `callback?.call(...)` inside the relevant method (see `onEraseDisplay` commit f8ac18b, `onWriteChar` commit 6d78f3f)
 
 ## Persistence Layout
 

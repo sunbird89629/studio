@@ -39,7 +39,7 @@ dependencies:
   xterm:
     git:
       url: https://github.com/sunbird89629/xterm.dart.git
-      ref: bc93eec5b5ce874fd02996807191b09d0fd1a231
+      ref: 6d78f3f089f134d4a611a567db713beea2fab569
   flutter_riverpod: ^3.2.0
   riverpod_devtools: ^0.4.4
   google_generative_ai: ^0.4.5
