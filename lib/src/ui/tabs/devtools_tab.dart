@@ -1,6 +1,7 @@
 import 'package:flex_tabs/flex_tabs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:terminal_studio/src/core/service/ssh_storage_service.dart';
 import 'package:terminal_studio/src/core/state/database.dart';
 import 'package:terminal_studio/src/ui/tabs/playground.dart';
 import 'package:xterm/xterm.dart';
@@ -70,8 +71,8 @@ class _DevToolsTabViewState extends ConsumerState<DevToolsTabView> {
   }
 
   void _clearHosts() async {
-    final sshHosts = await ref.read(sshHostBoxProvider.future);
-    await sshHosts.clear();
+    await ref.read(sshStorageServiceProvider).saveHosts([]);
+    ref.invalidate(sshHostsProvider);
     tab.terminal.write('Cleared SSH hosts\r\n');
   }
 }

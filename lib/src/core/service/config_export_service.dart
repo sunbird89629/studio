@@ -1,13 +1,12 @@
 import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:terminal_studio/src/core/record/keymap_record.dart';
 import 'package:terminal_studio/src/core/record/profile_record.dart';
-import 'package:terminal_studio/src/core/record/settings_record.dart';
 import 'package:terminal_studio/src/core/record/ssh_host_record.dart';
+import 'package:terminal_studio/src/core/service/config_file_service.dart';
+import 'package:terminal_studio/src/core/service/ssh_storage_service.dart';
 import 'package:terminal_studio/src/core/state/database.dart';
-import 'package:terminal_studio/src/core/state/keymap.dart';
-import 'package:terminal_studio/src/util/hive_box_ext.dart';
+import 'package:terminal_studio/src/core/state/settings.dart';
 
 final configExportServiceProvider = Provider(ConfigExportService.new);
 
@@ -25,15 +24,15 @@ class ConfigExportService {
     final result = <String, dynamic>{'version': _version};
 
     // Settings
-    final settingsBox = await _ref.read(settingsBoxProvider.future);
-    if (settingsBox.isNotEmpty) {
-      result['settings'] = settingsBox.getAt(0)!.toFlatMap();
+    final settings = _ref.read(settingsProvider).value;
+    if (settings != null) {
+      result['settings'] = settings.toFlatMap();
     }
 
     // Profiles
-    final profileBox = await _ref.read(profileBoxProvider.future);
-    if (profileBox.isNotEmpty) {
-      result['profiles'] = profileBox.values.map((p) {
+    final profiles = _ref.read(profilesProvider).value ?? [];
+    if (profiles.isNotEmpty) {
+      result['profiles'] = profiles.map((p) {
         final map = p.toJson();
         map['id'] = p.id;
         return map;
@@ -41,15 +40,16 @@ class ConfigExportService {
     }
 
     // Keymaps
-    final keymapBox = await _ref.read(keymapBoxProvider.future);
-    if (keymapBox.isNotEmpty) {
-      result['keymaps'] = keymapBox.getAt(0)!.bindings;
+    final config = _ref.read(configFileServiceProvider);
+    final keymaps = await config.loadKeymaps();
+    if (keymaps.isNotEmpty) {
+      result['keymaps'] = keymaps;
     }
 
     // SSH Hosts (without passwords)
-    final sshBox = await _ref.read(sshHostBoxProvider.future);
-    if (sshBox.isNotEmpty) {
-      result['ssh_hosts'] = sshBox.values.map(_sshHostToMap).toList();
+    final hosts = await _ref.read(sshStorageServiceProvider).loadHosts();
+    if (hosts.isNotEmpty) {
+      result['ssh_hosts'] = hosts.map(_sshHostToMap).toList();
     }
 
     return result;
@@ -76,59 +76,54 @@ class ConfigExportService {
     var imported = 0;
 
     // Settings
-    if (json['settings'] is Map<String, dynamic>) {
-      final settingsBox = await _ref.read(settingsBoxProvider.future);
-      final settings = settingsBox.getOrCreate(SettingsRecord.new);
+    final settings = _ref.read(settingsProvider).value;
+    if (json['settings'] is Map<String, dynamic> && settings != null) {
       settings.applyFlatMap(json['settings'] as Map<String, dynamic>);
-      await settingsBox.saveOrAdd(settings);
       imported++;
     }
 
     // Profiles
+    final newProfiles = <ProfileRecord>[];
     if (json['profiles'] is List) {
-      final profileBox = await _ref.read(profileBoxProvider.future);
       for (final p in json['profiles'] as List) {
         if (p is Map<String, dynamic>) {
           final id = p['id'] as String? ?? p['name'] as String? ?? '';
-          final profile = ProfileRecord.fromJson(id, p);
-          await profileBox.add(profile);
+          newProfiles.add(ProfileRecord.fromJson(id, p));
           imported++;
         }
       }
     }
 
     // Keymaps
+    Map<String, String>? newKeymaps;
     if (json['keymaps'] is Map<String, dynamic>) {
-      final keymapBox = await _ref.read(keymapBoxProvider.future);
-      final bindings = (json['keymaps'] as Map<String, dynamic>)
+      newKeymaps = (json['keymaps'] as Map<String, dynamic>)
           .map((k, v) => MapEntry(k, v.toString()));
-
-      if (keymapBox.isNotEmpty) {
-        final record = keymapBox.getAt(0)!;
-        record.bindings.addAll(bindings);
-        await record.save();
-      } else {
-        await keymapBox.add(KeymapRecord(bindings: bindings));
-      }
       imported++;
+    }
+
+    // Persist settings + profiles + keymaps together
+    if (settings != null) {
+      final existingProfiles = _ref.read(profilesProvider).value ?? [];
+      final mergedProfiles = [...existingProfiles, ...newProfiles];
+      final config = _ref.read(configFileServiceProvider);
+      await config.saveToFile(settings,
+          profiles: mergedProfiles, keymaps: newKeymaps);
+      _ref.invalidate(settingsProvider);
     }
 
     // SSH Hosts
     if (json['ssh_hosts'] is List) {
-      final sshBox = await _ref.read(sshHostBoxProvider.future);
+      final sshService = _ref.read(sshStorageServiceProvider);
+      final existingHosts = await sshService.loadHosts();
       for (final h in json['ssh_hosts'] as List) {
         if (h is Map<String, dynamic>) {
-          final host = SSHHostRecord(
-            uuid: h['uuid'] as String?,
-            name: h['name'] as String? ?? '',
-            host: h['host'] as String? ?? '',
-            port: h['port'] as int? ?? 22,
-            username: h['username'] as String?,
-          );
-          await sshBox.add(host);
+          existingHosts.add(SSHHostRecord.fromJson(h));
           imported++;
         }
       }
+      await sshService.saveHosts(existingHosts);
+      _ref.invalidate(sshHostsProvider);
     }
 
     return ImportResult(

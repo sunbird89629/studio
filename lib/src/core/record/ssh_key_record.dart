@@ -1,26 +1,16 @@
-import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:terminal_studio/src/util/uuid.dart';
 
-part 'ssh_key_record.g.dart';
-
-@HiveType(typeId: 1)
-class SSHKeyRecord extends HiveObject {
-  @HiveField(0)
+class SSHKeyRecord {
   String uuid;
 
-  @HiveField(1)
   String name;
 
-  @HiveField(2)
   String? comment;
 
-  @HiveField(3)
   String? passphrase;
 
-  @HiveField(4)
   String? privateKey;
 
-  @HiveField(5)
   String? publicKey;
 
   SSHKeyRecord({
@@ -31,4 +21,24 @@ class SSHKeyRecord extends HiveObject {
     this.privateKey,
     this.publicKey,
   }) : uuid = uuid ?? uuidV4();
+
+  Map<String, dynamic> toJson() => {
+        'uuid': uuid,
+        'name': name,
+        if (comment != null) 'comment': comment,
+        if (passphrase != null) 'passphrase': passphrase,
+        if (privateKey != null) 'private_key': privateKey,
+        if (publicKey != null) 'public_key': publicKey,
+      };
+
+  factory SSHKeyRecord.fromJson(Map<String, dynamic> json) {
+    return SSHKeyRecord(
+      uuid: json['uuid'] as String?,
+      name: json['name'] as String? ?? '',
+      comment: json['comment'] as String?,
+      passphrase: json['passphrase'] as String?,
+      privateKey: json['private_key'] as String?,
+      publicKey: json['public_key'] as String?,
+    );
+  }
 }

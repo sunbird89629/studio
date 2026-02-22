@@ -1,57 +1,38 @@
-import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:uuid/uuid.dart';
 
-part 'profile_record.g.dart';
-
-@HiveType(typeId: 3)
-class ProfileRecord extends HiveObject {
+class ProfileRecord {
   /// Unique identifier.
-  @HiveField(0)
   String id;
 
   /// Human-readable name, e.g. "Work", "Personal".
-  @HiveField(1)
   String name;
 
   // ── Overridable fields (null = inherit from global settings) ──
 
-  @HiveField(2)
   String? shell;
 
-  @HiveField(3)
   List<String>? shellArgs;
 
-  @HiveField(4)
   String? themeId;
 
-  @HiveField(5)
   double? fontSize;
 
-  @HiveField(6)
   String? fontFamily;
 
-  @HiveField(7)
   Map<String, String>? env;
 
-  @HiveField(8)
   String? workingDirectory;
 
-  @HiveField(9)
   String? cursorShape;
 
-  @HiveField(10)
   bool? cursorBlink;
 
-  @HiveField(11)
   double? lineHeight;
 
-  @HiveField(12)
   double? letterSpacing;
 
-  @HiveField(13)
   double? backgroundOpacity;
 
-  @HiveField(14)
   double? padding;
 
   ProfileRecord({

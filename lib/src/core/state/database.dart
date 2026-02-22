@@ -1,52 +1,24 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:terminal_studio/src/core/record/profile_record.dart';
 import 'package:terminal_studio/src/core/record/ssh_host_record.dart';
 import 'package:terminal_studio/src/core/record/ssh_key_record.dart';
-import 'package:terminal_studio/src/core/record/settings_record.dart';
+import 'package:terminal_studio/src/core/service/config_file_service.dart';
+import 'package:terminal_studio/src/core/service/ssh_storage_service.dart';
 
-final hiveProvider = FutureProvider<HiveInterface>((ref) async {
-  await Hive.initFlutter('.TerminalStudio');
-  return Hive;
-});
-
-// typeId: 0
-final sshHostBoxProvider = FutureProvider<Box<SSHHostRecord>>((ref) async {
-  final hive = await ref.watch(hiveProvider.future);
-  hive.registerAdapter(SSHHostRecordAdapter());
-  return hive.openBox<SSHHostRecord>('ssh_hosts');
-});
-
+/// SSH hosts loaded from `~/.config/openterm/hosts.json`.
 final sshHostsProvider = FutureProvider<List<SSHHostRecord>>((ref) async {
-  final box = await ref.watch(sshHostBoxProvider.future);
-  box.watch().listen((event) => ref.invalidateSelf());
-  return box.values.toList();
+  final service = ref.read(sshStorageServiceProvider);
+  return service.loadHosts();
 });
 
-// typeId: 1
-final sshKeyBoxProvider = FutureProvider<Box<SSHKeyRecord>>((ref) async {
-  final hive = await ref.watch(hiveProvider.future);
-  hive.registerAdapter(SSHKeyRecordAdapter());
-  return hive.openBox<SSHKeyRecord>('ssh_keys');
+/// SSH keys loaded from `~/.config/openterm/keys.json`.
+final sshKeysProvider = FutureProvider<List<SSHKeyRecord>>((ref) async {
+  final service = ref.read(sshStorageServiceProvider);
+  return service.loadKeys();
 });
 
-// typeId: 2
-final settingsBoxProvider = FutureProvider<Box<SettingsRecord>>((ref) async {
-  final hive = await ref.watch(hiveProvider.future);
-  hive.registerAdapter(SettingsRecordAdapter());
-  return hive.openBox<SettingsRecord>('settings');
-});
-
-// typeId: 3
-final profileBoxProvider = FutureProvider<Box<ProfileRecord>>((ref) async {
-  final hive = await ref.watch(hiveProvider.future);
-  hive.registerAdapter(ProfileRecordAdapter());
-  return hive.openBox<ProfileRecord>('profiles');
-});
-
+/// Profiles loaded from the `profiles` section of `config.jsonc`.
 final profilesProvider = FutureProvider<List<ProfileRecord>>((ref) async {
-  final box = await ref.watch(profileBoxProvider.future);
-  final listener = box.watch().listen((event) => ref.invalidateSelf());
-  ref.onDispose(listener.cancel);
-  return box.values.toList();
+  final config = ref.read(configFileServiceProvider);
+  return config.loadProfiles();
 });

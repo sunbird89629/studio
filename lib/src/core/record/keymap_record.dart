@@ -1,14 +1,16 @@
-import 'package:hive_ce_flutter/hive_flutter.dart';
-
-part 'keymap_record.g.dart';
-
-@HiveType(typeId: 4)
-class KeymapRecord extends HiveObject {
+class KeymapRecord {
   /// Action ID → key combination string.
   /// e.g. {"newTab": "cmd+t", "closeTab": "cmd+w"}
-  @HiveField(0)
   Map<String, String> bindings;
 
   KeymapRecord({Map<String, String>? bindings})
       : bindings = bindings ?? <String, String>{};
+
+  Map<String, dynamic> toJson() => Map<String, dynamic>.from(bindings);
+
+  factory KeymapRecord.fromJson(Map<String, dynamic> json) {
+    return KeymapRecord(
+      bindings: json.map((k, v) => MapEntry(k, v.toString())),
+    );
+  }
 }

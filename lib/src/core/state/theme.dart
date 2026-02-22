@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:terminal_studio/src/core/service/config_file_service.dart';
 import 'package:terminal_studio/src/core/state/database.dart';
 import 'package:terminal_studio/src/core/state/settings.dart';
 import 'package:terminal_studio/src/core/theme/theme_plugin.dart';
@@ -57,12 +58,12 @@ class ThemeService {
       throw ArgumentError('Unknown theme: $themeId');
     }
 
-    final box = await ref.read(settingsBoxProvider.future);
-    final settings = box.getAt(0);
-    if (settings != null) {
-      settings.themeId = themeId;
-      await settings.save();
-    }
+    final settings = await ref.read(settingsProvider.future);
+    settings.themeId = themeId;
+    final config = ref.read(configFileServiceProvider);
+    final profiles = ref.read(profilesProvider).value ?? [];
+    await config.saveToFile(settings, profiles: profiles);
+    ref.invalidate(settingsProvider);
   }
 
   /// Toggle between light and dark themes.
