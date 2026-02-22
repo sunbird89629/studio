@@ -7,7 +7,7 @@ Flutter 跨平台桌面终端模拟器（macOS/Windows/Linux）。
 分层架构 + 插件系统，基于 Flutter 3+ / Dart 3+ / Riverpod 3.x。
 
 ```
-UI Layer → Service Layer → Core Layer → State (Riverpod + Hive) → Platform Layer
+UI Layer → Service Layer → Core Layer → State (Riverpod + JSONC files) → Platform Layer
 ```
 
 ### Key Layers
@@ -29,7 +29,7 @@ UI Layer → Service Layer → Core Layer → State (Riverpod + Hive) → Platfo
 
 ### State Management
 
-Riverpod providers + Hive local DB. Key providers: tabs, connector, connectorStatus, host, pluginManager, themeRegistry, activeTheme, settings, aiCopilotService.
+Riverpod providers + file persistence (`~/.config/openterm/`). Key providers: tabs, connector, connectorStatus, host, pluginManager, themeRegistry, activeTheme, settings, aiCopilotService.
 
 ### UI Frameworks
 
@@ -46,7 +46,7 @@ flutter test test/core/
 # Get dependencies
 flutter pub get
 
-# Code generation (Hive models + freezed)
+# Code generation (freezed only — Hive removed)
 dart run build_runner build --delete-conflicting-outputs
 
 # Run (debug)
@@ -128,7 +128,6 @@ GitHub Actions (`.github/workflows/`):
 | Package | Purpose |
 |---------|---------|
 | `flutter_riverpod` | State management |
-| `hive_ce` / `hive_ce_flutter` | Local persistence |
 | `xterm` (fork) | Terminal emulation |
 | `flutter_pty` | Local PTY |
 | `dartssh2` | SSH client |
@@ -141,7 +140,7 @@ GitHub Actions (`.github/workflows/`):
 
 ## Dependency Gotchas
 
-- `freezed` must be `^3.0.0` — v2 conflicts with `hive_ce_generator ^1.9.x` (incompatible `build` dep ranges)
+- Riverpod 3.x: `WidgetRef` is `sealed class WidgetRef implements MutationTarget` — does NOT extend `Ref`; functions taking `Ref` will reject `WidgetRef` from ConsumerWidget. Inline save logic in `Ref` contexts instead of calling a shared helper that takes `WidgetRef`
 - `LogicalKeyboardKey` cannot be a `const` map key (overrides `==`/`hashCode`); use `final` map
 - `part` directives must appear after all `import` statements in Dart files
 - `xterm` fork: `TerminalGestureDetector.onTapUp` was dead code (never called in `_handleTapUp`) — patched in pub-cache `~/.pub-cache/git/xterm.dart-e57fa91.../lib/src/ui/gesture/gesture_detector.dart` (adds `widget.onTapUp?.call(details)` after `widget.onSingleTapUp?.call(details)`)
@@ -171,7 +170,9 @@ GitHub Actions (`.github/workflows/`):
 - `lib/src/ui/shared/fluent_form.dart` — FluentFormHeader(style?)/Separator/Divider form layout widgets
 - `lib/src/ui/shared/shortcut_label.dart` — ShortcutLabel(shortcutId) widget, looks up keymapProvider, renders key-cap badges
 - `lib/src/core/service/terminal_event_bus.dart` — TerminalEventBus, decouples TerminalPlugin output from RemoteControlService
-- `lib/src/util/hive_box_ext.dart` — HiveSingleBox extension: getOrCreate(), saveOrAdd()
+- `lib/src/core/service/ssh_storage_service.dart` — SSH hosts/keys CRUD to `hosts.json` / `keys.json`; injectable `configDir` for testing
+- `lib/src/core/state/database.dart` — `sshHostsProvider`, `sshKeysProvider`, `profilesProvider` (file-backed FutureProviders)
+- `persistSettings(WidgetRef, SettingsRecord)` in `settings.dart` — replaces `record.save()`; writes `config.jsonc` + invalidates providers; only for widget (`WidgetRef`) context; `Ref` contexts must inline `configFileService.saveToFile()` + `ref.invalidate(settingsProvider)`
 - `lib/src/core/model/terminal_session.dart` — TerminalSession domain object + SessionStatus enum + SessionManager singleton
 - `lib/src/core/model/shell_command_event.dart` — ShellCommandEvent sealed class (PromptStart/CommandStart/CommandExecute/CommandDone), OSC 133 events
 - `lib/src/core/service/terminal_output_event.dart` — TerminalOutputEvent{sessionId, data, timestamp}, typed EventBus payload
@@ -183,5 +184,13 @@ GitHub Actions (`.github/workflows/`):
 - `lib/src/hosts/connection_pool.dart` — Generic ConnectionPool<T>(getDone, doClose): ref-counted pool, injectable for testing
 - `lib/src/core/utils/link_detector.dart` — detects URLs/file paths in terminal line text at a given column
 - `lib/src/core/service/launcher_service.dart` — platform-native open via Process.run (macOS: open, Linux: xdg-open, Windows: start)
-- `~/.config/openterm/config.jsonc` — Configuration file (cross-platform)
 - `ARCHITECTURE.md` — 详细架构文档（中文）
+
+## Persistence Layout
+
+| File | Owner | Contents |
+|------|-------|----------|
+| `~/.config/openterm/config.jsonc` | `ConfigFileService` | Settings, Profiles, Keymaps |
+| `~/.config/openterm/hosts.json` | `SshStorageService` | SSH host list |
+| `~/.config/openterm/keys.json` | `SshStorageService` | SSH key list |
+| `~/.config/openterm/state.json` | `ReleaseNotesService` | App state (e.g. `last_seen_version`) |
