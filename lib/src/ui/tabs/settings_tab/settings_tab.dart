@@ -116,7 +116,7 @@ class GeneralSettingsView extends ConsumerWidget {
                 max: 32,
                 onChanged: (v) {
                   settings.terminalFontSize = v;
-                  settings.save();
+                  persistSettings(ref, settings);
                 },
               ),
               const FluentFormSeparator(),
@@ -129,7 +129,7 @@ class GeneralSettingsView extends ConsumerWidget {
                 ),
                 onChanged: (v) {
                   settings.terminalFontFamily = v;
-                  settings.save();
+                  persistSettings(ref, settings);
                 },
               ),
               const FluentFormSeparator(),
@@ -141,7 +141,7 @@ class GeneralSettingsView extends ConsumerWidget {
                 divisions: 10,
                 onChanged: (v) {
                   settings.lineHeight = v;
-                  settings.save();
+                  persistSettings(ref, settings);
                 },
               ),
               const FluentFormSeparator(),
@@ -154,7 +154,7 @@ class GeneralSettingsView extends ConsumerWidget {
                 divisions: 12,
                 onChanged: (v) {
                   settings.letterSpacing = v;
-                  settings.save();
+                  persistSettings(ref, settings);
                 },
               ),
               const FluentFormSeparator(),
@@ -169,7 +169,7 @@ class GeneralSettingsView extends ConsumerWidget {
                   final val = int.tryParse(v);
                   if (val != null) {
                     settings.scrollback = val;
-                    settings.save();
+                    persistSettings(ref, settings);
                   }
                 },
               ),
@@ -189,7 +189,7 @@ class GeneralSettingsView extends ConsumerWidget {
                 onChanged: (v) {
                   if (v != null) {
                     settings.cursorShape = v;
-                    settings.save();
+                    persistSettings(ref, settings);
                   }
                 },
               ),
@@ -199,7 +199,7 @@ class GeneralSettingsView extends ConsumerWidget {
                 value: settings.cursorBlink,
                 onChanged: (v) {
                   settings.cursorBlink = v;
-                  settings.save();
+                  persistSettings(ref, settings);
                 },
               ),
               const FluentFormSeparator(),
@@ -212,7 +212,7 @@ class GeneralSettingsView extends ConsumerWidget {
                 divisions: 20,
                 onChanged: (v) {
                   settings.backgroundOpacity = v;
-                  settings.save();
+                  persistSettings(ref, settings);
                 },
               ),
               const FluentFormSeparator(),
@@ -224,7 +224,7 @@ class GeneralSettingsView extends ConsumerWidget {
                 divisions: 32,
                 onChanged: (v) {
                   settings.padding = v;
-                  settings.save();
+                  persistSettings(ref, settings);
                 },
               ),
               const FluentFormSeparator(),
@@ -233,7 +233,7 @@ class GeneralSettingsView extends ConsumerWidget {
                 value: settings.copyOnSelect,
                 onChanged: (v) {
                   settings.copyOnSelect = v;
-                  settings.save();
+                  persistSettings(ref, settings);
                 },
               ),
 
@@ -250,7 +250,7 @@ class GeneralSettingsView extends ConsumerWidget {
                 ),
                 onChanged: (v) {
                   settings.shell = v.isEmpty ? null : v;
-                  settings.save();
+                  persistSettings(ref, settings);
                 },
               ),
               const FluentFormSeparator(),
@@ -265,7 +265,7 @@ class GeneralSettingsView extends ConsumerWidget {
                   settings.shellArgs = v.isEmpty
                       ? null
                       : v.split(',').map((e) => e.trim()).toList();
-                  settings.save();
+                  persistSettings(ref, settings);
                 },
               ),
               const FluentFormSeparator(),
@@ -278,7 +278,7 @@ class GeneralSettingsView extends ConsumerWidget {
                 ),
                 onChanged: (v) {
                   settings.workingDirectory = v.isEmpty ? null : v;
-                  settings.save();
+                  persistSettings(ref, settings);
                 },
               ),
               const FluentFormSeparator(),
@@ -287,7 +287,7 @@ class GeneralSettingsView extends ConsumerWidget {
                 value: settings.preserveCWD,
                 onChanged: (v) {
                   settings.preserveCWD = v;
-                  settings.save();
+                  persistSettings(ref, settings);
                 },
               ),
 
@@ -305,7 +305,7 @@ class GeneralSettingsView extends ConsumerWidget {
                 ),
                 onChanged: (v) {
                   settings.aiApiKey = v;
-                  settings.save();
+                  persistSettings(ref, settings);
                 },
               ),
               const FluentFormSeparator(),
@@ -318,7 +318,7 @@ class GeneralSettingsView extends ConsumerWidget {
                 ),
                 onChanged: (v) {
                   settings.aiModel = v;
-                  settings.save();
+                  persistSettings(ref, settings);
                 },
               ),
             ],

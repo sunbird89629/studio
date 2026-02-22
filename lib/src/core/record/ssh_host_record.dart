@@ -1,29 +1,19 @@
-import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:terminal_studio/src/core/conn.dart';
 import 'package:terminal_studio/src/hosts/ssh_conn.dart';
 import 'package:terminal_studio/src/util/uuid.dart';
 
-part 'ssh_host_record.g.dart';
-
-@HiveType(typeId: 0)
-class SSHHostRecord extends HiveObject implements HostSpec {
-  @HiveField(0)
+class SSHHostRecord implements HostSpec {
   String uuid;
 
   @override
-  @HiveField(1)
   String name;
 
-  @HiveField(2)
   String host;
 
-  @HiveField(3)
   int port;
 
-  @HiveField(4)
   String? username;
 
-  @HiveField(5)
   String? password;
 
   SSHHostRecord({
@@ -44,4 +34,24 @@ class SSHHostRecord extends HiveObject implements HostSpec {
 
   @override
   HostConnector createConnector() => SSHConnector(this);
+
+  Map<String, dynamic> toJson() => {
+        'uuid': uuid,
+        'name': name,
+        'host': host,
+        'port': port,
+        if (username != null) 'username': username,
+        if (password != null) 'password': password,
+      };
+
+  factory SSHHostRecord.fromJson(Map<String, dynamic> json) {
+    return SSHHostRecord(
+      uuid: json['uuid'] as String?,
+      name: json['name'] as String? ?? '',
+      host: json['host'] as String? ?? '',
+      port: json['port'] as int? ?? 22,
+      username: json['username'] as String?,
+      password: json['password'] as String?,
+    );
+  }
 }

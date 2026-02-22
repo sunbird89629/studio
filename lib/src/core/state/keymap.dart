@@ -1,74 +1,80 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:terminal_studio/src/core/record/keymap_record.dart';
+import 'package:terminal_studio/src/core/service/config_file_service.dart';
 import 'package:terminal_studio/src/core/state/database.dart';
+import 'package:terminal_studio/src/core/state/settings.dart';
 import 'package:terminal_studio/src/ui/shortcuts.dart';
 
-/// Provider for the KeymapRecord Hive box.
-final keymapBoxProvider = FutureProvider((ref) async {
-  final hive = await ref.watch(hiveProvider.future);
-  hive.registerAdapter(KeymapRecordAdapter());
-  return hive.openBox<KeymapRecord>('keymaps');
-});
-
-/// Merged keymaps: defaults + user overrides.
+/// Merged keymaps: platform defaults + user overrides from `config.jsonc`.
 final keymapProvider =
     FutureProvider<Map<String, SingleActivator>>((ref) async {
-  final box = await ref.watch(keymapBoxProvider.future);
+  final config = ref.read(configFileServiceProvider);
+  final bindings = await config.loadKeymaps();
 
-  // Watch for changes
-  final listener = box.watch().listen((_) => ref.invalidateSelf());
-  ref.onDispose(listener.cancel);
-
-  // Start with platform defaults
   final merged = Map<String, SingleActivator>.from(defaultKeymaps);
-
-  // Apply user overrides
-  if (box.isNotEmpty) {
-    final record = box.getAt(0)!;
-    final overrides = parseUserKeymaps(record.bindings);
-    merged.addAll(overrides);
+  if (bindings.isNotEmpty) {
+    merged.addAll(parseUserKeymaps(bindings));
   }
 
   return merged;
 });
 
-/// Save a user keymap override.
+/// Save a user keymap override to `config.jsonc`.
 Future<void> saveKeymapBinding(
   WidgetRef ref,
   String actionId,
   SingleActivator activator,
 ) async {
-  final box = await ref.read(keymapBoxProvider.future);
+  final config = ref.read(configFileServiceProvider);
 
-  KeymapRecord record;
-  if (box.isEmpty) {
-    record = KeymapRecord();
-    await box.add(record);
-  } else {
-    record = box.getAt(0)!;
-  }
+  // Load current state
+  final settings = await ref.read(settingsProvider.future);
+  final profiles = ref.read(profilesProvider).value ?? [];
+  final currentBindings = await config.loadKeymaps();
 
-  record.bindings[actionId] = activatorToString(activator);
-  await record.save();
+  // Apply override
+  currentBindings[actionId] = activatorToString(activator);
+
+  await config.saveToFile(
+    settings,
+    profiles: profiles,
+    keymaps: currentBindings,
+  );
+
+  ref.invalidate(keymapProvider);
 }
 
-/// Reset a keymap binding to default.
+/// Reset a keymap binding to platform default.
 Future<void> resetKeymapBinding(WidgetRef ref, String actionId) async {
-  final box = await ref.read(keymapBoxProvider.future);
-  if (box.isEmpty) return;
+  final config = ref.read(configFileServiceProvider);
 
-  final record = box.getAt(0)!;
-  record.bindings.remove(actionId);
-  await record.save();
+  final settings = await ref.read(settingsProvider.future);
+  final profiles = ref.read(profilesProvider).value ?? [];
+  final currentBindings = await config.loadKeymaps();
+
+  currentBindings.remove(actionId);
+
+  await config.saveToFile(
+    settings,
+    profiles: profiles,
+    keymaps: currentBindings,
+  );
+
+  ref.invalidate(keymapProvider);
 }
 
-/// Reset all keymaps to defaults.
+/// Reset all keymaps to platform defaults.
 Future<void> resetAllKeymaps(WidgetRef ref) async {
-  final box = await ref.read(keymapBoxProvider.future);
-  if (box.isEmpty) return;
+  final config = ref.read(configFileServiceProvider);
 
-  final record = box.getAt(0)!;
-  record.bindings.clear();
-  await record.save();
+  final settings = await ref.read(settingsProvider.future);
+  final profiles = ref.read(profilesProvider).value ?? [];
+
+  await config.saveToFile(
+    settings,
+    profiles: profiles,
+    keymaps: const {},
+  );
+
+  ref.invalidate(keymapProvider);
 }

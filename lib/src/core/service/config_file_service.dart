@@ -6,22 +6,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
 import 'package:terminal_studio/src/core/record/profile_record.dart';
 import 'package:terminal_studio/src/core/record/settings_record.dart';
-import 'package:terminal_studio/src/core/state/settings.dart';
 import '../utils/app_logger.dart';
 
 /// Service for reading/writing `~/.config/openterm/config.jsonc`.
-///
-/// Priority: JSONC file > Hive stored value > code default.
 class ConfigFileService {
-  ConfigFileService(this._ref);
-
-  final Ref _ref;
+  ConfigFileService();
 
   final _logger = AppLogger.forComponent('ConfigFileService');
 
   StreamSubscription<FileSystemEvent>? _watcher;
 
-  /// Guard to prevent infinite sync loops between file watcher and Hive.
+  /// Guard to prevent re-entrant writes triggered by file watcher.
   bool _isSyncing = false;
 
   /// Config directory: `~/.config/openterm/` (cross-platform)
@@ -124,17 +119,43 @@ class ConfigFileService {
       final content = await file.readAsString();
       final json = parseJsonc(content);
       _applyJsonToSettings(json, settings);
-      await settings.save();
       return true;
     } catch (e) {
       // Malformed JSONC — don't crash, just skip
       _logger.e('Failed to parse config.jsonc', error: e);
       return false;
     } finally {
-      // Delay clearing to let Hive listener fire first
       Future.delayed(const Duration(milliseconds: 100), () {
         _isSyncing = false;
       });
+    }
+  }
+
+  /// Load profiles from JSONC config file.
+  Future<List<ProfileRecord>> loadProfiles() async {
+    final file = File(configFilePath);
+    if (!await file.exists()) return [];
+    try {
+      final content = await file.readAsString();
+      final json = parseJsonc(content);
+      return parseProfiles(json);
+    } catch (e) {
+      _logger.e('Failed to load profiles from config.jsonc', error: e);
+      return [];
+    }
+  }
+
+  /// Load keymap bindings from JSONC config file.
+  Future<Map<String, String>> loadKeymaps() async {
+    final file = File(configFilePath);
+    if (!await file.exists()) return {};
+    try {
+      final content = await file.readAsString();
+      final json = parseJsonc(content);
+      return parseKeymaps(json);
+    } catch (e) {
+      _logger.e('Failed to load keymaps from config.jsonc', error: e);
+      return {};
     }
   }
 
@@ -355,22 +376,19 @@ class ConfigFileService {
 
   // ── File Watcher (Hot Reload) ─────────────────────
 
-  /// Start watching the config file for changes.
-  /// When changed, re-load and invalidate `settingsProvider`.
-  void startWatching() {
+  /// Start watching the config file for external changes.
+  ///
+  /// When the file changes, [onChanged] is called so the caller can
+  /// re-load settings and invalidate providers.
+  void startWatching(void Function() onChanged) {
     stopWatching();
 
     final dir = Directory(configDir);
     if (!dir.existsSync()) return;
 
-    _watcher = dir.watch(events: FileSystemEvent.modify).listen((event) async {
+    _watcher = dir.watch(events: FileSystemEvent.modify).listen((event) {
       if (event.path == configFilePath && !_isSyncing) {
-        final settingsAsync = _ref.read(settingsProvider);
-        final settings = settingsAsync.value;
-        if (settings != null) {
-          await loadFromFile(settings);
-          _ref.invalidate(settingsProvider);
-        }
+        onChanged();
       }
     });
   }
@@ -384,7 +402,7 @@ class ConfigFileService {
 
 /// Riverpod provider for ConfigFileService.
 final configFileServiceProvider = Provider<ConfigFileService>((ref) {
-  final service = ConfigFileService(ref);
+  final service = ConfigFileService();
   ref.onDispose(() => service.stopWatching());
   return service;
 });

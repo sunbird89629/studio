@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_studio/src/core/record/ssh_host_record.dart';
+import 'package:terminal_studio/src/core/service/ssh_storage_service.dart';
 import 'package:terminal_studio/src/core/state/database.dart';
 import 'package:terminal_studio/src/ui/shared/fluent_back_button.dart';
 import 'package:terminal_studio/src/ui/shared/fluent_form.dart';
@@ -33,7 +34,12 @@ class _HostEditDialogState extends ConsumerState<HostEditPage> {
               icon: const Icon(Icons.delete),
               onPressed: () async {
                 if (widget.record != null) {
-                  await widget.record!.delete();
+                  final hosts =
+                      await ref.read(sshHostsProvider.future);
+                  await ref
+                      .read(sshStorageServiceProvider)
+                      .deleteHost(widget.record!.uuid, List.from(hosts));
+                  ref.invalidate(sshHostsProvider);
                 }
                 close();
               },
@@ -49,12 +55,19 @@ class _HostEditDialogState extends ConsumerState<HostEditPage> {
   }
 
   Future<void> _onSaved(SSHHostRecord record) async {
-    final box = await ref.read(sshHostBoxProvider.future);
-    if (record.isInBox) {
-      record.save();
+    final service = ref.read(sshStorageServiceProvider);
+    final hosts = List<SSHHostRecord>.from(
+      await ref.read(sshHostsProvider.future),
+    );
+
+    final existingIdx = hosts.indexWhere((h) => h.uuid == record.uuid);
+    if (existingIdx >= 0) {
+      await service.updateHost(record, hosts);
     } else {
-      box.add(record);
+      await service.addHost(record, hosts);
     }
+
+    ref.invalidate(sshHostsProvider);
     close();
   }
 

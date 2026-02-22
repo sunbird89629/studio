@@ -82,7 +82,7 @@ class DropdownContextMenuState extends ConsumerState<DropdownContextMenu>
   }
 
   List<Widget> buildHosts() {
-    final sshHosts = ref.watch(sshHostBoxProvider).asData;
+    final sshHosts = ref.watch(sshHostsProvider).asData;
 
     if (sshHosts == null || sshHosts.value.isEmpty) {
       return [];
@@ -90,7 +90,7 @@ class DropdownContextMenuState extends ConsumerState<DropdownContextMenu>
 
     final items = <Widget>[];
 
-    for (final host in sshHosts.value.values) {
+    for (final host in sshHosts.value) {
       items.add(
         buttonBuilder(
           context,

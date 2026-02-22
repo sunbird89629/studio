@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_studio/src/core/record/profile_record.dart';
+import 'package:terminal_studio/src/core/service/config_file_service.dart';
 import 'package:terminal_studio/src/core/state/database.dart';
 import 'package:terminal_studio/src/core/state/settings.dart';
 
@@ -87,23 +88,19 @@ class ProfilesSettingsView extends ConsumerWidget {
                           IconButton(
                             icon: const Icon(Icons.edit),
                             onPressed: () =>
-                                _editProfile(context, ref, profile),
+                                _editProfile(context, ref, profile, profiles),
                             tooltip: 'Edit',
                           ),
                           IconButton(
                             icon: const Icon(Icons.copy),
-                            onPressed: () async {
-                              final box =
-                                  await ref.read(profileBoxProvider.future);
-                              final copy = profile.duplicate();
-                              await box.add(copy);
-                            },
+                            onPressed: () =>
+                                _duplicateProfile(ref, profile, profiles),
                             tooltip: 'Duplicate',
                           ),
                           IconButton(
                             icon: const Icon(Icons.delete),
                             onPressed: () =>
-                                _deleteProfile(context, ref, profile),
+                                _deleteProfile(context, ref, profile, profiles),
                             tooltip: 'Delete',
                           ),
                         ],
@@ -132,19 +129,41 @@ class ProfilesSettingsView extends ConsumerWidget {
     return parts.join(' · ');
   }
 
+  Future<void> _saveProfiles(WidgetRef ref, List<ProfileRecord> profiles) async {
+    final settings = await ref.read(settingsProvider.future);
+    await ref.read(configFileServiceProvider).saveToFile(
+          settings,
+          profiles: profiles,
+        );
+    ref.invalidate(profilesProvider);
+  }
+
   Future<void> _createProfile(BuildContext context, WidgetRef ref) async {
     final name = await _showNameDialog(context, 'New Profile', '');
     if (name == null || name.isEmpty) return;
 
-    final box = await ref.read(profileBoxProvider.future);
-    final profile = ProfileRecord(name: name);
-    await box.add(profile);
+    final profiles = List<ProfileRecord>.from(
+      ref.read(profilesProvider).value ?? [],
+    );
+    profiles.add(ProfileRecord(name: name));
+    await _saveProfiles(ref, profiles);
+  }
+
+  Future<void> _duplicateProfile(
+    WidgetRef ref,
+    ProfileRecord profile,
+    List<ProfileRecord> profiles,
+  ) async {
+    final updated = List<ProfileRecord>.from(profiles);
+    updated.add(profile.duplicate());
+    await _saveProfiles(ref, updated);
   }
 
   Future<void> _deleteProfile(
     BuildContext context,
     WidgetRef ref,
     ProfileRecord profile,
+    List<ProfileRecord> profiles,
   ) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -171,17 +190,25 @@ class ProfilesSettingsView extends ConsumerWidget {
       ref.read(activeProfileIdProvider.notifier).state = null;
     }
 
-    await profile.delete();
+    final updated = profiles.where((p) => p.id != profile.id).toList();
+    await _saveProfiles(ref, updated);
   }
 
   Future<void> _editProfile(
     BuildContext context,
     WidgetRef ref,
     ProfileRecord profile,
+    List<ProfileRecord> profiles,
   ) async {
     await showDialog(
       context: context,
-      builder: (ctx) => _ProfileEditDialog(profile: profile),
+      builder: (ctx) => _ProfileEditDialog(
+        profile: profile,
+        onSaved: (updated) async {
+          final list = profiles.map((p) => p.id == updated.id ? updated : p).toList();
+          await _saveProfiles(ref, list);
+        },
+      ),
     );
   }
 
@@ -220,8 +247,9 @@ class ProfilesSettingsView extends ConsumerWidget {
 
 /// Dialog for editing a profile's overridable fields.
 class _ProfileEditDialog extends StatefulWidget {
-  const _ProfileEditDialog({required this.profile});
+  const _ProfileEditDialog({required this.profile, required this.onSaved});
   final ProfileRecord profile;
+  final Future<void> Function(ProfileRecord updated) onSaved;
 
   @override
   State<_ProfileEditDialog> createState() => _ProfileEditDialogState();
@@ -233,15 +261,34 @@ class _ProfileEditDialogState extends State<_ProfileEditDialog> {
   late final TextEditingController _fontFamilyCtrl;
   late final TextEditingController _wdCtrl;
 
+  // Local mutable copy to avoid mutating the original before saving
+  late ProfileRecord _edited;
+
   @override
   void initState() {
     super.initState();
-    _nameCtrl = TextEditingController(text: widget.profile.name);
-    _shellCtrl = TextEditingController(text: widget.profile.shell ?? '');
-    _fontFamilyCtrl =
-        TextEditingController(text: widget.profile.fontFamily ?? '');
-    _wdCtrl =
-        TextEditingController(text: widget.profile.workingDirectory ?? '');
+    _edited = widget.profile.duplicate(newName: widget.profile.name);
+    _edited = ProfileRecord(
+      id: widget.profile.id,
+      name: widget.profile.name,
+      shell: widget.profile.shell,
+      shellArgs: widget.profile.shellArgs,
+      themeId: widget.profile.themeId,
+      fontSize: widget.profile.fontSize,
+      fontFamily: widget.profile.fontFamily,
+      env: widget.profile.env,
+      workingDirectory: widget.profile.workingDirectory,
+      cursorShape: widget.profile.cursorShape,
+      cursorBlink: widget.profile.cursorBlink,
+      lineHeight: widget.profile.lineHeight,
+      letterSpacing: widget.profile.letterSpacing,
+      backgroundOpacity: widget.profile.backgroundOpacity,
+      padding: widget.profile.padding,
+    );
+    _nameCtrl = TextEditingController(text: _edited.name);
+    _shellCtrl = TextEditingController(text: _edited.shell ?? '');
+    _fontFamilyCtrl = TextEditingController(text: _edited.fontFamily ?? '');
+    _wdCtrl = TextEditingController(text: _edited.workingDirectory ?? '');
   }
 
   @override
@@ -255,10 +302,8 @@ class _ProfileEditDialogState extends State<_ProfileEditDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final p = widget.profile;
-
     return AlertDialog(
-      title: Text('Edit: ${p.name}'),
+      title: Text('Edit: ${widget.profile.name}'),
       content: SizedBox(
         width: 500,
         child: SingleChildScrollView(
@@ -275,17 +320,18 @@ class _ProfileEditDialogState extends State<_ProfileEditDialog> {
               Text('Appearance', style: Theme.of(context).textTheme.titleSmall),
               const SizedBox(height: 8),
               TextFormField(
-                initialValue: p.themeId ?? '',
+                initialValue: _edited.themeId ?? '',
                 decoration: const InputDecoration(
                   labelText: 'Theme (empty = inherit)',
                   hintText: 'dark',
                   border: OutlineInputBorder(),
                 ),
-                onChanged: (v) => p.themeId = v.isEmpty ? null : v,
+                onChanged: (v) =>
+                    setState(() => _edited.themeId = v.isEmpty ? null : v),
               ),
               const SizedBox(height: 16),
               TextFormField(
-                initialValue: p.fontSize?.toString() ?? '',
+                initialValue: _edited.fontSize?.toString() ?? '',
                 keyboardType:
                     const TextInputType.numberWithOptions(decimal: true),
                 decoration: const InputDecoration(
@@ -293,7 +339,7 @@ class _ProfileEditDialogState extends State<_ProfileEditDialog> {
                   border: OutlineInputBorder(),
                 ),
                 onChanged: (v) {
-                  setState(() => p.fontSize = double.tryParse(v));
+                  setState(() => _edited.fontSize = double.tryParse(v));
                 },
               ),
               const SizedBox(height: 16),
@@ -306,7 +352,7 @@ class _ProfileEditDialogState extends State<_ProfileEditDialog> {
               ),
               const SizedBox(height: 16),
               TextFormField(
-                initialValue: p.backgroundOpacity?.toString() ?? '',
+                initialValue: _edited.backgroundOpacity?.toString() ?? '',
                 keyboardType:
                     const TextInputType.numberWithOptions(decimal: true),
                 decoration: const InputDecoration(
@@ -314,14 +360,14 @@ class _ProfileEditDialogState extends State<_ProfileEditDialog> {
                   border: OutlineInputBorder(),
                 ),
                 onChanged: (v) {
-                  setState(() => p.backgroundOpacity = double.tryParse(v));
+                  setState(() => _edited.backgroundOpacity = double.tryParse(v));
                 },
               ),
               const SizedBox(height: 24),
               Text('Cursor', style: Theme.of(context).textTheme.titleSmall),
               const SizedBox(height: 8),
               DropdownButtonFormField<String?>(
-                initialValue: p.cursorShape,
+                initialValue: _edited.cursorShape,
                 decoration: const InputDecoration(
                   labelText: 'Cursor Shape',
                   border: OutlineInputBorder(),
@@ -334,7 +380,7 @@ class _ProfileEditDialogState extends State<_ProfileEditDialog> {
                   DropdownMenuItem(
                       value: 'underline', child: Text('Underline')),
                 ],
-                onChanged: (v) => setState(() => p.cursorShape = v),
+                onChanged: (v) => setState(() => _edited.cursorShape = v),
               ),
               const SizedBox(height: 24),
               Text('Shell', style: Theme.of(context).textTheme.titleSmall),
@@ -365,14 +411,15 @@ class _ProfileEditDialogState extends State<_ProfileEditDialog> {
         ),
         FilledButton(
           child: const Text('Save'),
-          onPressed: () {
-            p.name = _nameCtrl.text;
-            p.shell = _shellCtrl.text.isEmpty ? null : _shellCtrl.text;
-            p.fontFamily =
+          onPressed: () async {
+            _edited.name = _nameCtrl.text;
+            _edited.shell = _shellCtrl.text.isEmpty ? null : _shellCtrl.text;
+            _edited.fontFamily =
                 _fontFamilyCtrl.text.isEmpty ? null : _fontFamilyCtrl.text;
-            p.workingDirectory = _wdCtrl.text.isEmpty ? null : _wdCtrl.text;
-            p.save();
+            _edited.workingDirectory =
+                _wdCtrl.text.isEmpty ? null : _wdCtrl.text;
             Navigator.of(context).pop();
+            await widget.onSaved(_edited);
           },
         ),
       ],

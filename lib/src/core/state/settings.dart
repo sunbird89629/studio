@@ -1,53 +1,24 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
+import 'package:terminal_studio/src/core/record/profile_record.dart';
 import 'package:terminal_studio/src/core/record/settings_record.dart';
 import 'package:terminal_studio/src/core/service/config_file_service.dart';
 import 'package:terminal_studio/src/core/state/database.dart';
 import 'package:terminal_studio/src/core/state/effective_settings.dart';
-import 'package:terminal_studio/src/core/state/keymap.dart';
 
 final settingsProvider = FutureProvider<SettingsRecord>((ref) async {
-  final box = await ref.watch(settingsBoxProvider.future);
+  final config = ref.read(configFileServiceProvider);
 
-  // Create default settings if not exists
-  if (box.isEmpty) {
-    await box.add(SettingsRecord());
-  }
+  final settings = SettingsRecord();
 
-  final settings = box.getAt(0)!;
+  // Generate default config on first run
+  await config.generateDefaultConfig();
 
-  // Apply JSONC config overrides (Priority: JSONC > Hive > default)
-  final configService = ref.read(configFileServiceProvider);
-  await configService.generateDefaultConfig();
-  await configService.loadFromFile(settings);
+  // Apply JSONC values (if file exists)
+  await config.loadFromFile(settings);
 
-  // Start watching for external edits → hot reload
-  configService.startWatching();
-
-  // Listen for Hive changes → sync back to JSONC + invalidate UI
-  final listener = box.watch().listen((event) {
-    final current = box.getAt(0);
-    if (current != null) {
-      // Include profiles and keymaps in the JSONC output
-      final profilesAsync = ref.read(profilesProvider);
-      final profiles = profilesAsync.value;
-
-      // Read keymaps
-      final keymapBoxAsync = ref.read(keymapBoxProvider);
-      final keymapBox = keymapBoxAsync.value;
-      final keymaps = keymapBox != null && keymapBox.isNotEmpty
-          ? keymapBox.getAt(0)?.bindings
-          : null;
-
-      configService.saveToFile(
-        current,
-        profiles: profiles,
-        keymaps: keymaps,
-      );
-    }
-    ref.invalidateSelf();
-  });
-  ref.onDispose(listener.cancel);
+  // Watch for external edits → hot reload
+  config.startWatching(() => ref.invalidateSelf());
 
   return settings;
 });
@@ -71,3 +42,23 @@ final effectiveSettingsProvider = Provider<EffectiveSettings>((ref) {
 
   return EffectiveSettings(settings, activeProfile);
 });
+
+/// Persist [settings] to `config.jsonc` and invalidate dependent providers.
+///
+/// Pass [profiles] and [keymaps] to include them in the saved file.
+/// If [profiles] is omitted, current profilesProvider value is used.
+Future<void> persistSettings(
+  WidgetRef ref,
+  SettingsRecord settings, {
+  List<ProfileRecord>? profiles,
+  Map<String, String>? keymaps,
+}) async {
+  final config = ref.read(configFileServiceProvider);
+  final resolvedProfiles = profiles ?? ref.read(profilesProvider).value ?? [];
+  await config.saveToFile(
+    settings,
+    profiles: resolvedProfiles,
+    keymaps: keymaps,
+  );
+  ref.invalidate(settingsProvider);
+}
