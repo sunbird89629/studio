@@ -21,7 +21,7 @@ UI Layer → Service Layer → Core Layer → State (Riverpod + JSONC files) →
 
 ### Key Abstractions
 
-- `Plugin` — lifecycle: didMounted → didConnected → didDisconnected → didUnmounted
+- `Plugin` — lifecycle: onMounted → onConnected → onDisconnected → onUnmounted
 - `Host` — connection interface (shell, execute, connectFileSystem)
 - `HostConnector` — state machine: initialized → connecting → connected/disconnected/aborted; uses `StreamController.broadcast()` (`connector.stream`); `connector.dispose()` called via `ref.onDispose` in `connectorProvider`
 - `FileSystem` — local and SSH (SFTP) implementations
@@ -133,7 +133,7 @@ GitHub Actions (`.github/workflows/`):
 - `flutter analyze lib/` — 只检查项目代码，避免 ci/tmp 目录的 avoid_print 噪音
 - 非 UI 状态用静态单例（`ClassName._()`），参考 `SessionManager`、`SSHConnectionPool`、`LogService.instance`
 - Event sealed class 建模参考 `ShellCommandEvent`（同 `CloudflaredEvent` 模式）
-- Plugin 中的 `StreamSubscription` 必须显式存储，在 `didDisconnected()` 和 `didUnmounted()` 两处 cancel
+- Plugin 中的 `StreamSubscription` 必须显式存储，在 `onDisconnected()` 和 `onUnmounted()` 两处 cancel
 
 ## Key Dependencies
 
@@ -191,6 +191,7 @@ GitHub Actions (`.github/workflows/`):
 - `lib/src/core/service/ssh_storage_service.dart` — SSH hosts/keys CRUD to `hosts.json` / `keys.json`; injectable `configDir` for testing
 - `lib/src/core/state/database.dart` — `sshHostsProvider`, `sshKeysProvider`, `profilesProvider` (file-backed FutureProviders)
 - `persistSettings(WidgetRef, SettingsRecord)` in `settings.dart` — replaces `record.save()`; writes `config.jsonc` + invalidates providers; only for widget (`WidgetRef`) context; `Ref` contexts must inline `configFileService.saveToFile()` + `ref.invalidate(settingsProvider)`
+- `_persistKeymaps(WidgetRef, Map<String,String>)` in `keymap.dart` — shared helper for all keymap save operations; updates config.jsonc and invalidates `keymapProvider`
 - `lib/src/core/model/terminal_session.dart` — TerminalSession domain object + SessionStatus enum + SessionManager singleton
 - `lib/src/core/model/shell_command_event.dart` — ShellCommandEvent sealed class (PromptStart/CommandStart/CommandExecute/CommandDone), OSC 133 events
 - `lib/src/core/service/terminal_output_event.dart` — TerminalOutputEvent{sessionId, data, timestamp}, typed EventBus payload
@@ -210,7 +211,7 @@ Implements iTerm2 Inline Image Protocol (OSC 1337) for image preview in yazi and
 
 - `lib/src/plugins/terminal/inline_image.dart` — `InlineImageEntry` data class
 - `lib/src/plugins/terminal/terminal_plugin.dart` — OSC 1337 parser, `inlineImages` ValueNotifier, Stack overlay
-- `didConnected()` injects `TERM_PROGRAM=iTerm.app` → yazi detects iTerm2 support
+- `onConnected()` injects `TERM_PROGRAM=iTerm.app` → yazi detects iTerm2 support
 - Clear triggers: `onEraseDisplay` (ESC[2J), `onWriteChar` bounding-box overwrite detection, alt→main buffer switch
 - **`Terminal.notifyListeners()` fires once per `write()` call, at the very end** — `cursorY` in a listener reflects the frame's final position; intermediate cursor movements are invisible. Cursor-position-based clear logic does NOT work.
 - `_imageFullyRendered` flag: prevents `onWriteChar` from clearing the image the moment it arrives (before `notifyListeners` fires)
