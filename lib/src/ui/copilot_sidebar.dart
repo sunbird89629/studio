@@ -36,18 +36,28 @@ class CopilotChatNotifier extends Notifier<CopilotChatState> {
 
   Future<void> send(String text, {String? model}) async {
     if (text.isEmpty) return;
+
+    // Add user message and empty AI placeholder
     state = state.copyWith(
-      messages: [...state.messages, Message(text: text, isUser: true)],
+      messages: [
+        ...state.messages,
+        Message(text: text, isUser: true),
+        const Message(text: '', isUser: false),
+      ],
       isLoading: true,
     );
 
-    final response =
-        await ref.read(aiCopilotServiceProvider).chat(text, model: model);
+    final service = ref.read(aiCopilotServiceProvider);
+    final buffer = StringBuffer();
 
-    state = state.copyWith(
-      messages: [...state.messages, Message(text: response, isUser: false)],
-      isLoading: false,
-    );
+    await for (final chunk in service.chatStream(text, model: model)) {
+      buffer.write(chunk);
+      final msgs = List<Message>.from(state.messages);
+      msgs[msgs.length - 1] = Message(text: buffer.toString(), isUser: false);
+      state = state.copyWith(messages: msgs);
+    }
+
+    state = state.copyWith(isLoading: false);
   }
 
   void clear() => state = const CopilotChatState();
@@ -87,6 +97,26 @@ class CopilotSidebar extends ConsumerStatefulWidget {
 
 class _CopilotSidebarState extends ConsumerState<CopilotSidebar> {
   final TextEditingController _controller = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
 
   void _handleSend() {
     final text = _controller.text.trim();
@@ -103,6 +133,9 @@ class _CopilotSidebarState extends ConsumerState<CopilotSidebar> {
     final colorScheme = theme.colorScheme;
 
     final chatState = ref.watch(copilotChatProvider);
+
+    // Scroll to bottom when messages or loading state changes
+    ref.listen(copilotChatProvider, (_, __) => _scrollToBottom());
 
     return settingsAsync.when(
       data: (settings) {
@@ -142,6 +175,7 @@ class _CopilotSidebarState extends ConsumerState<CopilotSidebar> {
               ),
               Expanded(
                 child: ListView.builder(
+                  controller: _scrollController,
                   padding: const EdgeInsets.all(12),
                   itemCount: chatState.messages.length,
                   itemBuilder: (context, index) {

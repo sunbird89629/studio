@@ -4,6 +4,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:terminal_studio/src/core/command/command.dart';
 import 'package:terminal_studio/src/core/command/command_registry.dart';
 import 'package:terminal_studio/src/core/command/builtin_commands.dart';
+import 'package:terminal_studio/src/core/command/snippet_commands.dart';
 import 'package:terminal_studio/src/core/command/theme_commands.dart';
 import 'package:terminal_studio/src/core/state/theme.dart';
 
@@ -38,14 +39,18 @@ class CommandPaletteNotifier extends Notifier<CommandPaletteState> {
     _registry.registerAll(builtinCommands);
 
     // 注册主题命令
-    final registry = ref.read(themeRegistryProvider);
+    final themeRegistry = ref.read(themeRegistryProvider);
     _registry.register(ToggleThemeCommand());
-    for (final theme in registry.all) {
+    for (final theme in themeRegistry.all) {
       _registry.register(SelectThemeCommand(
         themeId: theme.id,
         themeName: theme.displayName,
       ));
     }
+
+    // 注册 snippet 命令（当 settings 变化时自动重建）
+    final snippetCmds = buildSnippetCommands(ref);
+    _registry.registerAll(snippetCmds);
 
     return CommandPaletteState(
       filteredCommands: _registry.all,

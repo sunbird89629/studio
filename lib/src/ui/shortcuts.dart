@@ -19,6 +19,7 @@ class ShortcutId {
   static const terminalSelectAll = 'terminal_select_all';
   static const commandPalette = 'command_palette';
   static const vimEdit = 'vim_edit';
+  static const findInTerminal = 'find_in_terminal';
 
   /// Human-readable label for each action ID.
   static const labels = <String, String>{
@@ -34,6 +35,7 @@ class ShortcutId {
     terminalSelectAll: 'Select All',
     commandPalette: 'Command Palette',
     vimEdit: 'Vim Edit',
+    findInTerminal: 'Find in Terminal',
   };
 
   static String label(String id) => labels[id] ?? id;
@@ -101,6 +103,11 @@ Map<String, SingleActivator> get defaultKeymaps {
       meta: apple,
       control: !apple,
       shift: true,
+    ),
+    ShortcutId.findInTerminal: SingleActivator(
+      LogicalKeyboardKey.keyF,
+      meta: apple,
+      control: !apple,
     ),
   };
 }

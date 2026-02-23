@@ -116,6 +116,38 @@ class AICopilotService {
 
     return await _chat(messages, model: model);
   }
+
+  /// Stream chat response tokens as they arrive.
+  Stream<String> chatStream(String message, {String? model}) async* {
+    _logger.i('Streaming chat: $message (model: $model)');
+
+    final messages = [
+      OpenAIChatCompletionChoiceMessageModel(
+        role: OpenAIChatMessageRole.user,
+        content: [
+          OpenAIChatCompletionChoiceMessageContentItemModel.text(message),
+        ],
+      ),
+    ];
+
+    try {
+      final stream = OpenAI.instance.chat.createStream(
+        model: model ?? _defaultModel,
+        messages: messages,
+      );
+
+      await for (final event in stream) {
+        final delta =
+            event.choices.firstOrNull?.delta.content?.firstOrNull?.text;
+        if (delta != null && delta.isNotEmpty) {
+          yield delta;
+        }
+      }
+    } catch (e, stack) {
+      _logger.e('Stream chat error', error: e, stackTrace: stack);
+      yield 'Error: Failed to connect to AI Provider. ${e.toString()}';
+    }
+  }
 }
 
 extension StringExtension on String {

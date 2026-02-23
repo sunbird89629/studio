@@ -1,12 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:terminal_studio/src/plugins/terminal/terminal_plugin.dart';
+import 'package:terminal_studio/src/plugins/terminal/terminal_input_tracker.dart';
 
 // Convenience alias
 String process(String current, String data, [List<String>? history]) =>
-    TerminalPlugin.processInput(current, data, history ?? []);
+    TerminalInputTracker.processInput(current, data, history ?? []);
 
 void main() {
-  group('TerminalPlugin.processInput – printable characters', () {
+  group('TerminalInputTracker.processInput – printable characters', () {
     test('appends printable ASCII', () {
       expect(process('', 'hello'), 'hello');
     });
@@ -26,7 +26,7 @@ void main() {
     });
   });
 
-  group('TerminalPlugin.processInput – backspace', () {
+  group('TerminalInputTracker.processInput – backspace', () {
     test('removes last character (DEL 0x7F)', () {
       expect(process('hello', '\x7F'), 'hell');
     });
@@ -44,7 +44,7 @@ void main() {
     });
   });
 
-  group('TerminalPlugin.processInput – line clear (Ctrl-C / Ctrl-U / ESC)', () {
+  group('TerminalInputTracker.processInput – line clear (Ctrl-C / Ctrl-U / ESC)', () {
     test('Ctrl-C clears current input', () {
       expect(process('hello', '\x03'), '');
     });
@@ -62,7 +62,7 @@ void main() {
     });
   });
 
-  group('TerminalPlugin.processInput – Ctrl-W (delete last word)', () {
+  group('TerminalInputTracker.processInput – Ctrl-W (delete last word)', () {
     test('removes last word', () {
       expect(process('foo bar', '\x17'), 'foo ');
     });
@@ -80,7 +80,7 @@ void main() {
     });
   });
 
-  group('TerminalPlugin.processInput – Enter (LF / CR)', () {
+  group('TerminalInputTracker.processInput – Enter (LF / CR)', () {
     test('LF clears input', () {
       expect(process('hello', '\n'), '');
     });
@@ -116,7 +116,7 @@ void main() {
     });
   });
 
-  group('TerminalPlugin.processInput – mixed sequences', () {
+  group('TerminalInputTracker.processInput – mixed sequences', () {
     test('type, backspace, type', () {
       var input = process('', 'helo');
       input = process(input, '\x7F'); // remove 'o'

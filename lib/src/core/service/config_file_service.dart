@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
 import 'package:terminal_studio/src/core/record/profile_record.dart';
 import 'package:terminal_studio/src/core/record/settings_record.dart';
+import 'package:terminal_studio/src/core/record/snippet_record.dart';
 import '../utils/app_logger.dart';
 
 /// Service for reading/writing `~/.config/openterm/config.jsonc`.
@@ -234,6 +235,24 @@ class ConfigFileService {
       if (ai['model'] != null) s.aiModel = ai['model'] as String;
       if (ai['api_key'] != null) s.aiApiKey = ai['api_key'] as String;
     }
+
+    final snippetsMap = json['snippets'] as Map<String, dynamic>?;
+    if (snippetsMap != null) {
+      s.snippets = snippetsMap.entries
+          .map((e) =>
+              SnippetRecord.fromJson(e.key, e.value as Map<String, dynamic>))
+          .toList();
+    }
+  }
+
+  /// Parse snippets from the JSONC config map.
+  static List<SnippetRecord> parseSnippets(Map<String, dynamic> json) {
+    final snippetsMap = json['snippets'] as Map<String, dynamic>?;
+    if (snippetsMap == null) return [];
+    return snippetsMap.entries
+        .map((e) =>
+            SnippetRecord.fromJson(e.key, e.value as Map<String, dynamic>))
+        .toList();
   }
 
   // ── Save SettingsRecord → JSONC File ──────────────
@@ -283,7 +302,7 @@ class ConfigFileService {
   "ai": {
     "provider": ${jsonEncode(s.aiProvider)},
     "model": ${jsonEncode(s.aiModel)}${s.aiApiKey != null && s.aiApiKey!.isNotEmpty ? ',\n    "api_key": ${jsonEncode(s.aiApiKey)}' : '\n    // "api_key": "sk-..."           // 建议使用 GUI 设置'}
-  }${profiles != null && profiles.isNotEmpty ? ',\n\n  "profiles": ${_profilesToJsonc(profiles)}' : ''}${keymaps != null && keymaps.isNotEmpty ? ',\n\n  "keymaps": ${_keymapsToJsonc(keymaps)}' : ''}
+  }${s.snippets.isNotEmpty ? ',\n\n  "snippets": ${_snippetsToJsonc(s.snippets)}' : ''}${profiles != null && profiles.isNotEmpty ? ',\n\n  "profiles": ${_profilesToJsonc(profiles)}' : ''}${keymaps != null && keymaps.isNotEmpty ? ',\n\n  "keymaps": ${_keymapsToJsonc(keymaps)}' : ''}
 }
 ''';
   }
@@ -318,6 +337,20 @@ class ConfigFileService {
   }
 
   // ── Keymap Serialization ──────────────────────────
+
+  /// Format snippets as a JSON object.
+  static String _snippetsToJsonc(List<SnippetRecord> snippets) {
+    final buf = StringBuffer('{\n');
+    for (var i = 0; i < snippets.length; i++) {
+      final s = snippets[i];
+      buf.write(
+          '    ${jsonEncode(s.id)}: ${jsonEncode(s.toJson())}');
+      if (i < snippets.length - 1) buf.write(',');
+      buf.write('\n');
+    }
+    buf.write('  }');
+    return buf.toString();
+  }
 
   /// Format a keymaps map as a JSON object.
   static String _keymapsToJsonc(Map<String, String> keymaps) {

@@ -6,8 +6,10 @@ import 'package:terminal_studio/src/core/plugin.dart';
 
 class StarterPlugin extends Plugin {
   final _uptime = ValueNotifier<String?>(null);
+  Timer? _timer;
 
   Future<void> _updateUptime() async {
+    if (!connected) return;
     final result = await AsyncValue.guard(() => host.execute('uptime'));
 
     result.when(
@@ -17,11 +19,9 @@ class StarterPlugin extends Plugin {
     );
   }
 
-  Future<void> _startUpdate() async {
-    while (connected) {
-      await _updateUptime();
-      await Future.delayed(const Duration(seconds: 1));
-    }
+  void _startPolling() {
+    _updateUptime();
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) => _updateUptime());
   }
 
   @override
@@ -32,14 +32,23 @@ class StarterPlugin extends Plugin {
 
   @override
   void didConnected() {
-    _startUpdate();
+    _startPolling();
     super.didConnected();
   }
 
   @override
   void didDisconnected() {
+    _timer?.cancel();
+    _timer = null;
     _uptime.value = 'Disconnected';
     super.didDisconnected();
+  }
+
+  @override
+  void didUnmounted() {
+    _timer?.cancel();
+    _timer = null;
+    super.didUnmounted();
   }
 
   @override

@@ -295,20 +295,142 @@ class FileListViewState extends ConsumerState<FileListView> {
       items: [
         PopupMenuItem<String>(
           value: 'open',
-          child: const Row(
-            children: [
-              Icon(Icons.open_in_new, size: 18),
-              SizedBox(width: 8),
-              Text('Open with Default App'),
-            ],
-          ),
+          child: const Row(children: [
+            Icon(Icons.open_in_new, size: 18),
+            SizedBox(width: 8),
+            Text('Open with Default App'),
+          ]),
+        ),
+        const PopupMenuDivider(),
+        PopupMenuItem<String>(
+          value: 'rename',
+          child: const Row(children: [
+            Icon(Icons.drive_file_rename_outline, size: 18),
+            SizedBox(width: 8),
+            Text('Rename'),
+          ]),
+        ),
+        PopupMenuItem<String>(
+          value: 'delete',
+          child: Row(children: [
+            Icon(Icons.delete_outline,
+                size: 18, color: Theme.of(context).colorScheme.error),
+            const SizedBox(width: 8),
+            Text('Delete',
+                style:
+                    TextStyle(color: Theme.of(context).colorScheme.error)),
+          ]),
+        ),
+        const PopupMenuDivider(),
+        PopupMenuItem<String>(
+          value: 'new_folder',
+          child: const Row(children: [
+            Icon(Icons.create_new_folder_outlined, size: 18),
+            SizedBox(width: 8),
+            Text('New Folder'),
+          ]),
         ),
       ],
-    ).then((value) {
-      if (value == 'open') {
-        LauncherService.open(file.path);
+    ).then((value) async {
+      if (!context.mounted) return;
+      switch (value) {
+        case 'open':
+          LauncherService.open(file.path);
+        case 'rename':
+          await _showRenameDialog(context, file);
+        case 'delete':
+          await _showDeleteDialog(context, file);
+        case 'new_folder':
+          await _showNewFolderDialog(context, plugin);
       }
     });
+  }
+
+  Future<void> _showRenameDialog(
+      BuildContext context, FileSystemEntity file) async {
+    final controller = TextEditingController(text: file.basename);
+    final newName = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Rename'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(labelText: 'New name'),
+          onSubmitted: (v) => Navigator.of(ctx).pop(v),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.of(ctx).pop(controller.text),
+              child: const Text('Rename')),
+        ],
+      ),
+    );
+    controller.dispose();
+    if (newName == null || newName.isEmpty || newName == file.basename) return;
+    final newPath =
+        plugin.fs.path.join(plugin.fs.path.dirname(file.path), newName);
+    await file.rename(newPath);
+    plugin._fetchFiles();
+  }
+
+  Future<void> _showDeleteDialog(
+      BuildContext context, FileSystemEntity file) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete'),
+        content: Text(
+            'Are you sure you want to delete "${file.basename}"?\nThis cannot be undone.'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.of(ctx).pop(true),
+              child: Text('Delete',
+                  style: TextStyle(
+                      color: Theme.of(ctx).colorScheme.error))),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    await file.delete(recursive: true);
+    plugin._fetchFiles();
+  }
+
+  Future<void> _showNewFolderDialog(
+      BuildContext context, FileManagerPlugin plugin) async {
+    final controller = TextEditingController();
+    final name = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('New Folder'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(labelText: 'Folder name'),
+          onSubmitted: (v) => Navigator.of(ctx).pop(v),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.of(ctx).pop(controller.text),
+              child: const Text('Create')),
+        ],
+      ),
+    );
+    controller.dispose();
+    if (name == null || name.isEmpty) return;
+    final newPath =
+        plugin.fs.path.join(plugin.currentPath.value ?? '.', name);
+    await plugin.fs.directory(newPath).create();
+    plugin._fetchFiles();
   }
 }
 

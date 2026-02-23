@@ -4,12 +4,13 @@ import 'dart:io' as io;
 
 import 'package:context_menus/context_menus.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart' show Colors;
+import 'package:flutter/material.dart' show Colors, ElevatedButton, IconButton, Icons, InputDecoration, Material, OutlineInputBorder, ScaffoldMessenger, SnackBar, TextField, Theme;
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_studio/src/core/conn.dart';
 import 'package:terminal_studio/src/core/host.dart';
+import 'package:terminal_studio/src/core/state/host.dart';
 import 'package:terminal_studio/src/core/model/shell_command_event.dart';
 import 'package:terminal_studio/src/core/model/terminal_session.dart';
 import 'package:terminal_studio/src/core/plugin.dart';
@@ -19,6 +20,8 @@ import 'package:terminal_studio/src/core/service/launcher_service.dart';
 import 'package:terminal_studio/src/core/utils/link_detector.dart';
 import 'package:terminal_studio/src/core/utils/osc_parser.dart';
 import 'package:terminal_studio/src/plugins/terminal/inline_image.dart';
+import 'package:terminal_studio/src/core/service/broadcast_service.dart';
+import 'package:terminal_studio/src/plugins/terminal/terminal_input_tracker.dart';
 import 'package:terminal_studio/src/plugins/terminal/terminal_menu.dart';
 import 'package:terminal_studio/src/plugins/terminal/xterm_fixes.dart';
 import 'package:terminal_studio/src/ui/shortcut/intents.dart';
@@ -50,11 +53,61 @@ class TerminalPlugin extends Plugin {
   ExecutionSession? session;
   StreamSubscription<String>? _outputSubscription;
 
-  String _currentInput = '';
-  final List<String> _commandHistory = [];
+  final _inputTracker = TerminalInputTracker();
 
-  String get currentInput => _currentInput;
-  List<String> get commandHistory => List.unmodifiable(_commandHistory);
+  String get currentInput => _inputTracker.currentInput;
+  List<String> get commandHistory => _inputTracker.commandHistory;
+
+  // ── Asciinema recording ────────────────────────────────────────────────────
+  io.IOSink? _castSink;
+  DateTime? _recordingStart;
+
+  bool get isRecording => _castSink != null;
+
+  Future<String> startRecording() async {
+    if (isRecording) return '';
+    final dir = io.Directory(
+      io.Platform.isWindows
+          ? '${io.Platform.environment['USERPROFILE']}\\Documents\\TerminalStudio'
+          : '${io.Platform.environment['HOME']}/Documents/TerminalStudio',
+    );
+    if (!await dir.exists()) await dir.create(recursive: true);
+
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final path = '${dir.path}/recording_$timestamp.cast';
+    final file = io.File(path);
+    _castSink = file.openWrite();
+    _recordingStart = DateTime.now();
+
+    // Write asciinema v2 header
+    _castSink!.writeln(jsonEncode({
+      'version': 2,
+      'width': terminal.viewWidth,
+      'height': terminal.viewHeight,
+      'timestamp':
+          _recordingStart!.millisecondsSinceEpoch ~/ 1000,
+      'title': terminalTitle.isEmpty ? 'Terminal Recording' : terminalTitle,
+    }));
+
+    _logger.i('Asciinema recording started: $path');
+    return path;
+  }
+
+  Future<void> stopRecording() async {
+    if (!isRecording) return;
+    await _castSink!.flush();
+    await _castSink!.close();
+    _castSink = null;
+    _recordingStart = null;
+    _logger.i('Asciinema recording stopped');
+  }
+
+  void _recordOutput(String data) {
+    if (!isRecording) return;
+    final elapsed =
+        DateTime.now().difference(_recordingStart!).inMicroseconds / 1e6;
+    _castSink!.writeln(jsonEncode([elapsed, 'o', data]));
+  }
 
   void _updateTitle() {
     if (session != null) {
@@ -97,6 +150,7 @@ class TerminalPlugin extends Plugin {
       _logger.d('Terminal input (user typed): ${data.length} chars');
       session?.write(const Utf8Encoder().convert(data));
       _trackInput(data);
+      BroadcastService.instance.broadcast(this, data);
     };
 
     terminal.onResize = (w, h, pw, ph) {
@@ -158,7 +212,10 @@ class TerminalPlugin extends Plugin {
           data: result.cleanData,
         );
 
-        // 4. Handle shell integration events (e.g. command done).
+        // 4. Record output for Asciinema if recording.
+        _recordOutput(result.cleanData);
+
+        // 5. Handle shell integration events (e.g. command done).
         for (final event in result.events) {
           _handleShellEvent(event);
         }
@@ -188,7 +245,7 @@ class TerminalPlugin extends Plugin {
   }
 
   void _trackInput(String data) {
-    _currentInput = processInput(_currentInput, data, _commandHistory);
+    _inputTracker.track(data);
   }
 
   /// Handles the iTerm2 Inline Image Protocol (OSC 1337).
@@ -300,55 +357,17 @@ class TerminalPlugin extends Plugin {
     }
   }
 
-  /// Pure function that advances the terminal input state machine for [data].
-  ///
-  /// [history] is mutated in-place when Enter is pressed (same as the instance
-  /// method). Exposed as [visibleForTesting] so unit tests can exercise every
-  /// control character without instantiating a full [TerminalPlugin].
-  @visibleForTesting
-  static String processInput(
-      String current, String data, List<String> history) {
-    var input = current;
-    for (final char in data.runes) {
-      if (char == 0x0D || char == 0x0A) {
-        // Enter: commit current input to history
-        final trimmed = input.trim();
-        if (trimmed.isNotEmpty) {
-          history.add(trimmed);
-          if (history.length > 500) history.removeAt(0);
-        }
-        input = '';
-      } else if (char == 0x7F || char == 0x08) {
-        // Backspace / DEL
-        if (input.isNotEmpty) {
-          input = input.substring(0, input.length - 1);
-        }
-      } else if (char == 0x03 || char == 0x15 || char == 0x1B) {
-        // Ctrl-C, Ctrl-U, ESC: clear line
-        input = '';
-      } else if (char == 0x17) {
-        // Ctrl-W: remove last word
-        input = input.trimRight();
-        final lastSpace = input.lastIndexOf(' ');
-        input = lastSpace == -1 ? '' : input.substring(0, lastSpace + 1);
-      } else if (char >= 0x20 && char != 0x7F) {
-        // Printable character
-        input += String.fromCharCode(char);
-      }
-    }
-    return input;
-  }
-
   @override
   void didDisconnected() {
     _logger.i('TerminalPlugin disconnected');
     _outputSubscription?.cancel();
     _outputSubscription = null;
     session = null;
-    _currentInput = '';
+    _inputTracker.reset();
     inlineImages.value = [];
     _imageFullyRendered = false;
     title.value = 'Disconnected';
+    BroadcastService.instance.deregister(this);
     SessionManager.instance.get(sessionId)?.status = SessionStatus.disconnected;
   }
 
@@ -358,6 +377,7 @@ class TerminalPlugin extends Plugin {
     _outputSubscription?.cancel();
     _outputSubscription = null;
     inlineImages.dispose();
+    BroadcastService.instance.deregister(this);
     SessionManager.instance.remove(sessionId);
     super.didUnmounted();
   }
@@ -406,19 +426,114 @@ class _TerminalTabViewState extends ConsumerState<TerminalTabView> {
   Map<String, SingleActivator> _currentKeymap = defaultKeymaps;
 
   /// True while the Cmd (macOS) or Ctrl (Win/Linux) key is held.
-  /// Used to show a pointer cursor and enable click-to-open for links.
   bool _openModifierActive = false;
+
+  // ── Find bar state ──────────────────────────────────────────────────────────
+  bool _findVisible = false;
+  final _findController = TextEditingController();
+  final _findFocus = FocusNode();
+  List<int> _findMatchLines = [];
+  int _findCurrentMatch = 0;
+
+  /// Passed to [TerminalView] so we can programmatically scroll to matches.
+  final _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     HardwareKeyboard.instance.addHandler(_handleGlobalKeyEvent);
+    _findController.addListener(_onFindQueryChanged);
   }
 
   @override
   void dispose() {
     HardwareKeyboard.instance.removeHandler(_handleGlobalKeyEvent);
+    _findController.dispose();
+    _findFocus.dispose();
+    _scrollController.dispose();
     super.dispose();
+  }
+
+  void _openFind() {
+    setState(() => _findVisible = true);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _findFocus.requestFocus());
+  }
+
+  void _closeFind() {
+    setState(() {
+      _findVisible = false;
+      _findMatchLines = [];
+      _findCurrentMatch = 0;
+    });
+    _findController.clear();
+  }
+
+  void _onFindQueryChanged() {
+    final query = _findController.text;
+    if (query.isEmpty) {
+      setState(() {
+        _findMatchLines = [];
+        _findCurrentMatch = 0;
+      });
+      return;
+    }
+
+    final buffer = widget.plugin.terminal.buffer;
+    final lowerQuery = query.toLowerCase();
+    final matches = <int>[];
+
+    for (var i = 0; i < buffer.height; i++) {
+      final lineText = buffer.getText(
+        BufferRangeLine(
+          CellOffset(0, i),
+          CellOffset(buffer.viewWidth - 1, i),
+        ),
+      );
+      if (lineText.toLowerCase().contains(lowerQuery)) {
+        matches.add(i);
+      }
+    }
+
+    setState(() {
+      _findMatchLines = matches;
+      _findCurrentMatch = matches.isEmpty ? 0 : matches.length - 1;
+    });
+
+    if (matches.isNotEmpty) {
+      _scrollToMatch(matches.last);
+    }
+  }
+
+  void _findNext() {
+    if (_findMatchLines.isEmpty) return;
+    setState(() {
+      _findCurrentMatch = (_findCurrentMatch + 1) % _findMatchLines.length;
+    });
+    _scrollToMatch(_findMatchLines[_findCurrentMatch]);
+  }
+
+  void _findPrevious() {
+    if (_findMatchLines.isEmpty) return;
+    setState(() {
+      _findCurrentMatch =
+          (_findCurrentMatch - 1 + _findMatchLines.length) % _findMatchLines.length;
+    });
+    _scrollToMatch(_findMatchLines[_findCurrentMatch]);
+  }
+
+  void _scrollToMatch(int bufferLine) {
+    if (!_scrollController.hasClients) return;
+    final pos = _scrollController.position;
+    final maxExtent = pos.maxScrollExtent;
+    if (maxExtent <= 0) return;
+
+    final buffer = widget.plugin.terminal.buffer;
+    final scrollableLines = buffer.height - widget.plugin.terminal.viewHeight;
+    if (scrollableLines <= 0) return;
+
+    // Compute pixel offset so that [bufferLine] is visible at the top.
+    final targetPixels = (bufferLine / scrollableLines) * maxExtent;
+    _scrollController.jumpTo(targetPixels.clamp(0.0, maxExtent));
   }
 
   bool _handleGlobalKeyEvent(KeyEvent event) {
@@ -438,6 +553,26 @@ class _TerminalTabViewState extends ConsumerState<TerminalTabView> {
 
     if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
       return false;
+    }
+
+    // Find shortcut: open find bar
+    final findActivator = _currentKeymap[ShortcutId.findInTerminal];
+    if (findActivator != null &&
+        findActivator.accepts(event, HardwareKeyboard.instance)) {
+      if (_findVisible) {
+        _closeFind();
+      } else {
+        _openFind();
+      }
+      return true;
+    }
+
+    // Escape closes find bar
+    if (_findVisible &&
+        event.logicalKey == LogicalKeyboardKey.escape &&
+        event is KeyDownEvent) {
+      _closeFind();
+      return true;
     }
 
     // Check if any of our passthrough shortcuts match using current keymap
@@ -484,6 +619,11 @@ class _TerminalTabViewState extends ConsumerState<TerminalTabView> {
   Widget build(BuildContext context) {
     _currentKeymap = ref.watch(keymapProvider).value ?? defaultKeymaps;
     final settingsAsync = ref.watch(settingsProvider);
+    final connStatus = ref
+        .watch(connectorStatusProvider(widget.plugin.hostSpec))
+        .value
+        ?.status;
+    final isDisconnected = connStatus == HostConnectorStatus.disconnected;
 
     return settingsAsync.when(
       data: (settings) {
@@ -506,6 +646,7 @@ class _TerminalTabViewState extends ConsumerState<TerminalTabView> {
                   widget.plugin.terminal,
                   textStyle: style,
                   controller: widget.plugin.terminalController,
+                  scrollController: _scrollController,
                   onTapUp: _handleTapUp,
                   onSecondaryTapDown: (_, __) => showMenu(),
                   mouseCursor: _openModifierActive
@@ -520,6 +661,18 @@ class _TerminalTabViewState extends ConsumerState<TerminalTabView> {
                   images: widget.plugin.inlineImages,
                   padding: settings.padding,
                 ),
+                if (_findVisible)
+                  _FindBar(
+                    controller: _findController,
+                    focusNode: _findFocus,
+                    matchCount: _findMatchLines.length,
+                    currentMatch: _findCurrentMatch,
+                    onNext: _findNext,
+                    onPrevious: _findPrevious,
+                    onClose: _closeFind,
+                  ),
+                if (isDisconnected)
+                  _ReconnectOverlay(plugin: widget.plugin),
               ],
             ),
           ),
@@ -535,8 +688,170 @@ class _TerminalTabViewState extends ConsumerState<TerminalTabView> {
   }
 
   void showMenu() {
-    final menu = TerminalContextMenu(plugin: widget.plugin);
+    final plugin = widget.plugin;
+    final menu = TerminalContextMenu(
+      plugin: plugin,
+      onOpenFind: _openFind,
+      onToggleRecording: () async {
+        if (plugin.isRecording) {
+          await plugin.stopRecording();
+        } else {
+          final path = await plugin.startRecording();
+          if (path.isNotEmpty && mounted) {
+            ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+              SnackBar(
+                content: Text('Recording started: $path'),
+                duration: const Duration(seconds: 3),
+              ),
+            );
+          }
+        }
+      },
+      onToggleBroadcast: () {
+        final bs = BroadcastService.instance;
+        if (bs.isParticipant(plugin)) {
+          bs.deregister(plugin);
+        } else {
+          bs.register(plugin);
+        }
+      },
+    );
     context.contextMenuOverlay.show(menu);
+  }
+}
+
+/// Find bar overlaid at the top of the terminal view.
+class _FindBar extends StatelessWidget {
+  const _FindBar({
+    required this.controller,
+    required this.focusNode,
+    required this.matchCount,
+    required this.currentMatch,
+    required this.onNext,
+    required this.onPrevious,
+    required this.onClose,
+  });
+
+  final TextEditingController controller;
+  final FocusNode focusNode;
+  final int matchCount;
+  final int currentMatch;
+  final VoidCallback onNext;
+  final VoidCallback onPrevious;
+  final VoidCallback onClose;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Positioned(
+      top: 0,
+      right: 0,
+      child: Material(
+        elevation: 4,
+        color: colorScheme.surface,
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(8),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                width: 200,
+                child: TextField(
+                  controller: controller,
+                  focusNode: focusNode,
+                  decoration: InputDecoration(
+                    hintText: 'Find...',
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 6),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                  onSubmitted: (_) => onNext(),
+                ),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                matchCount == 0
+                    ? 'No results'
+                    : '${currentMatch + 1} / $matchCount',
+                style: const TextStyle(fontSize: 12),
+              ),
+              IconButton(
+                icon: const Icon(Icons.keyboard_arrow_up, size: 18),
+                onPressed: matchCount > 0 ? onPrevious : null,
+                tooltip: 'Previous',
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+              ),
+              IconButton(
+                icon: const Icon(Icons.keyboard_arrow_down, size: 18),
+                onPressed: matchCount > 0 ? onNext : null,
+                tooltip: 'Next',
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+              ),
+              IconButton(
+                icon: const Icon(Icons.close, size: 18),
+                onPressed: onClose,
+                tooltip: 'Close',
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Semi-transparent overlay shown when the terminal session is disconnected.
+/// Provides a button to reconnect without closing and reopening the tab.
+class _ReconnectOverlay extends ConsumerWidget {
+  const _ReconnectOverlay({required this.plugin});
+
+  final TerminalPlugin plugin;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      color: Colors.black45,
+      child: Center(
+        child: Material(
+          color: colorScheme.surface,
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.link_off, size: 40),
+                const SizedBox(height: 12),
+                const Text('Session disconnected',
+                    style:
+                        TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 20),
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Reconnect'),
+                  onPressed: () {
+                    ref
+                        .read(connectorProvider(plugin.hostSpec))
+                        .connect();
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 

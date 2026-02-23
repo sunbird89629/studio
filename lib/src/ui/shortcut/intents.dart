@@ -35,3 +35,7 @@ class OpenSettingsIntent extends Intent {
 class OpenDevToolsIntent extends Intent {
   const OpenDevToolsIntent();
 }
+
+class FindInTerminalIntent extends Intent {
+  const FindInTerminalIntent();
+}

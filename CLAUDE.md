@@ -155,8 +155,10 @@ GitHub Actions (`.github/workflows/`):
 - Riverpod 3.x: `WidgetRef` is `sealed class WidgetRef implements MutationTarget` — does NOT extend `Ref`; functions taking `Ref` will reject `WidgetRef` from ConsumerWidget. Inline save logic in `Ref` contexts instead of calling a shared helper that takes `WidgetRef`
 - `LogicalKeyboardKey` cannot be a `const` map key (overrides `==`/`hashCode`); use `final` map
 - `part` directives must appear after all `import` statements in Dart files
+- `terminal_plugin.dart` uses `import 'package:flutter/material.dart' show ...` (named show list) alongside `cupertino.dart` — any new Material widget used in this file must be added to the `show` list explicitly
 - `xterm` fork: `TerminalGestureDetector.onTapUp` was dead code — fixed in `~/work/flutter/xterm.dart` (adds `widget.onTapUp?.call(details)` after `widget.onSingleTapUp?.call(details)` in `gesture_detector.dart`). Use path dep during dev, push to GitHub and update pubspec ref to release.
 - xterm `CellOffset.y` from `onTapUp` is buffer-absolute (includes scroll offset) — confirmed in `render.dart`
+- xterm `Terminal.scrollUp/scrollDown` are **buffer scroll operations** (escape sequences), NOT viewport scroll — to programmatically scroll the view, pass `scrollController` to `TerminalView`; compute target pixel as `(bufferLine / (buffer.height - viewHeight)) * scrollController.position.maxScrollExtent`
 - No `url_launcher` dep — use `LauncherService` (`Process.run('open'/'xdg-open'/'start')`) for platform-native file/URL opening
 
 ## Testing Gotchas
@@ -182,6 +184,10 @@ GitHub Actions (`.github/workflows/`):
 - `lib/src/ui/shared/fluent_form.dart` — FluentFormHeader(style?)/Separator/Divider form layout widgets
 - `lib/src/ui/shared/shortcut_label.dart` — ShortcutLabel(shortcutId) widget, looks up keymapProvider, renders key-cap badges
 - `lib/src/core/service/terminal_event_bus.dart` — TerminalEventBus, decouples TerminalPlugin output from RemoteControlService
+- `lib/src/core/service/broadcast_service.dart` — BroadcastService singleton; terminals join/leave a broadcast group; input from one member is mirrored to all others
+- `lib/src/core/command/snippet_commands.dart` — SnippetCommand: executes snippet.command via openTerm.activeTab?.terminal?.write()
+- `lib/src/core/record/snippet_record.dart` — SnippetRecord{id, name, command}; stored in SettingsRecord.snippets, persisted to config.jsonc
+- `lib/src/plugins/terminal/terminal_input_tracker.dart` — TerminalInputTracker: tracks currentInput + commandHistory; processInput() is @visibleForTesting
 - `lib/src/core/service/ssh_storage_service.dart` — SSH hosts/keys CRUD to `hosts.json` / `keys.json`; injectable `configDir` for testing
 - `lib/src/core/state/database.dart` — `sshHostsProvider`, `sshKeysProvider`, `profilesProvider` (file-backed FutureProviders)
 - `persistSettings(WidgetRef, SettingsRecord)` in `settings.dart` — replaces `record.save()`; writes `config.jsonc` + invalidates providers; only for widget (`WidgetRef`) context; `Ref` contexts must inline `configFileService.saveToFile()` + `ref.invalidate(settingsProvider)`

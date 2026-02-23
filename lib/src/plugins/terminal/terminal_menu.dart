@@ -2,6 +2,7 @@ import 'package:context_menus/context_menus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:terminal_studio/src/core/service/broadcast_service.dart';
 import 'package:terminal_studio/src/core/service/tabs_service.dart';
 import 'package:terminal_studio/src/plugins/file_manager/file_manager_plugin.dart';
 import 'package:terminal_studio/src/plugins/starter/starter_plugin.dart';
@@ -12,9 +13,15 @@ class TerminalContextMenu extends ConsumerStatefulWidget {
   const TerminalContextMenu({
     super.key,
     required this.plugin,
+    this.onOpenFind,
+    this.onToggleRecording,
+    this.onToggleBroadcast,
   });
 
   final TerminalPlugin plugin;
+  final VoidCallback? onOpenFind;
+  final Future<void> Function()? onToggleRecording;
+  final VoidCallback? onToggleBroadcast;
 
   @override
   TerminalContextMenuState createState() => TerminalContextMenuState();
@@ -88,6 +95,19 @@ class TerminalContextMenuState extends ConsumerState<TerminalContextMenu>
             onPressed: () => handlePressed(context, _handleSelectAll),
           ),
         ),
+        buttonBuilder(
+          context,
+          ContextMenuButtonConfig(
+            "Find",
+            icon: const Icon(Icons.search),
+            shortcutLabel: 'Cmd+F',
+            onPressed: widget.onOpenFind != null
+                ? () => handlePressed(context, () async {
+                      widget.onOpenFind!();
+                    })
+                : null,
+          ),
+        ),
         buildDivider(),
         buttonBuilder(
           context,
@@ -107,6 +127,43 @@ class TerminalContextMenuState extends ConsumerState<TerminalContextMenu>
             onPressed: () => handlePressed(context, _handleStarterPlugin),
           ),
         ),
+        buildDivider(),
+        buttonBuilder(
+          context,
+          ContextMenuButtonConfig(
+            plugin.isRecording ? "Stop Recording" : "Start Recording",
+            icon: Icon(
+              plugin.isRecording
+                  ? Icons.stop_circle_outlined
+                  : Icons.fiber_manual_record,
+              color: plugin.isRecording ? Colors.red : null,
+            ),
+            onPressed: widget.onToggleRecording != null
+                ? () => handlePressed(context, widget.onToggleRecording!)
+                : null,
+          ),
+        ),
+        () {
+          final inBroadcast = BroadcastService.instance.isParticipant(plugin);
+          final count = BroadcastService.instance.participantCount;
+          return buttonBuilder(
+            context,
+            ContextMenuButtonConfig(
+              inBroadcast
+                  ? 'Leave Broadcast${count > 1 ? ' ($count)' : ''}'
+                  : 'Join Broadcast',
+              icon: Icon(
+                Icons.cell_tower,
+                color: inBroadcast ? Colors.orange : null,
+              ),
+              onPressed: widget.onToggleBroadcast != null
+                  ? () => handlePressed(context, () async {
+                        widget.onToggleBroadcast!();
+                      })
+                  : null,
+            ),
+          );
+        }(),
       ],
     );
   }

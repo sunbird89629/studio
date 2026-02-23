@@ -1,3 +1,5 @@
+import 'package:terminal_studio/src/core/record/snippet_record.dart';
+
 class SettingsRecord {
   double terminalFontSize;
 
@@ -58,6 +60,9 @@ class SettingsRecord {
 
   /// Custom environment variables merged into shell session.
   Map<String, String>? env;
+
+  /// Saved command snippets accessible via Command Palette.
+  List<SnippetRecord> snippets;
 
   /// Serialize all fields to a flat map (for export/import).
   Map<String, dynamic> toFlatMap() => {
@@ -158,5 +163,6 @@ class SettingsRecord {
     this.padding = 0.0,
     this.preserveCWD = true,
     this.env,
+    this.snippets = const [],
   });
 }
