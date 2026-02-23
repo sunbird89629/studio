@@ -121,8 +121,13 @@ class ConfigFileService {
       final json = parseJsonc(content);
       _applyJsonToSettings(json, settings);
       return true;
+    } on FileSystemException catch (e) {
+      _logger.e('Failed to read config.jsonc (I/O error)', error: e);
+      return false;
+    } on FormatException catch (e) {
+      _logger.e('config.jsonc has invalid JSON syntax', error: e);
+      return false;
     } catch (e) {
-      // Malformed JSONC — don't crash, just skip
       _logger.e('Failed to parse config.jsonc', error: e);
       return false;
     } finally {
@@ -140,6 +145,12 @@ class ConfigFileService {
       final content = await file.readAsString();
       final json = parseJsonc(content);
       return parseProfiles(json);
+    } on FileSystemException catch (e) {
+      _logger.e('Failed to read config.jsonc (I/O error)', error: e);
+      return [];
+    } on FormatException catch (e) {
+      _logger.e('config.jsonc has invalid JSON in profiles section', error: e);
+      return [];
     } catch (e) {
       _logger.e('Failed to load profiles from config.jsonc', error: e);
       return [];
@@ -154,6 +165,12 @@ class ConfigFileService {
       final content = await file.readAsString();
       final json = parseJsonc(content);
       return parseKeymaps(json);
+    } on FileSystemException catch (e) {
+      _logger.e('Failed to read config.jsonc (I/O error)', error: e);
+      return {};
+    } on FormatException catch (e) {
+      _logger.e('config.jsonc has invalid JSON in keymaps section', error: e);
+      return {};
     } catch (e) {
       _logger.e('Failed to load keymaps from config.jsonc', error: e);
       return {};

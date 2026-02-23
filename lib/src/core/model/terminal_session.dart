@@ -40,7 +40,7 @@ class SessionManager {
   /// Returns the session with [id], or `null` if not found.
   TerminalSession? get(String id) => _sessions[id];
 
-  /// Register a newly created session. Called from `TerminalPlugin.didMounted`.
+  /// Register a newly created session. Called from `TerminalPlugin.onMounted`.
   void register(TerminalSession session) {
     _sessions[session.id] = session;
   }
@@ -53,7 +53,7 @@ class SessionManager {
     session.exitCode = code;
   }
 
-  /// Remove a session from the registry. Called from `TerminalPlugin.didUnmounted`.
+  /// Remove a session from the registry. Called from `TerminalPlugin.onUnmounted`.
   void remove(String id) {
     _sessions.remove(id);
   }

@@ -25,30 +25,30 @@ class StarterPlugin extends Plugin {
   }
 
   @override
-  void didMounted() {
+  void onMounted() {
     title.value = 'Uptime';
-    super.didMounted();
+    super.onMounted();
   }
 
   @override
-  void didConnected() {
+  void onConnected() {
     _startPolling();
-    super.didConnected();
+    super.onConnected();
   }
 
   @override
-  void didDisconnected() {
+  void onDisconnected() {
     _timer?.cancel();
     _timer = null;
     _uptime.value = 'Disconnected';
-    super.didDisconnected();
+    super.onDisconnected();
   }
 
   @override
-  void didUnmounted() {
+  void onUnmounted() {
     _timer?.cancel();
     _timer = null;
-    super.didUnmounted();
+    super.onUnmounted();
   }
 
   @override

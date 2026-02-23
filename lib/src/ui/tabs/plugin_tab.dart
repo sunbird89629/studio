@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_studio/src/core/plugin.dart';
 import 'package:terminal_studio/src/core/state/plugin.dart';
+import 'package:terminal_studio/src/core/utils/app_logger.dart';
 
 class PluginTab extends TabItem {
   final Plugin plugin;
@@ -75,6 +76,8 @@ class PluginTabView extends ConsumerStatefulWidget {
 }
 
 class _PluginTabViewState extends ConsumerState<PluginTabView> {
+  static final _logger = AppLogger.forComponent('PluginTabView');
+
   Plugin get plugin => widget.plugin;
 
   @override
@@ -82,9 +85,11 @@ class _PluginTabViewState extends ConsumerState<PluginTabView> {
     // Ensure the PluginManager provider for this plugin's host is kept alive
     // so that connection events continue to be delivered to the manager.
     try {
-      // Watch the manager provider to keep it alive.
       ref.watch(pluginManagerProvider(plugin.manager.hostSpec));
-    } catch (_) {}
+    } catch (e, st) {
+      // Plugin may briefly be accessed after unmounting during widget teardown.
+      _logger.w('pluginManagerProvider watch failed', error: e, stackTrace: st);
+    }
 
     return plugin.build(context);
   }

@@ -25,56 +25,28 @@ Future<void> saveKeymapBinding(
   String actionId,
   SingleActivator activator,
 ) async {
-  final config = ref.read(configFileServiceProvider);
-
-  // Load current state
-  final settings = await ref.read(settingsProvider.future);
-  final profiles = ref.read(profilesProvider).value ?? [];
-  final currentBindings = await config.loadKeymaps();
-
-  // Apply override
-  currentBindings[actionId] = activatorToString(activator);
-
-  await config.saveToFile(
-    settings,
-    profiles: profiles,
-    keymaps: currentBindings,
-  );
-
-  ref.invalidate(keymapProvider);
+  final bindings = await ref.read(configFileServiceProvider).loadKeymaps();
+  bindings[actionId] = activatorToString(activator);
+  await _persistKeymaps(ref, bindings);
 }
 
 /// Reset a keymap binding to platform default.
 Future<void> resetKeymapBinding(WidgetRef ref, String actionId) async {
-  final config = ref.read(configFileServiceProvider);
-
-  final settings = await ref.read(settingsProvider.future);
-  final profiles = ref.read(profilesProvider).value ?? [];
-  final currentBindings = await config.loadKeymaps();
-
-  currentBindings.remove(actionId);
-
-  await config.saveToFile(
-    settings,
-    profiles: profiles,
-    keymaps: currentBindings,
-  );
-
-  ref.invalidate(keymapProvider);
+  final bindings = await ref.read(configFileServiceProvider).loadKeymaps();
+  bindings.remove(actionId);
+  await _persistKeymaps(ref, bindings);
 }
 
 /// Reset all keymaps to platform defaults.
 Future<void> resetAllKeymaps(WidgetRef ref) async {
-  final config = ref.read(configFileServiceProvider);
+  await _persistKeymaps(ref, const {});
+}
 
+/// Shared helper: write [keymaps] to config.jsonc and invalidate [keymapProvider].
+Future<void> _persistKeymaps(WidgetRef ref, Map<String, String> keymaps) async {
+  final config = ref.read(configFileServiceProvider);
   final settings = await ref.read(settingsProvider.future);
   final profiles = ref.read(profilesProvider).value ?? [];
-
-  await config.saveToFile(
-    settings,
-    profiles: profiles,
-    keymaps: const {},
-  );
-
+  await config.saveToFile(settings, profiles: profiles, keymaps: keymaps);
   ref.invalidate(keymapProvider);
 }

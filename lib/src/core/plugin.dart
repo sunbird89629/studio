@@ -22,7 +22,7 @@ abstract class Plugin {
   HostSpec? _hostSpec;
 
   /// The interface through which the plugin can read information about the host.
-  /// This is available after [didMounted] is called.
+  /// This is available after [onMounted] is called.
   HostSpec get hostSpec {
     if (_hostSpec == null) {
       throw PluginException('Plugin has not been mounted');
@@ -52,21 +52,21 @@ abstract class Plugin {
 
   /// Called when the plugin is mounted to a host. After this method is called,
   /// the [hostSpec] property will be available.
-  void didMounted() {}
+  void onMounted() {}
 
   /// Called when the plugin is unmounted from a host. After this method is
   /// called, the [hostSpec] property will no longer be available.
-  void didUnmounted() {}
+  void onUnmounted() {}
 
   /// Called when the host that this plugin is mounted to is connected. This
   /// method may be called multiple times if the host is disconnected and
   /// reconnected.
-  void didConnected() {}
+  void onConnected() {}
 
   /// Called when the host that this plugin is mounted to is disconnected. This
   /// method may be called multiple times if the host is disconnected and
   /// reconnected.
-  void didDisconnected() {}
+  void onDisconnected() {}
 
   /// Called when the state of the host that this plugin is mounted to changes.
   void onConnectionStatus(HostConnectorStatus status) {}
@@ -97,14 +97,14 @@ class PluginManager with ChangeNotifier {
     }
 
     // Assign manager and spec BEFORE calling lifecycle methods so that
-    // didMounted() / didConnected() can safely access [manager] and [hostSpec].
+    // onMounted() / onConnected() can safely access [manager] and [hostSpec].
     plugin._manager = this;
     plugin._hostSpec = hostSpec;
-    plugin.didMounted();
+    plugin.onMounted();
 
     if (_host != null) {
       plugin._host = _host;
-      plugin.didConnected();
+      plugin.onConnected();
     }
 
     _plugins.add(plugin);
@@ -118,9 +118,9 @@ class PluginManager with ChangeNotifier {
     _plugins.remove(plugin);
 
     // Use try/finally so the plugin is always fully detached from this manager
-    // even if didUnmounted() throws, preventing a dangling _manager reference.
+    // even if onUnmounted() throws, preventing a dangling _manager reference.
     try {
-      plugin.didUnmounted();
+      plugin.onUnmounted();
     } finally {
       plugin._manager = null;
       plugin._hostSpec = null;
@@ -129,9 +129,9 @@ class PluginManager with ChangeNotifier {
     }
   }
 
-  void didConnected(Host host) {
+  void onConnected(Host host) {
     _logger.i(
-        'PluginManager.didConnected called with host: $host. Current plugins: ${_plugins.length}');
+        'PluginManager.onConnected called with host: $host. Current plugins: ${_plugins.length}');
     if (_host != null) {
       _logger.w(
           'PluginManager: Warning - already connected to $_host. Replacing with $host.');
@@ -143,13 +143,13 @@ class PluginManager with ChangeNotifier {
       _logger.i(
           'PluginManager: notifying plugin ${plugin.runtimeType} of connection.');
       plugin._host = host;
-      plugin.didConnected();
+      plugin.onConnected();
       _logger.i(
-          'PluginManager: plugin ${plugin.runtimeType} didConnected completed.');
+          'PluginManager: plugin ${plugin.runtimeType} onConnected completed.');
     }
   }
 
-  void didDisconnected() {
+  void onDisconnected() {
     if (_host == null) {
       throw PluginException('plugin manager is not connected');
     }
@@ -158,11 +158,11 @@ class PluginManager with ChangeNotifier {
 
     for (final plugin in _plugins) {
       plugin._host = null;
-      plugin.didDisconnected();
+      plugin.onDisconnected();
     }
   }
 
-  void didConnectionStatusChanged(HostConnectorStatus status) {
+  void onConnectionStatusChanged(HostConnectorStatus status) {
     for (final plugin in _plugins) {
       plugin.onConnectionStatus(status);
     }

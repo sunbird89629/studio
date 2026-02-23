@@ -62,6 +62,8 @@ class TerminalPlugin extends Plugin {
   io.IOSink? _castSink;
   DateTime? _recordingStart;
 
+  Timer? _titleDebounce;
+
   bool get isRecording => _castSink != null;
 
   Future<String> startRecording() async {
@@ -75,19 +77,23 @@ class TerminalPlugin extends Plugin {
 
     final timestamp = DateTime.now().millisecondsSinceEpoch;
     final path = '${dir.path}/recording_$timestamp.cast';
-    final file = io.File(path);
-    _castSink = file.openWrite();
-    _recordingStart = DateTime.now();
-
-    // Write asciinema v2 header
-    _castSink!.writeln(jsonEncode({
-      'version': 2,
-      'width': terminal.viewWidth,
-      'height': terminal.viewHeight,
-      'timestamp':
-          _recordingStart!.millisecondsSinceEpoch ~/ 1000,
-      'title': terminalTitle.isEmpty ? 'Terminal Recording' : terminalTitle,
-    }));
+    final sink = io.File(path).openWrite();
+    try {
+      _recordingStart = DateTime.now();
+      // Write asciinema v2 header
+      sink.writeln(jsonEncode({
+        'version': 2,
+        'width': terminal.viewWidth,
+        'height': terminal.viewHeight,
+        'timestamp': _recordingStart!.millisecondsSinceEpoch ~/ 1000,
+        'title': terminalTitle.isEmpty ? 'Terminal Recording' : terminalTitle,
+      }));
+      _castSink = sink;
+    } catch (e) {
+      await sink.close();
+      _recordingStart = null;
+      rethrow;
+    }
 
     _logger.i('Asciinema recording started: $path');
     return path;
@@ -102,6 +108,12 @@ class TerminalPlugin extends Plugin {
     _logger.i('Asciinema recording stopped');
   }
 
+  void _cleanupSession() {
+    _outputSubscription?.cancel();
+    _outputSubscription = null;
+    session = null;
+  }
+
   void _recordOutput(String data) {
     if (!isRecording) return;
     final elapsed =
@@ -110,14 +122,17 @@ class TerminalPlugin extends Plugin {
   }
 
   void _updateTitle() {
-    if (session != null) {
-      title.value =
-          '$terminalTitle — ${terminal.viewWidth}x${terminal.viewHeight}';
-    }
+    _titleDebounce?.cancel();
+    _titleDebounce = Timer(const Duration(milliseconds: 100), () {
+      if (session != null) {
+        title.value =
+            '$terminalTitle — ${terminal.viewWidth}x${terminal.viewHeight}';
+      }
+    });
   }
 
   @override
-  void didMounted() {
+  void onMounted() {
     sessionId = uuidV4();
     SessionManager.instance.register(TerminalSession(
       id: sessionId,
@@ -160,17 +175,16 @@ class TerminalPlugin extends Plugin {
       });
     };
 
-    super.didMounted();
+    super.onMounted();
   }
 
   @override
-  void didConnected() async {
+  void onConnected() async {
     title.value = 'Terminal';
     _logger.i('TerminalPlugin connected. requesting shell...');
 
     // Cancel any subscription from a previous connection (reconnect scenario).
-    _outputSubscription?.cancel();
-    _outputSubscription = null;
+    _cleanupSession();
 
     // Read user settings for shell configuration
     final settings = ref.read(settingsProvider).value;
@@ -227,8 +241,7 @@ class TerminalPlugin extends Plugin {
     session!.exitCode.then((code) {
       _logger.i('Terminal session exited with code: $code');
       SessionManager.instance.markExited(sessionId, code);
-      session = null;
-      _outputSubscription = null;
+      _cleanupSession();
       if (mounted) {
         manager.remove(this);
       }
@@ -358,11 +371,9 @@ class TerminalPlugin extends Plugin {
   }
 
   @override
-  void didDisconnected() {
+  void onDisconnected() {
     _logger.i('TerminalPlugin disconnected');
-    _outputSubscription?.cancel();
-    _outputSubscription = null;
-    session = null;
+    _cleanupSession();
     _inputTracker.reset();
     inlineImages.value = [];
     _imageFullyRendered = false;
@@ -372,14 +383,14 @@ class TerminalPlugin extends Plugin {
   }
 
   @override
-  void didUnmounted() {
+  void onUnmounted() {
+    _titleDebounce?.cancel();
     terminal.removeListener(_onTerminalChange);
-    _outputSubscription?.cancel();
-    _outputSubscription = null;
+    _cleanupSession();
     inlineImages.dispose();
     BroadcastService.instance.deregister(this);
     SessionManager.instance.remove(sessionId);
-    super.didUnmounted();
+    super.onUnmounted();
   }
 
   @override

@@ -84,12 +84,12 @@ class FileManagerPlugin extends Plugin {
   }
 
   @override
-  void didMounted() {
+  void onMounted() {
     title.value = 'Files';
   }
 
   @override
-  void didConnected() async {
+  void onConnected() async {
     fs = await host.connectFileSystem();
 
     homePath = (await fs.directory('.').absolute).path;
