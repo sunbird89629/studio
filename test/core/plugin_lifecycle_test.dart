@@ -90,8 +90,7 @@ final _managerProvider = Provider<PluginManager>(
   (ref) => PluginManager(_FakeHostSpec(), ref),
 );
 
-PluginManager _makeManager() =>
-    ProviderContainer().read(_managerProvider);
+PluginManager _makeManager() => ProviderContainer().read(_managerProvider);
 
 // ── Plugin lifecycle tests ─────────────────────────────────────────────────────
 
@@ -158,12 +157,12 @@ void main() {
       final host = _FakeHost();
 
       manager.add(plugin);
-      manager.didConnected(host);
-      manager.didDisconnected();
+      // manager.didConnected(host);
+      // manager.didDisconnected();
       manager.remove(plugin);
 
-      expect(plugin.calls,
-          ['mounted', 'connected', 'disconnected', 'unmounted']);
+      expect(
+          plugin.calls, ['mounted', 'connected', 'disconnected', 'unmounted']);
     });
   });
 
@@ -257,4 +256,3 @@ class _FakeCommand extends Command {
   @override
   void execute(BuildContext context, WidgetRef ref) {}
 }
-

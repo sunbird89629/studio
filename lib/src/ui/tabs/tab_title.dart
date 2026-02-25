@@ -1,123 +1,15 @@
+// ─── Tab Tile ────────────────────────────────────────────────────────────────
+
 import 'package:flex_tabs/flex_tabs.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart' show Colors, Icons, InkWell, Material, Tooltip;
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:terminal_studio/src/core/service/tabs_service.dart';
-import 'package:terminal_studio/src/core/state/tabs.dart';
+import 'package:flutter/material.dart';
 import 'package:terminal_studio/src/core/state/terminal_activity.dart';
-import 'package:terminal_studio/src/hosts/local_spec.dart';
 import 'package:terminal_studio/src/plugins/terminal/terminal_plugin.dart';
 import 'package:terminal_studio/src/ui/tabs/plugin_tab.dart';
 
-/// A vertical left-side tab rail showing all open tabs as status-aware tiles.
-///
-/// Each 200px-wide tile displays:
-/// - Plugin icon + title
-/// - Secondary line: host name (idle) or current command (running/attention)
-/// - Animated activity badge for running / attention states
-class VerticalTabRail extends ConsumerStatefulWidget {
-  const VerticalTabRail({super.key});
-
-  @override
-  ConsumerState<VerticalTabRail> createState() => _VerticalTabRailState();
-}
-
-class _VerticalTabRailState extends ConsumerState<VerticalTabRail> {
-  /// Flattened list of (tabItem, owningTabsGroup) pairs in tree order.
-  List<(TabItem, Tabs)> _allTabs = [];
-
-  /// Tabs groups we're currently listening to for child changes.
-  final Set<Tabs> _listenedGroups = {};
-
-  @override
-  void initState() {
-    super.initState();
-    final doc = ref.read(tabsProvider);
-    doc.addListener(_onDocumentChanged);
-    _refreshTabs(doc);
-  }
-
-  @override
-  void dispose() {
-    ref.read(tabsProvider).removeListener(_onDocumentChanged);
-    for (final g in _listenedGroups) {
-      g.removeListener(_onGroupChanged);
-    }
-    super.dispose();
-  }
-
-  void _onDocumentChanged() => _refreshTabs(ref.read(tabsProvider));
-
-  void _onGroupChanged() => _refreshTabs(ref.read(tabsProvider));
-
-  void _refreshTabs(TabsDocument doc) {
-    // Remove listeners from groups no longer in the tree.
-    for (final g in _listenedGroups) {
-      g.removeListener(_onGroupChanged);
-    }
-    _listenedGroups.clear();
-
-    final result = <(TabItem, Tabs)>[];
-    final root = doc.root;
-    if (root != null) _collectFromNode(root, result);
-
-    // Attach listeners to all current groups.
-    for (final (_, tabs) in result) {
-      if (_listenedGroups.add(tabs)) {
-        tabs.addListener(_onGroupChanged);
-      }
-    }
-
-    setState(() {
-      _allTabs = result;
-    });
-  }
-
-  void _collectFromNode(TabsContainer node, List<(TabItem, Tabs)> result) {
-    if (node is Tabs) {
-      for (final item in node.children) {
-        result.add((item, node));
-      }
-    } else {
-      for (final child in node.children) {
-        if (child is TabsContainer) _collectFromNode(child, result);
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Expanded(
-          child: ListView.builder(
-            itemCount: _allTabs.length,
-            itemBuilder: (context, index) {
-              final (tabItem, tabs) = _allTabs[index];
-              return _TabTile(
-                tabItem: tabItem,
-                tabs: tabs,
-                index: index + 1,
-              );
-            },
-          ),
-        ),
-        _AddTabButton(
-          onPressed: () {
-            ref
-                .read(tabsServiceProvider)
-                .openTerminal(const LocalHostSpec());
-          },
-        ),
-      ],
-    );
-  }
-}
-
-// ─── Tab Tile ────────────────────────────────────────────────────────────────
-
-class _TabTile extends StatefulWidget {
-  const _TabTile({
+class TabTitle extends StatefulWidget {
+  const TabTitle({
+    super.key,
     required this.tabItem,
     required this.tabs,
     required this.index,
@@ -128,10 +20,10 @@ class _TabTile extends StatefulWidget {
   final int index;
 
   @override
-  State<_TabTile> createState() => _TabTileState();
+  State<TabTitle> createState() => _TabTitleState();
 }
 
-class _TabTileState extends State<_TabTile> {
+class _TabTitleState extends State<TabTitle> {
   bool _hover = false;
 
   TabItem get _tab => widget.tabItem;
@@ -155,7 +47,7 @@ class _TabTileState extends State<_TabTile> {
   }
 
   @override
-  void didUpdateWidget(_TabTile oldWidget) {
+  void didUpdateWidget(TabTitle oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.tabItem != widget.tabItem) {
       oldWidget.tabItem.title.removeListener(_onTitleChanged);
@@ -180,71 +72,71 @@ class _TabTileState extends State<_TabTile> {
   @override
   Widget build(BuildContext context) {
     final terminal = _terminalPlugin;
-
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hover = true),
-      onExit: (_) => setState(() => _hover = false),
-      child: GestureDetector(
-        onTap: _tab.activate,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 120),
-          height: 60,
-          decoration: BoxDecoration(
-            color: _isActive
-                ? Colors.white.withValues(alpha: 0.12)
-                : _hover
-                    ? Colors.white.withValues(alpha: 0.06)
-                    : Colors.transparent,
-            border: Border(
-              left: BorderSide(
-                color: _isActive
-                    ? CupertinoColors.activeBlue
-                    : Colors.transparent,
-                width: 2,
+    return Material(
+      child: MouseRegion(
+        onEnter: (_) => setState(() => _hover = true),
+        onExit: (_) => setState(() => _hover = false),
+        child: GestureDetector(
+          onTap: _tab.activate,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 120),
+            height: 120,
+            decoration: BoxDecoration(
+              color: _isActive
+                  ? Colors.white.withValues(alpha: 0.12)
+                  : _hover
+                      ? Colors.white.withValues(alpha: 0.06)
+                      : Colors.transparent,
+              border: Border(
+                right: BorderSide(
+                  color: _isActive
+                      ? CupertinoColors.activeBlue
+                      : Colors.transparent,
+                  width: 2,
+                ),
               ),
             ),
-          ),
-          child: Stack(
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 8,
+            child: Stack(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 8,
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // Plugin icon
+                      Icon(
+                        Icons.terminal,
+                        size: 16,
+                        color: _isActive
+                            ? Colors.white
+                            : Colors.white.withValues(alpha: 0.6),
+                      ),
+                      const SizedBox(width: 8),
+                      // Title + secondary info
+                      Expanded(
+                        child: terminal != null
+                            ? _TerminalTileContent(
+                                terminal: terminal,
+                                isActive: _isActive,
+                              )
+                            : _SimpleTileContent(
+                                tabItem: _tab,
+                                isActive: _isActive,
+                              ),
+                      ),
+                      // Activity badge (right side)
+                      if (terminal != null && !_isActive)
+                        _ActivityBadge(terminal: terminal),
+                      // Close button (on hover)
+                      if (_hover) _CloseButton(onPressed: () => _tab.dispose()),
+                    ],
+                  ),
                 ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    // Plugin icon
-                    Icon(
-                      Icons.terminal,
-                      size: 16,
-                      color: _isActive
-                          ? Colors.white
-                          : Colors.white.withValues(alpha: 0.6),
-                    ),
-                    const SizedBox(width: 8),
-                    // Title + secondary info
-                    Expanded(
-                      child: terminal != null
-                          ? _TerminalTileContent(
-                              terminal: terminal,
-                              isActive: _isActive,
-                            )
-                          : _SimpleTileContent(
-                              tabItem: _tab,
-                              isActive: _isActive,
-                            ),
-                    ),
-                    // Activity badge (right side)
-                    if (terminal != null && !_isActive)
-                      _ActivityBadge(terminal: terminal),
-                    // Close button (on hover)
-                    if (_hover)
-                      _CloseButton(onPressed: () => _tab.dispose()),
-                  ],
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -331,8 +223,7 @@ class _TerminalTileContentState extends State<_TerminalTileContent> {
           style: TextStyle(
             fontSize: 13,
             color: Colors.white.withValues(alpha: textOpacity),
-            fontWeight:
-                widget.isActive ? FontWeight.w500 : FontWeight.normal,
+            fontWeight: widget.isActive ? FontWeight.w500 : FontWeight.normal,
           ),
         ),
         const SizedBox(height: 2),
@@ -464,8 +355,7 @@ class _ActivityBadgeState extends State<_ActivityBadge>
 
     final (color, size) = switch (state) {
       TerminalActivityState.running => (CupertinoColors.activeGreen, 7.0),
-      TerminalActivityState.attention =>
-        (CupertinoColors.systemOrange, 8.0),
+      TerminalActivityState.attention => (CupertinoColors.systemOrange, 8.0),
       TerminalActivityState.disconnected => (Colors.grey, 5.0),
       TerminalActivityState.idle => (Colors.transparent, 0.0),
     };
@@ -509,37 +399,6 @@ class _CloseButton extends StatelessWidget {
           CupertinoIcons.xmark,
           size: 12,
           color: Colors.white.withValues(alpha: 0.6),
-        ),
-      ),
-    );
-  }
-}
-
-// ─── Add tab button ───────────────────────────────────────────────────────────
-
-class _AddTabButton extends StatelessWidget {
-  const _AddTabButton({required this.onPressed});
-
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return Tooltip(
-      message: 'New Terminal',
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onPressed,
-          child: SizedBox(
-            height: 44,
-            child: Center(
-              child: Icon(
-                Icons.add,
-                size: 18,
-                color: Colors.white.withValues(alpha: 0.5),
-              ),
-            ),
-          ),
         ),
       ),
     );

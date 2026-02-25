@@ -16,7 +16,7 @@ import 'package:terminal_studio/src/hosts/local_spec.dart';
 import 'package:terminal_studio/src/ui/context_menu.dart';
 import 'package:terminal_studio/src/ui/copilot_sidebar.dart';
 import 'package:terminal_studio/src/ui/log_sidebar.dart';
-import 'package:terminal_studio/src/ui/tabs/vertical_tab_rail.dart';
+import 'package:terminal_studio/src/ui/tabs/vertical/vertical_tab_rail.dart';
 import 'package:terminal_studio/src/ui/shared/debug_indicator.dart';
 import 'package:terminal_studio/src/ui/shared/release_notes_dialog.dart';
 import 'package:window_manager/window_manager.dart';
