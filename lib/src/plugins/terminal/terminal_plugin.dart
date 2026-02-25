@@ -13,6 +13,7 @@ import 'package:terminal_studio/src/core/host.dart';
 import 'package:terminal_studio/src/core/state/host.dart';
 import 'package:terminal_studio/src/core/model/shell_command_event.dart';
 import 'package:terminal_studio/src/core/model/terminal_session.dart';
+import 'package:terminal_studio/src/core/state/terminal_activity.dart';
 import 'package:terminal_studio/src/core/plugin.dart';
 import 'package:terminal_studio/src/core/service/terminal_event_bus.dart';
 import 'package:terminal_studio/src/core/state/settings.dart';
@@ -43,6 +44,17 @@ class TerminalPlugin extends Plugin {
 
   /// Inline images received via OSC 1337 (iTerm2 Inline Image Protocol).
   final inlineImages = ValueNotifier<List<InlineImageEntry>>([]);
+
+  /// Current activity state of this terminal session.
+  /// Observed by the vertical tab rail to show per-tab status.
+  final activityState = ValueNotifier<TerminalActivityState>(
+    TerminalActivityState.disconnected,
+  );
+
+  /// The last command that started executing (captured at CommandExecute).
+  /// Shown in the tab rail while the terminal is in [TerminalActivityState.running]
+  /// or [TerminalActivityState.attention] state.
+  String lastCommand = '';
 
   bool _wasUsingAltBuffer = false;
 
@@ -112,6 +124,7 @@ class TerminalPlugin extends Plugin {
     _outputSubscription?.cancel();
     _outputSubscription = null;
     session = null;
+    activityState.value = TerminalActivityState.disconnected;
   }
 
   void _recordOutput(String data) {
@@ -206,6 +219,7 @@ class TerminalPlugin extends Plugin {
     );
 
     _logger.i('Shell session created: $session');
+    activityState.value = TerminalActivityState.idle;
 
     _outputSubscription = session!.output
         .cast<List<int>>()
@@ -213,6 +227,12 @@ class TerminalPlugin extends Plugin {
         .listen(
       (raw) {
         _logger.d('Terminal received output: ${raw.length} chars');
+
+        // Detect BEL character — signals that a process is requesting attention
+        // (e.g. Claude Code waiting for user confirmation).
+        if (raw.contains('\x07')) {
+          activityState.value = TerminalActivityState.attention;
+        }
 
         // 1. Strip OSC 133 sequences and extract shell lifecycle events.
         final result = OscParser.parse(raw);
@@ -250,9 +270,15 @@ class TerminalPlugin extends Plugin {
 
   void _handleShellEvent(ShellCommandEvent event) {
     switch (event) {
+      case CommandExecute():
+        lastCommand = _inputTracker.currentInput.trim();
+        activityState.value = TerminalActivityState.running;
+      case CommandStart():
+        activityState.value = TerminalActivityState.idle;
       case CommandDone(:final exitCode):
         _logger.d('Shell command done, exitCode=$exitCode');
-      default:
+        activityState.value = TerminalActivityState.idle;
+      case PromptStart():
         break;
     }
   }
@@ -388,6 +414,7 @@ class TerminalPlugin extends Plugin {
     terminal.removeListener(_onTerminalChange);
     _cleanupSession();
     inlineImages.dispose();
+    activityState.dispose();
     BroadcastService.instance.deregister(this);
     SessionManager.instance.remove(sessionId);
     super.onUnmounted();

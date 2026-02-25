@@ -16,6 +16,7 @@ import 'package:terminal_studio/src/hosts/local_spec.dart';
 import 'package:terminal_studio/src/ui/context_menu.dart';
 import 'package:terminal_studio/src/ui/copilot_sidebar.dart';
 import 'package:terminal_studio/src/ui/log_sidebar.dart';
+import 'package:terminal_studio/src/ui/tabs/vertical_tab_rail.dart';
 import 'package:terminal_studio/src/ui/shared/debug_indicator.dart';
 import 'package:terminal_studio/src/ui/shared/release_notes_dialog.dart';
 import 'package:window_manager/window_manager.dart';
@@ -95,6 +96,7 @@ class _AppLayout extends ConsumerWidget {
   const _AppLayout();
 
   static final _tabsTheme = TabsViewThemeData(
+    tabBarHeight: 0.0,
     backgroundColor: Colors.transparent,
     groupDividerColor: Colors.transparent,
     selectedBackgroundColor: Colors.transparent,
@@ -109,10 +111,21 @@ class _AppLayout extends ConsumerWidget {
     final copilotVisible = ref.watch(copilotVisibleProvider);
     final logVisible = ref.watch(logVisibleProvider);
 
-    Widget content = TabsView(
+    final tabsView = TabsView(
       ref.watch(tabsProvider),
       theme: _tabsTheme,
       actionBuilder: (tabs) => _buildTabActions(context, ref, tabs),
+    );
+
+    Widget content = Row(
+      children: [
+        const SizedBox(
+          width: 200,
+          child: VerticalTabRail(),
+        ),
+        const VerticalDivider(width: 1, thickness: 1),
+        Expanded(child: tabsView),
+      ],
     );
 
     final sidebars = <Widget>[
@@ -170,14 +183,6 @@ class _AppLayout extends ConsumerWidget {
         icon: CupertinoIcons.chevron_down,
         onPressed: () {
           context.contextMenuOverlay.show(DropdownContextMenu(tabs));
-        },
-      ),
-      TabsViewAction(
-        icon: CupertinoIcons.add,
-        onPressed: () {
-          ref
-              .read(tabsServiceProvider)
-              .openTerminal(const LocalHostSpec(), tabs: tabs);
         },
       ),
     ];

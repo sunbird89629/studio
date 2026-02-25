@@ -317,8 +317,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: bb380f0826f9cfca2e2d459988f76eda34a83664
-      resolved-ref: bb380f0826f9cfca2e2d459988f76eda34a83664
+      ref: "8a7e21d36be2b694d141059edef6e416a1ac83aa"
+      resolved-ref: "8a7e21d36be2b694d141059edef6e416a1ac83aa"
       url: "https://github.com/sunbird89629/tabs.git"
     source: git
     version: "0.2.0-pre"
