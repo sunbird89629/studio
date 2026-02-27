@@ -4,7 +4,9 @@ import 'package:flex_tabs/flex_tabs.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:terminal_studio/src/core/state/terminal_activity.dart';
+import 'package:terminal_studio/src/plugins/ai/ai_plugin.dart';
 import 'package:terminal_studio/src/plugins/terminal/terminal_plugin.dart';
+import 'package:terminal_studio/src/ui/icons/ai_icons.dart';
 import 'package:terminal_studio/src/ui/tabs/plugin_tab.dart';
 
 class TabTitle extends StatefulWidget {
@@ -12,12 +14,10 @@ class TabTitle extends StatefulWidget {
     super.key,
     required this.tabItem,
     required this.tabs,
-    required this.index,
   });
 
   final TabItem tabItem;
   final Tabs tabs;
-  final int index;
 
   @override
   State<TabTitle> createState() => _TabTitleState();
@@ -28,8 +28,6 @@ class _TabTitleState extends State<TabTitle> {
 
   TabItem get _tab => widget.tabItem;
 
-  bool get _isActive => _tab.isActivated;
-
   /// Returns the TerminalPlugin if this tab hosts one; null otherwise.
   TerminalPlugin? get _terminalPlugin {
     if (_tab is PluginTab) {
@@ -39,66 +37,50 @@ class _TabTitleState extends State<TabTitle> {
     return null;
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _tab.title.addListener(_onTitleChanged);
-    widget.tabs.addListener(_onTabsChanged);
-  }
-
-  @override
-  void didUpdateWidget(TabTitle oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.tabItem != widget.tabItem) {
-      oldWidget.tabItem.title.removeListener(_onTitleChanged);
-      _tab.title.addListener(_onTitleChanged);
+  /// Returns the appropriate icon based on the plugin type.
+  IconData _getTabIcon() {
+    if (_tab is PluginTab) {
+      final plugin = (_tab as PluginTab).plugin;
+      if (plugin is AIPlugin) return AIIcons.claude;
+      if (plugin is TerminalPlugin) return Icons.terminal;
+      return Icons.extension;
     }
-    if (oldWidget.tabs != widget.tabs) {
-      oldWidget.tabs.removeListener(_onTabsChanged);
-      widget.tabs.addListener(_onTabsChanged);
-    }
+    return Icons.circle_outlined;
   }
-
-  @override
-  void dispose() {
-    _tab.title.removeListener(_onTitleChanged);
-    widget.tabs.removeListener(_onTabsChanged);
-    super.dispose();
-  }
-
-  void _onTitleChanged() => setState(() {});
-  void _onTabsChanged() => setState(() {});
 
   @override
   Widget build(BuildContext context) {
     final terminal = _terminalPlugin;
-    return Material(
-      child: MouseRegion(
-        onEnter: (_) => setState(() => _hover = true),
-        onExit: (_) => setState(() => _hover = false),
-        child: GestureDetector(
-          onTap: _tab.activate,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 120),
-            height: 120,
-            decoration: BoxDecoration(
-              color: _isActive
-                  ? Colors.white.withValues(alpha: 0.12)
-                  : _hover
-                      ? Colors.white.withValues(alpha: 0.06)
-                      : Colors.transparent,
-              border: Border(
-                right: BorderSide(
-                  color: _isActive
-                      ? CupertinoColors.activeBlue
-                      : Colors.transparent,
-                  width: 2,
+    final tabIcon = _getTabIcon();
+    return ListenableBuilder(
+      listenable: widget.tabs,
+      builder: (context, _) {
+        final isActive = _tab.isActivated;
+        return Material(
+          child: MouseRegion(
+            onEnter: (_) => setState(() => _hover = true),
+            onExit: (_) => setState(() => _hover = false),
+            child: GestureDetector(
+              onTap: _tab.activate,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 120),
+                height: 120,
+                decoration: BoxDecoration(
+                  color: isActive
+                      ? Colors.white.withValues(alpha: 0.12)
+                      : _hover
+                          ? Colors.white.withValues(alpha: 0.06)
+                          : Colors.transparent,
+                  border: Border(
+                    right: BorderSide(
+                      color: isActive
+                          ? CupertinoColors.activeBlue
+                          : Colors.transparent,
+                      width: 2,
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            child: Stack(
-              children: [
-                Padding(
+                child: Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 10,
                     vertical: 8,
@@ -106,47 +88,43 @@ class _TabTitleState extends State<TabTitle> {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      // Plugin icon
                       Icon(
-                        Icons.terminal,
+                        tabIcon,
                         size: 16,
-                        color: _isActive
+                        color: isActive
                             ? Colors.white
                             : Colors.white.withValues(alpha: 0.6),
                       ),
                       const SizedBox(width: 8),
-                      // Title + secondary info
                       Expanded(
                         child: terminal != null
                             ? _TerminalTileContent(
                                 terminal: terminal,
-                                isActive: _isActive,
+                                isActive: isActive,
                               )
                             : _SimpleTileContent(
                                 tabItem: _tab,
-                                isActive: _isActive,
+                                isActive: isActive,
                               ),
                       ),
-                      // Activity badge (right side)
-                      if (terminal != null && !_isActive)
+                      if (terminal != null && !isActive)
                         _ActivityBadge(terminal: terminal),
-                      // Close button (on hover)
-                      if (_hover) _CloseButton(onPressed: () => _tab.dispose()),
+                      if (_hover) _CloseButton(onPressed: _tab.dispose),
                     ],
                   ),
                 ),
-              ],
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
 
 // ─── Tile content widgets ─────────────────────────────────────────────────────
 
-class _TerminalTileContent extends StatefulWidget {
+class _TerminalTileContent extends StatelessWidget {
   const _TerminalTileContent({
     required this.terminal,
     required this.isActive,
@@ -155,92 +133,14 @@ class _TerminalTileContent extends StatefulWidget {
   final TerminalPlugin terminal;
   final bool isActive;
 
-  @override
-  State<_TerminalTileContent> createState() => _TerminalTileContentState();
-}
-
-class _TerminalTileContentState extends State<_TerminalTileContent> {
-  @override
-  void initState() {
-    super.initState();
-    widget.terminal.activityState.addListener(_rebuild);
-    widget.terminal.title.addListener(_rebuild);
-  }
-
-  @override
-  void didUpdateWidget(_TerminalTileContent oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.terminal != widget.terminal) {
-      oldWidget.terminal.activityState.removeListener(_rebuild);
-      oldWidget.terminal.title.removeListener(_rebuild);
-      widget.terminal.activityState.addListener(_rebuild);
-      widget.terminal.title.addListener(_rebuild);
-    }
-  }
-
-  @override
-  void dispose() {
-    widget.terminal.activityState.removeListener(_rebuild);
-    widget.terminal.title.removeListener(_rebuild);
-    super.dispose();
-  }
-
-  void _rebuild() => setState(() {});
-
   /// Strip the dimensions suffix " — WxH" that TerminalPlugin appends to title.
   String _primaryText() {
-    final raw = widget.terminal.title.value ?? 'Terminal';
+    final raw = terminal.title.value ?? 'Terminal';
     final sepIdx = raw.indexOf(' \u2014 ');
     return sepIdx >= 0 ? raw.substring(0, sepIdx) : raw;
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final state = widget.terminal.activityState.value;
-    final lastCommand = widget.terminal.lastCommand;
-
-    final secondaryText = switch (state) {
-      TerminalActivityState.running =>
-        lastCommand.isNotEmpty ? lastCommand : 'Running\u2026',
-      TerminalActivityState.attention =>
-        lastCommand.isNotEmpty ? lastCommand : 'Waiting\u2026',
-      TerminalActivityState.disconnected => 'Disconnected',
-      TerminalActivityState.idle => widget.terminal.manager.hostSpec.name,
-    };
-
-    final textOpacity = widget.isActive
-        ? 1.0
-        : (state == TerminalActivityState.disconnected ? 0.35 : 0.75);
-
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          _primaryText(),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(
-            fontSize: 13,
-            color: Colors.white.withValues(alpha: textOpacity),
-            fontWeight: widget.isActive ? FontWeight.w500 : FontWeight.normal,
-          ),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          secondaryText,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(
-            fontSize: 11,
-            color: _secondaryColor(state, widget.isActive),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Color _secondaryColor(TerminalActivityState state, bool isActive) {
+  Color _secondaryColor(TerminalActivityState state) {
     if (isActive) return Colors.white.withValues(alpha: 0.5);
     return switch (state) {
       TerminalActivityState.running =>
@@ -251,6 +151,57 @@ class _TerminalTileContentState extends State<_TerminalTileContent> {
         Colors.white.withValues(alpha: 0.25),
       TerminalActivityState.idle => Colors.white.withValues(alpha: 0.4),
     };
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: Listenable.merge([terminal.activityState, terminal.title]),
+      builder: (context, _) {
+        final state = terminal.activityState.value;
+        final lastCommand = terminal.lastCommand;
+
+        final secondaryText = switch (state) {
+          TerminalActivityState.running =>
+            lastCommand.isNotEmpty ? lastCommand : 'Running\u2026',
+          TerminalActivityState.attention =>
+            lastCommand.isNotEmpty ? lastCommand : 'Waiting\u2026',
+          TerminalActivityState.disconnected => 'Disconnected',
+          TerminalActivityState.idle => terminal.manager.hostSpec.name,
+        };
+
+        final textOpacity = isActive
+            ? 1.0
+            : (state == TerminalActivityState.disconnected ? 0.35 : 0.75);
+
+        return Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              _primaryText(),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.white.withValues(alpha: textOpacity),
+                fontWeight: isActive ? FontWeight.w500 : FontWeight.normal,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              secondaryText,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 11,
+                color: _secondaryColor(state),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 }
 
@@ -268,15 +219,16 @@ class _SimpleTileContent extends StatelessWidget {
     return ValueListenableBuilder<Widget?>(
       valueListenable: tabItem.title,
       builder: (context, titleWidget, _) {
-        return Text(
-          'Tab',
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(
-            fontSize: 13,
-            color: Colors.white.withValues(alpha: isActive ? 1.0 : 0.7),
-          ),
-        );
+        return titleWidget ??
+            Text(
+              'Tab',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.white.withValues(alpha: isActive ? 1.0 : 0.7),
+              ),
+            );
       },
     );
   }
@@ -336,9 +288,7 @@ class _ActivityBadgeState extends State<_ActivityBadge>
 
   void _syncAnimation(TerminalActivityState state) {
     if (state == TerminalActivityState.attention) {
-      if (!_controller.isAnimating) {
-        _controller.repeat(reverse: true);
-      }
+      if (!_controller.isAnimating) _controller.repeat(reverse: true);
     } else {
       _controller.stop();
       _controller.value = 1.0;
@@ -349,9 +299,7 @@ class _ActivityBadgeState extends State<_ActivityBadge>
   Widget build(BuildContext context) {
     final state = widget.terminal.activityState.value;
 
-    if (state == TerminalActivityState.idle) {
-      return const SizedBox.shrink();
-    }
+    if (state == TerminalActivityState.idle) return const SizedBox.shrink();
 
     final (color, size) = switch (state) {
       TerminalActivityState.running => (CupertinoColors.activeGreen, 7.0),

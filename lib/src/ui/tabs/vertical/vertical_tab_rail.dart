@@ -1,9 +1,7 @@
 import 'package:flex_tabs/flex_tabs.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:terminal_studio/src/core/service/tabs_service.dart';
 import 'package:terminal_studio/src/core/state/tabs.dart';
-import 'package:terminal_studio/src/hosts/local_spec.dart';
 import 'package:terminal_studio/src/ui/tabs/tab_title.dart';
 import 'package:terminal_studio/src/ui/tabs/vertical/widgets/add_tab_button.dart';
 
@@ -95,16 +93,11 @@ class _VerticalTabRailState extends ConsumerState<VerticalTabRail> {
               return TabTitle(
                 tabItem: tabItem,
                 tabs: tabs,
-                index: index + 1,
               );
             },
           ),
         ),
-        AddTabButton(
-          onPressed: () {
-            ref.read(tabsServiceProvider).openTerminal(const LocalHostSpec());
-          },
-        ),
+        const AddTabButton(),
       ],
     );
   }
