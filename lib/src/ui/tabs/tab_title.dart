@@ -4,7 +4,6 @@ import 'package:flex_tabs/flex_tabs.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:terminal_studio/src/core/state/terminal_activity.dart';
-import 'package:terminal_studio/src/plugins/ai/ai_plugin.dart';
 import 'package:terminal_studio/src/plugins/terminal/terminal_plugin.dart';
 import 'package:terminal_studio/src/ui/icons/ai_icons.dart';
 import 'package:terminal_studio/src/ui/tabs/plugin_tab.dart';
@@ -39,25 +38,30 @@ class _TabTitleState extends State<TabTitle> {
 
   /// Returns the appropriate icon based on the plugin type and running process.
   IconData _getTabIcon() {
-    if (_tab is PluginTab) {
-      final plugin = (_tab as PluginTab).plugin;
-      if (plugin is AIPlugin) return AIIcons.claude;
-      if (plugin is TerminalPlugin) {
-        final state = plugin.activityState.value;
-        final isRunning = state == TerminalActivityState.running ||
-            state == TerminalActivityState.attention;
-        if (isRunning) {
-          final cmd = plugin.lastCommand.toLowerCase();
-          if (cmd == 'claude' || cmd.startsWith('claude ')) {
-            return AIIcons.claude;
-          }
-        }
-        return Icons.terminal;
-      }
-      return Icons.extension;
+    final title = _terminalPlugin?.terminalTitle.toLowerCase();
+    if (title == null) {
+      return Icons.circle_outlined;
+    } else if (title.contains("claude")) {
+      return AIIcons.claude;
+    } else if (title.contains("codex")) {
+      return AIIcons.openai;
+    } else if (title.contains("opencode")) {
+      return AIIcons.opencode;
+    } else {
+      return Icons.circle_outlined;
     }
-    return Icons.circle_outlined;
   }
+
+  // /// True when the terminal has claude as the foreground process.
+  // bool _isRunningClaude(TerminalPlugin terminal) {
+  //   final state = terminal.activityState.value;
+  //   if (state == TerminalActivityState.idle ||
+  //       state == TerminalActivityState.disconnected) {
+  //     return false;
+  //   }
+  //   final cmd = terminal.lastCommand.toLowerCase();
+  //   return cmd == 'claude' || cmd.startsWith('claude ');
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -69,7 +73,6 @@ class _TabTitleState extends State<TabTitle> {
       ]),
       builder: (context, _) {
         final isActive = _tab.isActivated;
-        final tabIcon = _getTabIcon();
         return Material(
           child: MouseRegion(
             onEnter: (_) => setState(() => _hover = true),
@@ -94,38 +97,46 @@ class _TabTitleState extends State<TabTitle> {
                     ),
                   ),
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 8,
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Icon(
-                        tabIcon,
-                        size: 16,
-                        color: isActive
-                            ? Colors.white
-                            : Colors.white.withValues(alpha: 0.6),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Positioned(
+                      left: 0,
+                      top: 0,
+                      child: Icon(
+                        _getTabIcon(),
+                        size: 100,
+                        color: Colors.white.withValues(alpha: 0.12),
                       ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: terminal != null
-                            ? _TerminalTileContent(
-                                terminal: terminal,
-                                isActive: isActive,
-                              )
-                            : _SimpleTileContent(
-                                tabItem: _tab,
-                                isActive: isActive,
-                              ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 8,
                       ),
-                      if (terminal != null && !isActive)
-                        _ActivityBadge(terminal: terminal),
-                      if (_hover) _CloseButton(onPressed: _tab.dispose),
-                    ],
-                  ),
+                      child: terminal != null
+                          ? _TerminalTileContent(
+                              terminal: terminal,
+                              isActive: isActive,
+                            )
+                          : _SimpleTileContent(
+                              tabItem: _tab,
+                              isActive: isActive,
+                            ),
+                    ),
+                    if (terminal != null && !isActive)
+                      Positioned(
+                        right: 0,
+                        child: _ActivityBadge(terminal: terminal),
+                      ),
+                    if (_hover)
+                      Positioned(
+                        right: 0,
+                        width: 40,
+                        height: 40,
+                        child: _CloseButton(onPressed: _tab.dispose),
+                      ),
+                  ],
                 ),
               ),
             ),

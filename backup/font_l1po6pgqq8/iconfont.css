@@ -1,0 +1,37 @@
+@font-face {
+  font-family: "iconfont"; /* Project id  */
+  src: url('iconfont.ttf?t=1772170937545') format('truetype');
+}
+
+.iconfont {
+  font-family: "iconfont" !important;
+  font-size: 16px;
+  font-style: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-openai:before {
+  content: "\e501";
+}
+
+.icon-Claude:before {
+  content: "\e675";
+}
+
+.icon-opencode-logo-light:before {
+  content: "\e507";
+}
+
+.icon-a-378310088:before {
+  content: "\e601";
+}
+
+.icon-a-378310089:before {
+  content: "\e602";
+}
+
+.icon-a-378310090:before {
+  content: "\e603";
+}
+

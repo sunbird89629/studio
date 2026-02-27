@@ -87,6 +87,7 @@ class _VerticalTabRailState extends ConsumerState<VerticalTabRail> {
       children: [
         Expanded(
           child: ListView.builder(
+            padding: EdgeInsets.only(top: 24),
             itemCount: _allTabs.length,
             itemBuilder: (context, index) {
               final (tabItem, tabs) = _allTabs[index];
