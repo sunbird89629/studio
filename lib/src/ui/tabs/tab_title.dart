@@ -37,12 +37,23 @@ class _TabTitleState extends State<TabTitle> {
     return null;
   }
 
-  /// Returns the appropriate icon based on the plugin type.
+  /// Returns the appropriate icon based on the plugin type and running process.
   IconData _getTabIcon() {
     if (_tab is PluginTab) {
       final plugin = (_tab as PluginTab).plugin;
       if (plugin is AIPlugin) return AIIcons.claude;
-      if (plugin is TerminalPlugin) return Icons.terminal;
+      if (plugin is TerminalPlugin) {
+        final state = plugin.activityState.value;
+        final isRunning = state == TerminalActivityState.running ||
+            state == TerminalActivityState.attention;
+        if (isRunning) {
+          final cmd = plugin.lastCommand.toLowerCase();
+          if (cmd == 'claude' || cmd.startsWith('claude ')) {
+            return AIIcons.claude;
+          }
+        }
+        return Icons.terminal;
+      }
       return Icons.extension;
     }
     return Icons.circle_outlined;
@@ -51,11 +62,14 @@ class _TabTitleState extends State<TabTitle> {
   @override
   Widget build(BuildContext context) {
     final terminal = _terminalPlugin;
-    final tabIcon = _getTabIcon();
     return ListenableBuilder(
-      listenable: widget.tabs,
+      listenable: Listenable.merge([
+        widget.tabs,
+        if (terminal != null) terminal.activityState,
+      ]),
       builder: (context, _) {
         final isActive = _tab.isActivated;
+        final tabIcon = _getTabIcon();
         return Material(
           child: MouseRegion(
             onEnter: (_) => setState(() => _hover = true),
