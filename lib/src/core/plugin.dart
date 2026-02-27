@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_studio/src/core/conn.dart';
 import 'package:terminal_studio/src/core/exceptions.dart';
 import 'package:terminal_studio/src/core/host.dart';
-import 'package:terminal_studio/src/core/utils/app_logger.dart';
+import 'package:terminal_studio/src/core/log/app_logger.dart';
 
 abstract class Plugin {
   PluginManager? _manager;

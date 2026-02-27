@@ -6,7 +6,7 @@ import 'package:flutter_pty/flutter_pty.dart';
 import 'package:terminal_studio/src/core/fs.dart' hide File, Directory, Link;
 import 'package:terminal_studio/src/core/host.dart';
 import 'package:terminal_studio/src/hosts/local_fs.dart';
-import '../core/utils/app_logger.dart';
+import '../core/log/app_logger.dart';
 
 class LocalHost implements Host {
   final _logger = AppLogger.forComponent('LocalHost');

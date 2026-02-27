@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path/path.dart' as p;
-import 'package:terminal_studio/src/core/utils/app_logger.dart';
+import 'package:terminal_studio/src/core/log/app_logger.dart';
 
 final releaseNotesServiceProvider = Provider<ReleaseNotesService>((ref) {
   return ReleaseNotesService();

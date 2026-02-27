@@ -7,6 +7,7 @@ import 'package:terminal_studio/src/core/state/terminal_activity.dart';
 import 'package:terminal_studio/src/plugins/terminal/terminal_plugin.dart';
 import 'package:terminal_studio/src/ui/icons/ai_icons.dart';
 import 'package:terminal_studio/src/ui/tabs/plugin_tab.dart';
+import 'package:terminal_studio/src/ui/tabs/vertical/widgets/content_widget.dart';
 
 class TabTitle extends StatefulWidget {
   const TabTitle({
@@ -37,7 +38,7 @@ class _TabTitleState extends State<TabTitle> {
   }
 
   /// Returns the appropriate icon based on the plugin type and running process.
-  IconData _getTabIcon() {
+  IconData get _getTabIcon {
     final title = _terminalPlugin?.terminalTitle.toLowerCase();
     if (title == null) {
       return Icons.circle_outlined;
@@ -51,17 +52,6 @@ class _TabTitleState extends State<TabTitle> {
       return Icons.circle_outlined;
     }
   }
-
-  // /// True when the terminal has claude as the foreground process.
-  // bool _isRunningClaude(TerminalPlugin terminal) {
-  //   final state = terminal.activityState.value;
-  //   if (state == TerminalActivityState.idle ||
-  //       state == TerminalActivityState.disconnected) {
-  //     return false;
-  //   }
-  //   final cmd = terminal.lastCommand.toLowerCase();
-  //   return cmd == 'claude' || cmd.startsWith('claude ');
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -103,26 +93,20 @@ class _TabTitleState extends State<TabTitle> {
                     Positioned(
                       left: 0,
                       top: 0,
-                      child: Icon(
-                        _getTabIcon(),
-                        size: 100,
-                        color: Colors.white.withValues(alpha: 0.12),
+                      bottom: 0,
+                      child: AspectRatio(
+                        aspectRatio: 1,
+                        child: Icon(
+                          _getTabIcon,
+                          size: 100,
+                          color: Colors.white.withValues(alpha: 0.12),
+                        ),
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 8,
-                      ),
-                      child: terminal != null
-                          ? _TerminalTileContent(
-                              terminal: terminal,
-                              isActive: isActive,
-                            )
-                          : _SimpleTileContent(
-                              tabItem: _tab,
-                              isActive: isActive,
-                            ),
+                    ContentWidget(
+                      terminal: terminal,
+                      isActive: isActive,
+                      tab: _tab,
                     ),
                     if (terminal != null && !isActive)
                       Positioned(
@@ -142,118 +126,6 @@ class _TabTitleState extends State<TabTitle> {
             ),
           ),
         );
-      },
-    );
-  }
-}
-
-// ─── Tile content widgets ─────────────────────────────────────────────────────
-
-class _TerminalTileContent extends StatelessWidget {
-  const _TerminalTileContent({
-    required this.terminal,
-    required this.isActive,
-  });
-
-  final TerminalPlugin terminal;
-  final bool isActive;
-
-  /// Strip the dimensions suffix " — WxH" that TerminalPlugin appends to title.
-  String _primaryText() {
-    final raw = terminal.title.value ?? 'Terminal';
-    final sepIdx = raw.indexOf(' \u2014 ');
-    return sepIdx >= 0 ? raw.substring(0, sepIdx) : raw;
-  }
-
-  Color _secondaryColor(TerminalActivityState state) {
-    if (isActive) return Colors.white.withValues(alpha: 0.5);
-    return switch (state) {
-      TerminalActivityState.running =>
-        CupertinoColors.activeGreen.withValues(alpha: 0.8),
-      TerminalActivityState.attention =>
-        CupertinoColors.systemOrange.withValues(alpha: 0.9),
-      TerminalActivityState.disconnected =>
-        Colors.white.withValues(alpha: 0.25),
-      TerminalActivityState.idle => Colors.white.withValues(alpha: 0.4),
-    };
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: Listenable.merge([terminal.activityState, terminal.title]),
-      builder: (context, _) {
-        final state = terminal.activityState.value;
-        final lastCommand = terminal.lastCommand;
-
-        final secondaryText = switch (state) {
-          TerminalActivityState.running =>
-            lastCommand.isNotEmpty ? lastCommand : 'Running\u2026',
-          TerminalActivityState.attention =>
-            lastCommand.isNotEmpty ? lastCommand : 'Waiting\u2026',
-          TerminalActivityState.disconnected => 'Disconnected',
-          TerminalActivityState.idle => terminal.manager.hostSpec.name,
-        };
-
-        final textOpacity = isActive
-            ? 1.0
-            : (state == TerminalActivityState.disconnected ? 0.35 : 0.75);
-
-        return Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              _primaryText(),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 13,
-                color: Colors.white.withValues(alpha: textOpacity),
-                fontWeight: isActive ? FontWeight.w500 : FontWeight.normal,
-              ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              secondaryText,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 11,
-                color: _secondaryColor(state),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-}
-
-class _SimpleTileContent extends StatelessWidget {
-  const _SimpleTileContent({
-    required this.tabItem,
-    required this.isActive,
-  });
-
-  final TabItem tabItem;
-  final bool isActive;
-
-  @override
-  Widget build(BuildContext context) {
-    return ValueListenableBuilder<Widget?>(
-      valueListenable: tabItem.title,
-      builder: (context, titleWidget, _) {
-        return titleWidget ??
-            Text(
-              'Tab',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 13,
-                color: Colors.white.withValues(alpha: isActive ? 1.0 : 0.7),
-              ),
-            );
       },
     );
   }

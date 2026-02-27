@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:terminal_studio/src/core/service/remote_control_service.dart';
 import 'package:terminal_studio/src/core/service/tunnel_service.dart';
-import 'package:terminal_studio/src/core/utils/app_logger.dart';
+import 'package:terminal_studio/src/core/log/app_logger.dart';
 
 class NotificationService {
   final _logger = AppLogger.forComponent('NotificationService');

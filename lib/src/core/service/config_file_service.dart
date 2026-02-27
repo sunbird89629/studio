@@ -7,7 +7,7 @@ import 'package:path/path.dart' as p;
 import 'package:terminal_studio/src/core/record/profile_record.dart';
 import 'package:terminal_studio/src/core/record/settings_record.dart';
 import 'package:terminal_studio/src/core/record/snippet_record.dart';
-import '../utils/app_logger.dart';
+import '../log/app_logger.dart';
 
 /// Service for reading/writing `~/.config/openterm/config.jsonc`.
 class ConfigFileService {

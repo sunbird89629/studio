@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
 import 'package:terminal_studio/src/core/record/ssh_host_record.dart';
 import 'package:terminal_studio/src/core/record/ssh_key_record.dart';
-import 'package:terminal_studio/src/core/utils/app_logger.dart';
+import 'package:terminal_studio/src/core/log/app_logger.dart';
 
 /// Service for persisting SSH hosts and keys to JSON files.
 ///

@@ -4,33 +4,46 @@ import 'dart:io' as io;
 
 import 'package:context_menus/context_menus.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart' show Colors, ElevatedButton, IconButton, Icons, InputDecoration, Material, OutlineInputBorder, ScaffoldMessenger, SnackBar, TextField, Theme;
+import 'package:flutter/material.dart'
+    show
+        Colors,
+        ElevatedButton,
+        IconButton,
+        Icons,
+        InputDecoration,
+        Material,
+        OutlineInputBorder,
+        ScaffoldMessenger,
+        SnackBar,
+        TextField,
+        Theme;
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_studio/src/core/conn.dart';
 import 'package:terminal_studio/src/core/host.dart';
-import 'package:terminal_studio/src/core/state/host.dart';
 import 'package:terminal_studio/src/core/model/shell_command_event.dart';
 import 'package:terminal_studio/src/core/model/terminal_session.dart';
-import 'package:terminal_studio/src/core/state/terminal_activity.dart';
 import 'package:terminal_studio/src/core/plugin.dart';
-import 'package:terminal_studio/src/core/service/terminal_event_bus.dart';
-import 'package:terminal_studio/src/core/state/settings.dart';
+import 'package:terminal_studio/src/core/service/broadcast_service.dart';
 import 'package:terminal_studio/src/core/service/launcher_service.dart';
+import 'package:terminal_studio/src/core/service/terminal_event_bus.dart';
+import 'package:terminal_studio/src/core/state/host.dart';
+import 'package:terminal_studio/src/core/state/keymap.dart';
+import 'package:terminal_studio/src/core/state/settings.dart';
+import 'package:terminal_studio/src/core/state/terminal_activity.dart';
 import 'package:terminal_studio/src/core/utils/link_detector.dart';
 import 'package:terminal_studio/src/core/utils/osc_parser.dart';
 import 'package:terminal_studio/src/plugins/terminal/inline_image.dart';
-import 'package:terminal_studio/src/core/service/broadcast_service.dart';
 import 'package:terminal_studio/src/plugins/terminal/terminal_input_tracker.dart';
 import 'package:terminal_studio/src/plugins/terminal/terminal_menu.dart';
 import 'package:terminal_studio/src/plugins/terminal/xterm_fixes.dart';
 import 'package:terminal_studio/src/ui/shortcut/intents.dart';
-import 'package:terminal_studio/src/core/state/keymap.dart';
 import 'package:terminal_studio/src/ui/shortcuts.dart';
 import 'package:terminal_studio/src/util/uuid.dart';
 import 'package:xterm/xterm.dart';
-import '../../core/utils/app_logger.dart';
+
+import '../../core/log/app_logger.dart';
 
 class TerminalPlugin extends Plugin {
   late final Terminal terminal;
@@ -147,6 +160,9 @@ class TerminalPlugin extends Plugin {
   @override
   void onMounted() {
     sessionId = uuidV4();
+    title.addListener(() {
+      _logger.d("title:${title.value}");
+    });
     SessionManager.instance.register(TerminalSession(
       id: sessionId,
       hostSpec: hostSpec,
@@ -221,10 +237,8 @@ class TerminalPlugin extends Plugin {
     _logger.i('Shell session created: $session');
     activityState.value = TerminalActivityState.idle;
 
-    _outputSubscription = session!.output
-        .cast<List<int>>()
-        .transform(const Utf8Decoder())
-        .listen(
+    _outputSubscription =
+        session!.output.cast<List<int>>().transform(const Utf8Decoder()).listen(
       (raw) {
         _logger.d('Terminal received output: ${raw.length} chars');
 
@@ -242,9 +256,9 @@ class TerminalPlugin extends Plugin {
 
         // 3. Broadcast clean data with session context to all consumers.
         ref.read(terminalEventBusProvider).emitOutput(
-          sessionId: sessionId,
-          data: result.cleanData,
-        );
+              sessionId: sessionId,
+              data: result.cleanData,
+            );
 
         // 4. Record output for Asciinema if recording.
         _recordOutput(result.cleanData);
@@ -494,7 +508,8 @@ class _TerminalTabViewState extends ConsumerState<TerminalTabView> {
 
   void _openFind() {
     setState(() => _findVisible = true);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _findFocus.requestFocus());
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => _findFocus.requestFocus());
   }
 
   void _closeFind() {
@@ -553,8 +568,8 @@ class _TerminalTabViewState extends ConsumerState<TerminalTabView> {
   void _findPrevious() {
     if (_findMatchLines.isEmpty) return;
     setState(() {
-      _findCurrentMatch =
-          (_findCurrentMatch - 1 + _findMatchLines.length) % _findMatchLines.length;
+      _findCurrentMatch = (_findCurrentMatch - 1 + _findMatchLines.length) %
+          _findMatchLines.length;
     });
     _scrollToMatch(_findMatchLines[_findCurrentMatch]);
   }
@@ -627,7 +642,9 @@ class _TerminalTabViewState extends ConsumerState<TerminalTabView> {
   }
 
   void _handleTapUp(TapUpDetails _, CellOffset cellOffset) {
-    _logger.d('onTapUp cell=(${cellOffset.x},${cellOffset.y}) modActive=$_openModifierActive');
+    _logger.d(
+      'onTapUp cell=(${cellOffset.x},${cellOffset.y}) modActive=$_openModifierActive',
+    );
     if (!_openModifierActive) return;
 
     final plugin = widget.plugin;
@@ -635,7 +652,8 @@ class _TerminalTabViewState extends ConsumerState<TerminalTabView> {
     // CellOffset.y from onTapUp is buffer-absolute (accounts for scroll).
     final safeY = cellOffset.y.clamp(0, buffer.lines.length - 1);
 
-    _logger.d('buffer: lines=${buffer.lines.length} viewWidth=${buffer.viewWidth} viewHeight=${plugin.terminal.viewHeight} safeY=$safeY');
+    _logger.d(
+        'buffer: lines=${buffer.lines.length} viewWidth=${buffer.viewWidth} viewHeight=${plugin.terminal.viewHeight} safeY=$safeY');
 
     final lineText = buffer.getText(
       BufferRangeLine(
@@ -709,8 +727,7 @@ class _TerminalTabViewState extends ConsumerState<TerminalTabView> {
                     onPrevious: _findPrevious,
                     onClose: _closeFind,
                   ),
-                if (isDisconnected)
-                  _ReconnectOverlay(plugin: widget.plugin),
+                if (isDisconnected) _ReconnectOverlay(plugin: widget.plugin),
               ],
             ),
           ),
@@ -803,8 +820,8 @@ class _FindBar extends StatelessWidget {
                   decoration: InputDecoration(
                     hintText: 'Find...',
                     isDense: true,
-                    contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 6),
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(4),
                     ),
@@ -879,9 +896,7 @@ class _ReconnectOverlay extends ConsumerWidget {
                   icon: const Icon(Icons.refresh),
                   label: const Text('Reconnect'),
                   onPressed: () {
-                    ref
-                        .read(connectorProvider(plugin.hostSpec))
-                        .connect();
+                    ref.read(connectorProvider(plugin.hostSpec)).connect();
                   },
                 ),
               ],
@@ -932,9 +947,8 @@ class _InlineImageOverlay extends StatelessWidget {
                     top: padding + entry.row * cellHeight,
                     width: (entry.widthCells ?? (viewWidth - entry.col)) *
                         cellWidth,
-                    height:
-                        (entry.heightCells ?? (viewHeight - entry.row)) *
-                            cellHeight,
+                    height: (entry.heightCells ?? (viewHeight - entry.row)) *
+                        cellHeight,
                     child: Image.memory(
                       entry.bytes,
                       fit: BoxFit.contain,

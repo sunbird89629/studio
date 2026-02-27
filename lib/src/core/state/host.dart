@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_studio/src/core/conn.dart';
 import 'package:terminal_studio/src/core/host.dart';
-import '../utils/app_logger.dart';
+import '../log/app_logger.dart';
 
 final _logger = AppLogger.forComponent('HostState');
 

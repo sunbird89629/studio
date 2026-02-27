@@ -7,7 +7,7 @@ import 'package:path/path.dart' as p;
 import 'package:terminal_studio/src/core/host.dart';
 import 'package:terminal_studio/src/hosts/local_host.dart';
 import 'package:xterm/xterm.dart';
-import '../utils/app_logger.dart';
+import '../log/app_logger.dart';
 
 class VimEditState {
   final bool isVisible;

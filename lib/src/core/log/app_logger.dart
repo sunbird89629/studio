@@ -1,8 +1,6 @@
-import 'dart:convert';
-
-import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
 import 'package:terminal_studio/src/core/log/log_entry.dart';
+import 'package:terminal_studio/src/core/log/printer/one_line_log_printer.dart';
 import 'package:terminal_studio/src/core/service/log_service.dart';
 
 /// Context associated with a log entry.
@@ -52,6 +50,7 @@ class LogServiceOutput extends LogOutput {
 class AppLogger {
   final Logger _logger;
   final LogContext _globalContext;
+  final bool enable;
 
   static final Map<String, AppLogger> _cache = {};
 
@@ -69,10 +68,12 @@ class AppLogger {
   AppLogger({
     Logger? logger,
     LogContext context = const LogContext(),
+    this.enable = true,
   })  : _globalContext = context,
         _logger = logger ??
             Logger(
-              printer: kReleaseMode ? JsonLogPrinter() : PrettyLogPrinter(),
+              // printer: kReleaseMode ? JsonLogPrinter() : PrettyLogPrinter(),
+              printer: OneLineLogPrinter(),
               output: MultiOutput([
                 ConsoleOutput(),
                 LogServiceOutput(context.component ?? 'app'),
@@ -149,47 +150,4 @@ class AppLogger {
       time: DateTime.now(),
     );
   }
-}
-
-/// Printer that outputs logs in a compressed JSON format.
-class JsonLogPrinter extends LogPrinter {
-  @override
-  List<String> log(LogEvent event) {
-    var message = event.message;
-    var error = event.error;
-    var stack = event.stackTrace;
-
-    Map<String, dynamic> logData = {
-      'ts': event.time.toUtc().toIso8601String(),
-      'lv': event.level.name.toUpperCase().substring(0, 3),
-      'msg': message.toString(),
-    };
-
-    if (error != null) {
-      logData['err'] = error.toString();
-    }
-
-    if (stack != null) {
-      logData['stk'] = stack.toString();
-    }
-
-    try {
-      return [jsonEncode(logData)];
-    } catch (e) {
-      return ['{"lv":"ERR","msg":"JSON encoding error: $e"}'];
-    }
-  }
-}
-
-/// Printer that outputs logs in a human-readable format for development.
-class PrettyLogPrinter extends PrettyPrinter {
-  PrettyLogPrinter()
-      : super(
-          methodCount: 1,
-          errorMethodCount: 8,
-          lineLength: 120,
-          colors: true,
-          printEmojis: true,
-          dateTimeFormat: DateTimeFormat.onlyTimeAndSinceStart,
-        );
 }

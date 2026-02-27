@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_devtools/riverpod_devtools.dart';
 import 'package:terminal_studio/src/core/open_term.dart';
 import 'package:terminal_studio/src/core/service/log_service.dart';
-import 'package:terminal_studio/src/core/utils/app_logger.dart';
+import 'package:terminal_studio/src/core/log/app_logger.dart';
 import 'package:terminal_studio/src/util/provider_logger.dart';
 import 'package:window_manager/window_manager.dart';
 

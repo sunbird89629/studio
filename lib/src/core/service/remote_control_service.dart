@@ -11,7 +11,7 @@ import 'package:shelf_web_socket/shelf_web_socket.dart';
 import 'package:terminal_studio/src/core/service/active_tab_service.dart';
 import 'package:terminal_studio/src/core/service/terminal_event_bus.dart';
 import 'package:terminal_studio/src/core/service/terminal_output_event.dart';
-import 'package:terminal_studio/src/core/utils/app_logger.dart';
+import 'package:terminal_studio/src/core/log/app_logger.dart';
 import 'package:terminal_studio/src/plugins/terminal/terminal_plugin.dart';
 import 'package:terminal_studio/src/ui/tabs/plugin_tab.dart';
 import 'package:uuid/uuid.dart';
