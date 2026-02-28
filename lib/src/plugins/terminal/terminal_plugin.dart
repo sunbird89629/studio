@@ -471,6 +471,8 @@ class _TerminalTabViewState extends ConsumerState<TerminalTabView> {
   static const _passthroughIntents = <String, Intent>{
     ShortcutId.previousTab: PreviousTabIntent(),
     ShortcutId.nextTab: NextTabIntent(),
+    ShortcutId.commandPalette: OpenCommandPaletteIntent(),
+    ShortcutId.vimEdit: VimEditIntent(),
   };
 
   final _logger = AppLogger.forComponent('TerminalTabView');

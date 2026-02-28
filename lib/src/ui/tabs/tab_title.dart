@@ -103,7 +103,7 @@ class _TabTitleState extends State<TabTitle> {
                         ),
                       ),
                     ),
-                    ContentWidget(
+                    VerticalTabContentWidget(
                       terminal: terminal,
                       isActive: isActive,
                       tab: _tab,

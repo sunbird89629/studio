@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_studio/src/core/service/active_tab_service.dart';
+import 'package:terminal_studio/src/core/service/command_palette_service.dart';
 import 'package:terminal_studio/src/core/service/tabs_service.dart';
+import 'package:terminal_studio/src/core/service/vim_edit_service.dart';
 import 'package:terminal_studio/src/core/service/window_service.dart';
 import 'package:terminal_studio/src/hosts/local_spec.dart';
 import 'package:terminal_studio/src/core/state/keymap.dart';
@@ -184,6 +186,20 @@ class _GlobalPlatformMenuState extends ConsumerState<GlobalPlatformMenu> {
                 PlatformProvidedMenuItemType.toggleFullScreen))
               const PlatformProvidedMenuItem(
                   type: PlatformProvidedMenuItemType.toggleFullScreen),
+            PlatformMenuItem(
+              label: 'Command Palette',
+              shortcut: keymap[ShortcutId.commandPalette]!,
+              onSelected: () {
+                ref.read(commandPaletteServiceProvider.notifier).toggle();
+              },
+            ),
+            PlatformMenuItem(
+              label: 'Vim Edit',
+              shortcut: keymap[ShortcutId.vimEdit]!,
+              onSelected: () {
+                ref.read(vimEditServiceProvider.notifier).open();
+              },
+            ),
             PlatformMenuItem(
               label: 'Settings',
               shortcut: keymap[ShortcutId.openSettings]!,
