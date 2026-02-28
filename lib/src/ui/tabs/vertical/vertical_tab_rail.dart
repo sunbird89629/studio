@@ -1,5 +1,6 @@
 import 'package:flex_tabs/flex_tabs.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart' show ReorderableDragStartListener, ReorderableListView;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_studio/src/core/state/tabs.dart';
 import 'package:terminal_studio/src/ui/tabs/tab_title.dart';
@@ -81,19 +82,37 @@ class _VerticalTabRailState extends ConsumerState<VerticalTabRail> {
     }
   }
 
+  void _onReorder(int oldIndex, int newIndex) {
+    if (newIndex > oldIndex) newIndex -= 1;
+    if (oldIndex == newIndex) return;
+
+    final (srcTab, srcGroup) = _allTabs[oldIndex];
+    final (dstTab, dstGroup) = _allTabs[newIndex];
+
+    if (srcGroup != dstGroup) return;
+
+    srcGroup.move(srcTab, dstGroup.children.indexOf(dstTab));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
         Expanded(
-          child: ListView.builder(
+          child: ReorderableListView.builder(
             padding: EdgeInsets.only(top: 24),
+            buildDefaultDragHandles: false,
             itemCount: _allTabs.length,
+            onReorder: _onReorder,
             itemBuilder: (context, index) {
               final (tabItem, tabs) = _allTabs[index];
-              return TabTitle(
-                tabItem: tabItem,
-                tabs: tabs,
+              return ReorderableDragStartListener(
+                key: ObjectKey(tabItem),
+                index: index,
+                child: TabTitle(
+                  tabItem: tabItem,
+                  tabs: tabs,
+                ),
               );
             },
           ),
