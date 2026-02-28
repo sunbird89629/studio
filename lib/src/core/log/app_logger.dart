@@ -1,7 +1,6 @@
 import 'package:logger/logger.dart';
-import 'package:terminal_studio/src/core/log/log_entry.dart';
+import 'package:terminal_studio/src/core/log/log_service_output.dart';
 import 'package:terminal_studio/src/core/log/printer/one_line_log_printer.dart';
-import 'package:terminal_studio/src/core/service/log_service.dart';
 
 /// Context associated with a log entry.
 class LogContext {
@@ -24,25 +23,6 @@ class LogContext {
       if (component != null) 'cmp': component,
       if (additional != null) ...additional!,
     };
-  }
-}
-
-/// LogOutput that bridges logger events into [LogService].
-class LogServiceOutput extends LogOutput {
-  final String channel;
-
-  LogServiceOutput(this.channel);
-
-  @override
-  void output(OutputEvent event) {
-    final level = switch (event.level) {
-      Level.trace || Level.debug => LogLevel.debug,
-      Level.info => LogLevel.info,
-      Level.warning => LogLevel.warning,
-      Level.error || Level.fatal => LogLevel.error,
-      _ => LogLevel.info,
-    };
-    LogService.instance.log(channel, level, event.lines.join('\n'));
   }
 }
 
