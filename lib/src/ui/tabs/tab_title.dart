@@ -7,7 +7,7 @@ import 'package:terminal_studio/src/core/state/terminal_activity.dart';
 import 'package:terminal_studio/src/plugins/terminal/terminal_plugin.dart';
 import 'package:terminal_studio/src/ui/icons/ai_icons.dart';
 import 'package:terminal_studio/src/ui/tabs/plugin_tab.dart';
-import 'package:terminal_studio/src/ui/tabs/vertical/widgets/content_widget.dart';
+import 'package:terminal_studio/src/ui/tabs/vertical/widgets/vertical_tab_content_widget.dart';
 
 class TabTitle extends StatefulWidget {
   const TabTitle({

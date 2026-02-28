@@ -25,6 +25,15 @@ class TerminalTileContent extends StatelessWidget {
     return sepIdx >= 0 ? raw.substring(0, sepIdx) : raw;
   }
 
+  (String, String) get hostAndCWD {
+    final title = terminal.title.value ?? 'Terminal';
+    if (title.contains(":")) {
+      return (title.split(":")[0], title.split(":")[1]);
+    } else {
+      return (title, "");
+    }
+  }
+
   Color _secondaryColor(TerminalActivityState state) {
     if (isActive) return Colors.white.withValues(alpha: 0.5);
     return switch (state) {
@@ -66,9 +75,7 @@ class TerminalTileContent extends StatelessWidget {
         final textOpacity = isActive
             ? 1.0
             : (state == TerminalActivityState.disconnected ? 0.35 : 0.75);
-
-        final host = _primaryText().split(":")[0];
-        final cwd = _primaryText().split(":")[1];
+        final (host, cwd) = hostAndCWD;
         final secondaryColor = _secondaryColor(state);
 
         return Column(

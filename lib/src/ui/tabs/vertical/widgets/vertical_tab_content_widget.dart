@@ -1,5 +1,4 @@
 // ─── Tab Tile ────────────────────────────────────────────────────────────────
-
 import 'package:flex_tabs/flex_tabs.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -21,10 +20,6 @@ class VerticalTabContentWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _buildByTerminal();
-  }
-
-  Widget _buildByTerminal() {
     if (terminal != null) {
       return TerminalTileContent(
         terminal: terminal!,
