@@ -23,7 +23,9 @@ class CommandPaletteListener extends ConsumerWidget {
           builder: (_) => const _CommandPaletteDialog(),
         ).then((_) {
           // Sync state when dismissed externally (barrier tap or Escape)
-          ref.read(commandPaletteServiceProvider.notifier).hide();
+          if (ref.read(commandPaletteServiceProvider).isVisible) {
+            ref.read(commandPaletteServiceProvider.notifier).hide();
+          }
         });
       }
     });
@@ -63,7 +65,10 @@ class _CommandPaletteDialogState extends ConsumerState<_CommandPaletteDialog> {
     ref.listen(commandPaletteServiceProvider.select((s) => s.isVisible),
         (_, next) {
       if (next == false && mounted) {
-        Navigator.of(context, rootNavigator: true).pop();
+        final route = ModalRoute.of(context);
+        if (route?.isCurrent ?? false) {
+          Navigator.of(context, rootNavigator: true).pop();
+        }
       }
     });
 
@@ -231,4 +236,3 @@ class _CommandPaletteItem extends ConsumerWidget {
     );
   }
 }
-
