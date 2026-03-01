@@ -1,596 +1,224 @@
-# Terminal Studio 架构分析
+# Terminal Studio 架构文档
 
-## 目录
-1. [整体架构](#整体架构)
-2. [核心层次](#核心层次)
-3. [关键设计模式](#关键设计模式)
-4. [数据流](#数据流)
-5. [模块详解](#模块详解)
+## 1. 概览
 
----
+Terminal Studio 当前采用 **Modular Monolith（模块化单体）** 架构，核心目录分为三层：
 
-## 整体架构
+- `features/`：按业务能力拆分（设置、终端、标签、SSH、命令面板等）
+- `platform/`：底层运行时与平台抽象（Host、Plugin Runtime）
+- `shared/`：跨模块复用能力（日志、主题、模型、通用状态与工具）
 
-Terminal Studio 采用 **分层架构 + 插件系统** 的设计，基于 Flutter + Riverpod 构建。
-
-```
-┌─────────────────────────────────────────────────────────┐
-│                    UI Layer (视图层)                      │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌─────────┐ │
-│  │ Tabs     │  │ Command  │  │ Copilot  │  │ Menus   │ │
-│  │ System   │  │ Palette  │  │ Sidebar  │  │ Context │ │
-│  └──────────┘  └──────────┘  └──────────┘  └─────────┘ │
-└─────────────────────────────────────────────────────────┘
-                          ↓
-┌─────────────────────────────────────────────────────────┐
-│                  Service Layer (服务层)                   │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌─────────┐ │
-│  │ Tabs     │  │ AI       │  │ Tunnel   │  │ Window  │ │
-│  │ Service  │  │ Service  │  │ Service  │  │ Service │ │
-│  └──────────┘  └──────────┘  └──────────┘  └─────────┘ │
-└─────────────────────────────────────────────────────────┘
-                          ↓
-┌─────────────────────────────────────────────────────────┐
-│                   Core Layer (核心层)                     │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌─────────┐ │
-│  │ Plugin   │  │ Host     │  │ Command  │  │ Theme   │ │
-│  │ System   │  │ Connector│  │ Registry │  │ System  │ │
-│  └──────────┘  └──────────┘  └──────────┘  └─────────┘ │
-└─────────────────────────────────────────────────────────┘
-                          ↓
-┌─────────────────────────────────────────────────────────┐
-│                State Management (状态管理)                │
-│              Riverpod Providers + Hive DB                │
-└─────────────────────────────────────────────────────────┘
-                          ↓
-┌─────────────────────────────────────────────────────────┐
-│                 Platform Layer (平台层)                   │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐              │
-│  │ Local    │  │ SSH      │  │ File     │              │
-│  │ PTY      │  │ Client   │  │ System   │              │
-│  └──────────┘  └──────────┘  └──────────┘              │
-└─────────────────────────────────────────────────────────┘
-```
+状态管理使用 **Riverpod**；桌面能力基于 Flutter 桌面生态（`flutter_pty`、`window_manager`、`dartssh2` 等）。
 
 ---
 
-## 核心层次
+## 2. 目录结构
 
-### 1. **UI Layer (视图层)**
-负责用户界面展示和交互。
+当前 `lib/src` 结构：
 
-**关键组件：**
-- **Tabs System** (`flex_tabs`): 多标签页管理
-- **Command Palette**: 命令面板，快速执行命令
-- **Copilot Sidebar**: AI 辅助侧边栏
-- **Context Menu**: 右键菜单
-- **Platform Menu**: 平台原生菜单（macOS/Windows）
-- **Shortcuts**: 全局快捷键系统
+```text
+lib/src/
+  features/
+    command_palette/
+      application/
+      presentation/
+    copilot/
+      application/
+      infrastructure/
+      presentation/
+    file_manager/
+      application/
+      presentation/
+    remote_control/
+      application/
+    settings/
+      application/
+      domain/
+      infrastructure/
+      presentation/
+    ssh/
+      infrastructure/
+      presentation/
+    tabs/
+      application/
+      presentation/
+    terminal/
+      application/
+      presentation/
+    tunnel/
+      application/
 
-**平台适配：**
-- macOS: `macos_ui` + `flutter_acrylic` (毛玻璃效果)
-- Windows: `fluent_ui` (Fluent Design)
-- 通用: Material Design
+  platform/
+    hosts/
+    plugins/
 
----
-
-### 2. **Service Layer (服务层)**
-提供业务逻辑和功能服务。
-
-| 服务 | 职责 |
-|------|------|
-| `TabsService` | 管理标签页的创建、打开、关闭 |
-| `AICopilotService` | AI 功能（通过 OpenRouter API） |
-| `TunnelService` | Cloudflared 隧道管理 |
-| `RemoteControlService` | 远程控制 WebSocket 服务 |
-| `CommandPaletteService` | 命令面板状态管理 |
-| `VimEditService` | Vim 编辑模式 |
-| `NotificationService` | 通知系统 |
-| `WindowService` | 窗口管理 |
-
----
-
-### 3. **Core Layer (核心层)**
-系统的核心抽象和实现。
-
-#### 3.1 Plugin System (插件系统)
-
-**核心类：**
-```dart
-abstract class Plugin {
-  PluginManager? _manager;
-  HostSpec? _hostSpec;
-  Host? _host;
-  
-  // 生命周期钩子
-  void didMounted() {}
-  void didUnmounted() {}
-  void didConnected() {}
-  void didDisconnected() {}
-  
-  Widget build(BuildContext context);
-}
-```
-
-**设计思想：**
-- 插件是功能的最小单元
-- 每个插件绑定到一个 `Host`（本地或远程）
-- 通过 `PluginManager` 管理生命周期
-- 支持动态加载/卸载
-
-**内置插件：**
-- `TerminalPlugin`: 终端模拟器
-- `FileManagerPlugin`: 文件管理器
-- `StarterPlugin`: 启动器
-
-#### 3.2 Host System (主机系统)
-
-**三层抽象：**
-
-```
-HostSpec (配置)
-    ↓
-HostConnector (连接器)
-    ↓
-Host (实际主机)
-```
-
-**接口定义：**
-```dart
-abstract class Host {
-  Future<FileSystem> connectFileSystem();
-  Future<ExecutionResult> execute(String executable, ...);
-  Future<ExecutionSession> shell(...);
-  Future<void> disconnect();
-}
-```
-
-**实现类：**
-- `LocalHost`: 本地主机（使用 `flutter_pty`）
-- `SSHHost`: SSH 远程主机（使用 `dartssh2`）
-
-**状态管理：**
-```dart
-enum HostConnectorStatus {
-  initialized,
-  connecting,
-  connected,
-  disconnected,
-  aborted,
-}
-```
-
-#### 3.3 Command System (命令系统)
-
-**架构：**
-```
-Command (抽象命令)
-    ↓
-CommandRegistry (命令注册表)
-    ↓
-CommandPalette (命令面板 UI)
-```
-
-**命令类型：**
-- `Command`: 基础命令接口
-- `IntentCommand`: 基于 Flutter Intent 的命令
-- `ThemeCommands`: 主题切换命令
-- `BuiltinCommands`: 内置命令（新建标签、关闭等）
-
-**搜索算法：**
-- 完全匹配开头: 100 分
-- 包含查询: 80 分
-- 分类匹配: 60 分
-- 模糊匹配: 40 分
-
-#### 3.4 Theme System (主题系统)
-
-**架构：**
-```
-ThemePlugin (主题插件)
-    ↓
-ThemeRegistry (主题注册表)
-    ↓
-ThemeService (主题服务)
-```
-
-**内置主题：**
-- Light / Dark
-- Monokai
-- Dracula
-- One Dark
-- Nord
-- Solarized (Dark/Light)
-- GitHub (Dark/Light)
-
----
-
-### 4. **State Management (状态管理)**
-
-使用 **Riverpod** 作为状态管理方案。
-
-**核心 Providers：**
-
-| Provider | 类型 | 职责 |
-|----------|------|------|
-| `tabsProvider` | Provider | 标签页文档 |
-| `connectorProvider` | Family | 主机连接器 |
-| `connectorStatusProvider` | StreamProvider | 连接状态流 |
-| `hostProvider` | Family | 主机实例 |
-| `pluginManagerProvider` | Family | 插件管理器 |
-| `themeRegistryProvider` | Provider | 主题注册表 |
-| `activeThemeProvider` | Provider | 当前主题 |
-| `settingsProvider` | FutureProvider | 用户设置 |
-| `aiCopilotServiceProvider` | Provider | AI 服务 |
-
-**数据持久化：**
-使用 **Hive** 本地数据库：
-- `ssh_hosts`: SSH 主机配置
-- `ssh_keys`: SSH 密钥
-- `settings`: 用户设置（主题、字体、AI API Key 等）
-- 配置文件：`~/.config/openterm/config.jsonc` (跨平台)
-
----
-
-### 5. **Platform Layer (平台层)**
-
-#### 5.1 本地终端
-- **库**: `flutter_pty`
-- **功能**: 创建本地 PTY (伪终端)
-- **平台**: macOS, Linux, Windows
-
-#### 5.2 SSH 客户端
-- **库**: `dartssh2`
-- **功能**: SSH 连接、命令执行、SFTP
-- **认证**: 密码 / 密钥
-
-#### 5.3 文件系统
-- **抽象**: `FileSystem` 接口
-- **实现**: 
-  - `LocalFileSystem`: 本地文件系统
-  - `SSHFileSystem`: 远程 SFTP
-
----
-
-## 关键设计模式
-
-### 1. **插件模式 (Plugin Pattern)**
-- 核心功能通过插件扩展
-- 插件生命周期由 `PluginManager` 管理
-- 支持热插拔
-
-### 2. **策略模式 (Strategy Pattern)**
-- `Host` 接口定义统一行为
-- `LocalHost` / `SSHHost` 实现不同策略
-
-### 3. **观察者模式 (Observer Pattern)**
-- Riverpod 的 Provider 系统
-- `ChangeNotifier` 用于状态通知
-
-### 4. **注册表模式 (Registry Pattern)**
-- `CommandRegistry`: 命令注册
-- `ThemeRegistry`: 主题注册
-
-### 5. **工厂模式 (Factory Pattern)**
-- `HostSpec.createConnector()`: 创建连接器
-- `HostConnector.createHost()`: 创建主机实例
-
----
-
-## 数据流
-
-### 1. **终端启动流程**
-
-```
-用户点击 "新建终端"
-    ↓
-TabsService.openTerminal(hostSpec)
-    ↓
-创建 TerminalPlugin 实例
-    ↓
-PluginManager.add(plugin)
-    ↓
-plugin.didMounted() - 初始化终端
-    ↓
-HostConnector.connect() - 连接主机
-    ↓
-plugin.didConnected() - 启动 shell
-    ↓
-ExecutionSession 创建
-    ↓
-数据流：
-  用户输入 → Terminal.onOutput → session.write()
-  Shell 输出 → session.output → Terminal.write()
-```
-
-### 2. **主机连接流程**
-
-```
-HostSpec (配置)
-    ↓
-connectorProvider(spec) - 创建 Connector
-    ↓
-connector.connect()
-    ↓
-state = connecting
-    ↓
-createHost() - 创建 Host 实例
-    ↓
-state = connected
-    ↓
-notifyListeners() - 通知所有监听者
-    ↓
-connectorStatusProvider 发出新状态
-    ↓
-hostProvider 返回 Host 实例
-    ↓
-PluginManager.didConnected(host)
-    ↓
-所有插件收到 didConnected() 回调
-```
-
-### 3. **命令执行流程**
-
-```
-用户按下快捷键 (Cmd+P)
-    ↓
-GlobalShortcuts 触发 Intent
-    ↓
-GlobalActions 执行 Action
-    ↓
-CommandPaletteService.show()
-    ↓
-显示 CommandPaletteOverlay
-    ↓
-用户输入搜索
-    ↓
-CommandRegistry.search(query)
-    ↓
-返回匹配的命令列表
-    ↓
-用户选择命令
-    ↓
-command.execute(context)
-```
-
-### 4. **主题切换流程**
-
-```
-用户选择主题
-    ↓
-ThemeService.setTheme(themeId)
-    ↓
-验证主题是否存在
-    ↓
-更新 Hive 数据库
-    ↓
-settings.themeId = themeId
-    ↓
-settingsProvider 自动刷新
-    ↓
-themeIdProvider 返回新 ID
-    ↓
-activeThemeProvider 重新计算
-    ↓
-UI 重建，应用新主题
+  shared/
+    constants/
+    logging/
+    models/
+    state/
+    theme/
+    utils/
+    widgets/
 ```
 
 ---
 
-## 模块详解
+## 3. 分层职责
 
-### 1. **标签页系统**
+### 3.1 `features/`（业务层）
 
-**核心组件：**
-- `TabsDocument`: 标签页文档（来自 `flex_tabs`）
-- `TabItem`: 标签页项
-- `PluginTab`: 插件标签页
-- `CodeEditorTab`: 代码编辑器标签页
+按业务能力组织代码，每个 feature 内遵循轻量分层：
 
-**特性：**
-- 多标签页
-- 拖拽重排
-- 分组管理
-- 持久化（TODO）
+- `application/`：Riverpod providers、notifier、用例编排
+- `domain/`：纯业务模型与规则（如 `effective_settings`）
+- `infrastructure/`：外部系统访问（文件、网络、API）
+- `presentation/`：Widget/UI 与交互
 
-### 2. **AI 集成**
+核心 feature：
 
-**架构：**
-```
-AICopilotService
-    ↓
-OpenRouter API
-    ↓
-支持多种模型：
-  - Google Gemini
-  - OpenAI GPT
-  - Anthropic Claude
-  - 等
-```
+- `tabs`：标签页管理、主页面布局、平台菜单、日志面板
+- `terminal`：终端插件、输入跟踪、终端菜单
+- `settings`：配置加载/保存、快捷键、主题与配置导入导出
+- `ssh`：SSH 主机编辑与持久化
+- `command_palette`：命令模型、注册、搜索、执行
+- `copilot`：AI 对话与模型选择
+- `remote_control`：远程控制服务（WebSocket）
+- `tunnel`：Cloudflared 隧道状态管理
 
-**功能：**
-- 命令生成（TODO）
-- 错误解释（TODO）
-- 代码补全（TODO）
+### 3.2 `platform/`（平台核心）
 
-**日志系统：**
-- `AILogger`: 结构化日志
-- 支持上下文（component, operation）
-- 日志级别：debug, info, warning, error
+- `platform/hosts/`
+  - `HostSpec -> HostConnector -> Host` 三层抽象
+  - 本地与 SSH 两套实现（`Local*` / `Ssh*`）
+- `platform/plugins/`
+  - `Plugin` 抽象
+  - `PluginManager` 生命周期管理
+  - 插件 Provider 绑定（按 Host 维度）
 
-### 3. **远程控制**
+插件生命周期方法：
 
-**架构：**
-```
-RemoteControlService
-    ↓
-Shelf + WebSocket
-    ↓
-Cloudflared Tunnel
-    ↓
-公网访问
-```
+- `onMounted()`
+- `onConnected()`
+- `onDisconnected()`
+- `onUnmounted()`
+- `onConnectionStatus(...)`
 
-**功能：**
-- 远程查看终端输出
-- 远程输入命令（TODO）
-- 多客户端同步
+### 3.3 `shared/`（共享层）
 
-### 4. **快捷键系统**
-
-**层次：**
-```
-GlobalShortcuts (Widget)
-    ↓
-Intent (意图)
-    ↓
-GlobalActions (Widget)
-    ↓
-Action (动作)
-```
-
-**内置快捷键：**
-- `Cmd/Ctrl + T`: 新建终端
-- `Cmd/Ctrl + W`: 关闭标签
-- `Cmd/Ctrl + P`: 命令面板
-- `Cmd/Ctrl + ,`: 设置
-- `Cmd/Ctrl + Shift + P`: Copilot
+- `shared/logging`：统一日志模型与输出
+- `shared/theme`：主题注册、主题 Provider、主题插件
+- `shared/models`：跨 feature 复用数据结构
+- `shared/state`：跨域事件与状态（通知、日志可见性等）
+- `shared/utils`：工具函数
+- `shared/widgets`：复用 UI 组件
 
 ---
 
-## 扩展点
+## 4. 状态管理（Riverpod）
 
-### 如何添加新插件？
+系统以 Riverpod 为主，典型 provider：
 
-1. 继承 `Plugin` 类
-2. 实现生命周期方法
-3. 实现 `build()` 方法
-4. 在 `TabsService` 中添加打开方法
+- 终端与连接
+  - `connectorProvider`
+  - `connectorStatusProvider`
+  - `hostProvider`
+  - `pluginManagerProvider`
+- 标签与导航
+  - `tabsProvider`
+  - `tabsServiceProvider`
+  - `activeTabServiceProvider`
+- 设置与主题
+  - `settingsProvider`
+  - `profilesProvider`
+  - `keymapProvider`
+  - `themeRegistryProvider`
+  - `activeThemeProvider`
+- 功能状态
+  - `commandPaletteServiceProvider`
+  - `vimEditServiceProvider`
+  - `remoteControlServiceProvider`
+  - `tunnelServiceProvider`
 
-```dart
-class MyPlugin extends Plugin {
-  @override
-  void didConnected() {
-    // 连接后的初始化
-  }
-  
-  @override
-  Widget build(BuildContext context) {
-    return MyPluginUI();
-  }
-}
-```
-
-### 如何添加新主题？
-
-1. 继承 `ThemePlugin`
-2. 实现 `id`, `name`, `terminalTheme`, `fluentTheme`
-3. 在 `themeRegistryProvider` 中注册
-
-```dart
-class MyTheme extends ThemePlugin {
-  @override
-  String get id => 'my-theme';
-  
-  @override
-  String get name => 'My Theme';
-  
-  @override
-  TerminalTheme get terminalTheme => TerminalTheme(...);
-  
-  @override
-  FluentThemeData get fluentTheme => FluentThemeData(...);
-}
-```
-
-### 如何添加新命令？
-
-1. 实现 `Command` 接口
-2. 在 `CommandRegistry` 中注册
-
-```dart
-class MyCommand implements Command {
-  @override
-  String get id => 'my.command';
-  
-  @override
-  String get label => 'My Command';
-  
-  @override
-  Future<void> execute(BuildContext context) async {
-    // 执行逻辑
-  }
-}
-```
+说明：历史命名中仍有少量 `*ServiceProvider` 保留（实际可能是 Notifier），属于兼容命名。
 
 ---
 
-## 技术栈总结
+## 5. 数据持久化
 
-| 层次 | 技术 |
-|------|------|
-| UI 框架 | Flutter 3.0+ |
-| 状态管理 | Riverpod |
-| 本地数据库 | Hive |
-| 终端模拟 | xterm.dart |
-| 本地 PTY | flutter_pty |
-| SSH 客户端 | dartssh2 |
-| AI 服务 | OpenRouter API |
-| 窗口管理 | window_manager |
-| 标签页 | flex_tabs |
-| 平台 UI | macos_ui, fluent_ui |
-| 特效 | flutter_acrylic |
-| 代码编辑 | code_text_field, flutter_highlight |
-| Web 服务 | shelf, shelf_web_socket |
+当前持久化方式为 **文件存储**（非 Hive）：
+
+- `~/.config/openterm/config.jsonc`
+  - 全局设置、profiles、keymaps、snippets
+- `~/.config/openterm/hosts.json`
+  - SSH 主机列表
+- `~/.config/openterm/keys.json`
+  - SSH 密钥列表
+
+`settings` 相关配置支持文件监听与热刷新（Provider 失效重载）。
 
 ---
 
-## 待完善功能
+## 6. 关键流程
 
-根据 `TODO.md`：
+### 6.1 打开终端
 
-1. **可视化设置页面**
-   - 字体、字号、透明度配置
-   - 快捷键自定义
-   - 默认 Shell 配置
+1. UI 触发 `tabsServiceProvider.openTerminal(...)`
+2. 构建 `TerminalPlugin`
+3. 通过 `pluginManagerProvider(hostSpec)` 绑定插件管理器
+4. `HostConnector.connect()` 建立连接
+5. 插件收到 `onConnected()`，启动 shell 会话
+6. 输入输出通过 `ExecutionSession` 与终端组件双向流转
 
-2. **AI Copilot 完善**
-   - 命令生成
-   - 错误解释
-   - 智能补全
+### 6.2 命令面板执行
 
-3. **用户引导**
-   - 欢迎页
-   - 快捷键提示
-   - 功能介绍
+1. 快捷键触发显示 `CommandPalette`
+2. `CommandPaletteNotifier` 根据 query 搜索 `CommandRegistry`
+3. 用户选择命令后执行 `command.execute(context, ref)`
+4. 命令通过 provider 调用对应 feature 服务
 
-4. **标签页持久化**
-   - 保存会话
-   - 恢复会话
+### 6.3 主题切换
 
-5. **文件管理器**
-   - 完善 UI
-   - 文件操作
+1. 调用 `ThemeService.setTheme(themeId)`
+2. 写入 `config.jsonc`
+3. `settingsProvider` 失效重建
+4. `themeIdProvider`/`activeThemeProvider` 重新计算
+5. MaterialApp 主题热更新
 
 ---
 
-## 总结
+## 7. 设计原则
 
-Terminal Studio 是一个架构清晰、设计优雅的现代化终端模拟器：
+- **按业务组织**：优先 feature 内聚，而非全局 service 堆积
+- **平台抽象稳定**：Host/Plugin Runtime 作为核心能力边界
+- **共享最小化**：`shared` 只放真正跨域复用内容
+- **渐进重构友好**：通过 Riverpod provider 边界降低迁移风险
 
-**优势：**
-✅ 插件化架构，易于扩展  
-✅ 跨平台支持完整  
-✅ 状态管理清晰（Riverpod）  
-✅ 主题系统灵活  
-✅ AI 集成具备竞争力  
-✅ 代码结构良好，职责分明  
+---
 
-**改进方向：**
-🔧 完善用户设置 UI  
-🔧 增强 AI 功能  
-🔧 添加用户引导  
-🔧 完善文档和测试  
-🔧 优化性能和内存占用  
+## 8. 扩展指南
 
-这是一个具有良好基础和发展潜力的项目！
+### 8.1 新增插件
+
+1. 在对应 feature 创建插件类并继承 `Plugin`
+2. 实现生命周期与 `build()`
+3. 在 `TabsService` 或对应入口增加打开路径
+
+### 8.2 新增命令
+
+1. 实现 `Command`
+2. 在 `CommandPaletteNotifier` 的注册流程加入新命令
+
+### 8.3 新增主题
+
+1. 实现 `ThemePlugin`
+2. 在 `themeRegistryProvider` 中注册
+
+---
+
+## 9. 当前已知技术债（非阻断）
+
+- 少量 provider 命名沿用历史 `*ServiceProvider`，语义可进一步统一
+- `features/*/(domain|infrastructure)` 存在空目录（为后续扩展预留）
+- `flutter analyze` 仍有若干 info/warning（不影响编译与测试）
+

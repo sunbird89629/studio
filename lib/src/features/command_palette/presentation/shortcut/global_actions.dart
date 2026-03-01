@@ -6,9 +6,9 @@ import 'package:terminal_studio/src/features/tabs/application/tabs_service.dart'
 import 'package:terminal_studio/src/features/command_palette/application/vim_edit_notifier.dart';
 import 'package:terminal_studio/src/features/tabs/application/window_service.dart';
 import 'package:terminal_studio/src/platform/hosts/local_spec.dart';
-import 'package:terminal_studio/src/features/command_palette/presentation/shortcut/intents.dart';
-import 'package:terminal_studio/src/features/tabs/presentation/devtools_tab.dart';
-import 'package:terminal_studio/src/features/settings/presentation/settings_tab.dart';
+import 'package:terminal_studio/src/features/command_palette/application/intents.dart';
+import 'package:terminal_studio/src/features/tabs/application/devtools_tab.dart';
+import 'package:terminal_studio/src/features/settings/application/settings_tab.dart';
 import 'package:terminal_studio/src/shared/utils/tabs_extension.dart';
 
 class GlobalActions extends ConsumerWidget {

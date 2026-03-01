@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_studio/src/features/settings/infrastructure/config_file_repository.dart';
 import 'package:terminal_studio/src/features/settings/application/database_providers.dart';
 import 'package:terminal_studio/src/features/settings/application/settings_providers.dart';
-import 'package:terminal_studio/src/features/command_palette/presentation/shortcut/shortcuts.dart';
+import 'package:terminal_studio/src/features/command_palette/application/shortcuts.dart';
 
 /// Merged keymaps: platform defaults + user overrides from `config.jsonc`.
 final keymapProvider =

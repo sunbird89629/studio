@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_studio/src/features/settings/application/settings_providers.dart';
 import 'package:terminal_studio/src/shared/widgets/fluent_form.dart';
-import 'package:terminal_studio/src/features/settings/presentation/settings_profiles.dart';
-import 'package:terminal_studio/src/features/settings/presentation/settings_remote_control.dart';
-import 'package:terminal_studio/src/features/settings/presentation/settings_shortcuts.dart';
-import 'package:terminal_studio/src/features/settings/presentation/settings_tab_hosts.dart';
-import 'package:terminal_studio/src/features/settings/presentation/about_settings_view.dart';
+import 'package:terminal_studio/src/features/settings/application/settings_profiles.dart';
+import 'package:terminal_studio/src/features/settings/application/settings_remote_control.dart';
+import 'package:terminal_studio/src/features/settings/application/settings_shortcuts.dart';
+import 'package:terminal_studio/src/features/settings/application/settings_tab_hosts.dart';
+import 'package:terminal_studio/src/features/settings/application/about_settings_view.dart';
 
 class SettingsTab extends TabItem {
   SettingsTab() {

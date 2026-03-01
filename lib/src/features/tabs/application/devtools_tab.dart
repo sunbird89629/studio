@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_studio/src/features/ssh/infrastructure/ssh_storage_repository.dart';
 import 'package:terminal_studio/src/features/settings/application/database_providers.dart';
-import 'package:terminal_studio/src/features/tabs/presentation/playground.dart';
+import 'package:terminal_studio/src/features/tabs/application/playground_tab.dart';
 import 'package:xterm/xterm.dart';
 
 class DevToolsTab extends TabItem {

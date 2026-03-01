@@ -6,7 +6,7 @@ import 'package:terminal_studio/src/features/tabs/application/tabs_service.dart'
 import 'package:terminal_studio/src/features/settings/application/database_providers.dart';
 import 'package:terminal_studio/src/platform/hosts/local_spec.dart';
 import 'package:terminal_studio/src/features/tabs/presentation/add_host_tab.dart';
-import 'package:terminal_studio/src/features/settings/presentation/settings_tab.dart';
+import 'package:terminal_studio/src/features/settings/application/settings_tab.dart';
 import 'package:terminal_studio/src/shared/utils/tabs_extension.dart';
 import 'package:terminal_studio/src/features/copilot/application/copilot_providers.dart';
 

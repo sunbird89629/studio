@@ -8,9 +8,9 @@ import 'package:terminal_studio/src/features/command_palette/application/vim_edi
 import 'package:terminal_studio/src/features/tabs/application/window_service.dart';
 import 'package:terminal_studio/src/platform/hosts/local_spec.dart';
 import 'package:terminal_studio/src/features/settings/application/keymap_providers.dart';
-import 'package:terminal_studio/src/features/command_palette/presentation/shortcut/shortcuts.dart';
-import 'package:terminal_studio/src/features/tabs/presentation/devtools_tab.dart';
-import 'package:terminal_studio/src/features/settings/presentation/settings_tab.dart';
+import 'package:terminal_studio/src/features/command_palette/application/shortcuts.dart';
+import 'package:terminal_studio/src/features/tabs/application/devtools_tab.dart';
+import 'package:terminal_studio/src/features/settings/application/settings_tab.dart';
 import 'package:terminal_studio/src/shared/utils/tabs_extension.dart';
 
 class GlobalPlatformMenu extends ConsumerStatefulWidget {

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_studio/src/features/settings/application/keymap_providers.dart';
-import 'package:terminal_studio/src/features/command_palette/presentation/shortcut/shortcuts.dart';
+import 'package:terminal_studio/src/features/command_palette/application/shortcuts.dart';
 
 /// Displays the keyboard shortcut for a given [shortcutId] as key-cap badges.
 /// Returns [SizedBox.shrink] if the shortcut is not found.

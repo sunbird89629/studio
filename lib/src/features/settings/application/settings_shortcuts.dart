@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_studio/src/features/settings/application/keymap_providers.dart';
-import 'package:terminal_studio/src/features/command_palette/presentation/shortcut/shortcuts.dart' as shortcuts;
-import 'package:terminal_studio/src/features/command_palette/presentation/shortcut/shortcuts.dart'
+import 'package:terminal_studio/src/features/command_palette/application/shortcuts.dart' as shortcuts;
+import 'package:terminal_studio/src/features/command_palette/application/shortcuts.dart'
     show ShortcutId, defaultKeymaps;
 
 /// Settings panel for viewing and customizing keyboard shortcuts.

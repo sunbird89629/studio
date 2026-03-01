@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:terminal_studio/src/features/settings/application/database_providers.dart';
-import 'package:terminal_studio/src/features/ssh/presentation/host_edit_page.dart';
+import 'package:terminal_studio/src/features/ssh/application/host_edit_page.dart';
 
 class HostsSettingView extends ConsumerStatefulWidget {
   const HostsSettingView({super.key});

@@ -4,7 +4,7 @@ import 'package:terminal_studio/src/platform/hosts/fs.dart';
 import 'package:terminal_studio/src/platform/plugins/plugin_runtime.dart';
 import 'package:terminal_studio/src/shared/state/launcher_service.dart';
 import 'package:terminal_studio/src/features/tabs/application/tabs_service.dart';
-import 'package:terminal_studio/src/features/file_manager/presentation/navigation_breadcrumbs.dart';
+import 'package:terminal_studio/src/features/file_manager/application/navigation_breadcrumbs.dart';
 import 'package:terminal_studio/src/features/file_manager/application/navigation_stack.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 

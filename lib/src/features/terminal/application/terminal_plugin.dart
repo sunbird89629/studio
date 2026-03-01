@@ -34,12 +34,12 @@ import 'package:terminal_studio/src/features/settings/application/settings_provi
 import 'package:terminal_studio/src/shared/state/terminal_activity_provider.dart';
 import 'package:terminal_studio/src/shared/utils/link_detector.dart';
 import 'package:terminal_studio/src/shared/utils/osc_parser.dart';
-import 'package:terminal_studio/src/features/terminal/presentation/inline_image.dart';
+import 'package:terminal_studio/src/features/terminal/application/inline_image.dart';
 import 'package:terminal_studio/src/features/terminal/application/terminal_input_tracker.dart';
-import 'package:terminal_studio/src/features/terminal/presentation/terminal_menu.dart';
-import 'package:terminal_studio/src/features/terminal/presentation/xterm_fixes.dart';
-import 'package:terminal_studio/src/features/command_palette/presentation/shortcut/intents.dart';
-import 'package:terminal_studio/src/features/command_palette/presentation/shortcut/shortcuts.dart';
+import 'package:terminal_studio/src/features/terminal/application/terminal_menu.dart';
+import 'package:terminal_studio/src/features/terminal/application/xterm_fixes.dart';
+import 'package:terminal_studio/src/features/command_palette/application/intents.dart';
+import 'package:terminal_studio/src/features/command_palette/application/shortcuts.dart';
 import 'package:terminal_studio/src/shared/logging/app_logger.dart';
 import 'package:terminal_studio/src/shared/utils/uuid.dart';
 import 'package:xterm/xterm.dart';
