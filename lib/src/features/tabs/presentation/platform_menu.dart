@@ -190,7 +190,7 @@ class _GlobalPlatformMenuState extends ConsumerState<GlobalPlatformMenu> {
               label: 'Command Palette',
               shortcut: keymap[ShortcutId.commandPalette]!,
               onSelected: () {
-                ref.read(commandPaletteServiceProvider.notifier).toggle();
+                ref.read(commandPaletteServiceProvider.notifier).show();
               },
             ),
             PlatformMenuItem(

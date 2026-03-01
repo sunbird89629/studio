@@ -52,7 +52,7 @@ class GlobalActions extends ConsumerWidget {
         ),
         OpenCommandPaletteIntent: CallbackAction<OpenCommandPaletteIntent>(
           onInvoke: (OpenCommandPaletteIntent intent) {
-            ref.read(commandPaletteServiceProvider.notifier).toggle();
+            ref.read(commandPaletteServiceProvider.notifier).show();
             return null;
           },
         ),
