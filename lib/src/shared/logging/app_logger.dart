@@ -38,10 +38,13 @@ class AppLogger {
   ///
   /// Prefer this over the default constructor for class-level loggers to avoid
   /// allocating a new [Logger] per instance.
-  static AppLogger forComponent(String component) {
+  static AppLogger forComponent(String component, {bool enable = false}) {
     return _cache.putIfAbsent(
       component,
-      () => AppLogger(context: LogContext(component: component)),
+      () => AppLogger(
+        context: LogContext(component: component),
+        enable: enable,
+      ),
     );
   }
 
@@ -84,11 +87,11 @@ class AppLogger {
     Object? error,
     StackTrace? stackTrace,
   }) {
-    _logger.d(
+    _emit(
+      Level.debug,
       message,
       error: error,
       stackTrace: stackTrace,
-      time: DateTime.now(),
     );
   }
 
@@ -97,11 +100,11 @@ class AppLogger {
     Object? error,
     StackTrace? stackTrace,
   }) {
-    _logger.i(
+    _emit(
+      Level.info,
       message,
       error: error,
       stackTrace: stackTrace,
-      time: DateTime.now(),
     );
   }
 
@@ -110,11 +113,11 @@ class AppLogger {
     Object? error,
     StackTrace? stackTrace,
   }) {
-    _logger.w(
+    _emit(
+      Level.warning,
       message,
       error: error,
       stackTrace: stackTrace,
-      time: DateTime.now(),
     );
   }
 
@@ -123,10 +126,30 @@ class AppLogger {
     Object? error,
     StackTrace? stackTrace,
   }) {
-    _logger.e(
+    _emit(
+      Level.error,
       message,
       error: error,
       stackTrace: stackTrace,
+    );
+  }
+
+  void _emit(
+    Level level,
+    String message, {
+    Object? error,
+    StackTrace? stackTrace,
+  }) {
+    if (!enable) return;
+
+    _logger.log(
+      level,
+      StructuredLogMessage(
+        moduleName: _globalContext.component ?? 'app',
+        content: message,
+      ),
+      error: error,
+      stackTrace: stackTrace ?? StackTrace.current,
       time: DateTime.now(),
     );
   }

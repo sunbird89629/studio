@@ -3,7 +3,8 @@ import 'dart:io' as io;
 import 'dart:typed_data';
 
 import 'package:flutter_pty/flutter_pty.dart';
-import 'package:terminal_studio/src/platform/hosts/fs.dart' hide File, Directory, Link;
+import 'package:terminal_studio/src/platform/hosts/fs.dart'
+    hide File, Directory, Link;
 import 'package:terminal_studio/src/platform/hosts/host.dart';
 import 'package:terminal_studio/src/platform/hosts/local_fs.dart';
 import 'package:terminal_studio/src/shared/logging/app_logger.dart';
@@ -129,7 +130,10 @@ class LocalExecutionSession implements ExecutionSession {
 
   LocalExecutionSession(this._pty);
 
-  final _logger = AppLogger.forComponent('LocalExecutionSession');
+  final _logger = AppLogger.forComponent(
+    'LocalExecutionSession',
+    enable: false,
+  );
 
   @override
   Future<int> get exitCode => _pty.exitCode;
@@ -137,8 +141,7 @@ class LocalExecutionSession implements ExecutionSession {
   @override
   Stream<Uint8List> get output {
     return _pty.output.map((data) {
-      _logger
-          .d('Pty output: ${data.length} bytes: ${String.fromCharCodes(data)}');
+      _logger.d(String.fromCharCodes(data));
       return data;
     });
   }
