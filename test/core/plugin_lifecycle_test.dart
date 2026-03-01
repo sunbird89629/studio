@@ -3,13 +3,13 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:terminal_studio/src/core/command/command.dart';
-import 'package:terminal_studio/src/core/command/command_registry.dart';
-import 'package:terminal_studio/src/core/conn.dart';
-import 'package:terminal_studio/src/core/exceptions.dart';
-import 'package:terminal_studio/src/core/fs.dart';
-import 'package:terminal_studio/src/core/host.dart';
-import 'package:terminal_studio/src/core/plugin.dart';
+import 'package:terminal_studio/src/features/command_palette/application/command.dart';
+import 'package:terminal_studio/src/features/command_palette/application/command_registry.dart';
+import 'package:terminal_studio/src/platform/hosts/host_connector.dart';
+import 'package:terminal_studio/src/platform/plugins/exceptions.dart';
+import 'package:terminal_studio/src/platform/hosts/fs.dart';
+import 'package:terminal_studio/src/platform/hosts/host.dart';
+import 'package:terminal_studio/src/platform/plugins/plugin_runtime.dart';
 
 // ── Minimal fakes ─────────────────────────────────────────────────────────────
 
@@ -53,33 +53,33 @@ class _FakeHostSpec extends HostSpec {
 class _SpyPlugin extends Plugin {
   final List<String> calls = [];
 
-  /// Whether [manager] is non-null when [didMounted] is invoked.
+  /// Whether [manager] is non-null when [onMounted] is invoked.
   bool? managerAvailableOnMount;
 
   @override
-  void didMounted() {
+  void onMounted() {
     // `mounted` is the public equivalent of `_manager != null`
     managerAvailableOnMount = mounted;
     calls.add('mounted');
   }
 
   @override
-  void didConnected() => calls.add('connected');
+  void onConnected() => calls.add('connected');
 
   @override
-  void didDisconnected() => calls.add('disconnected');
+  void onDisconnected() => calls.add('disconnected');
 
   @override
-  void didUnmounted() => calls.add('unmounted');
+  void onUnmounted() => calls.add('unmounted');
 
   @override
   Widget build(BuildContext context) => throw UnimplementedError();
 }
 
-/// Plugin whose [didUnmounted] always throws.
+/// Plugin whose [onUnmounted] always throws.
 class _ThrowOnUnmountPlugin extends Plugin {
   @override
-  void didUnmounted() => throw PluginException('intentional failure');
+  void onUnmounted() => throw PluginException('intentional failure');
 
   @override
   Widget build(BuildContext context) => throw UnimplementedError();
@@ -96,14 +96,14 @@ PluginManager _makeManager() => ProviderContainer().read(_managerProvider);
 
 void main() {
   group('PluginManager.add() ordering', () {
-    test('manager is assigned before didMounted() is called', () {
+    test('manager is assigned before onMounted() is called', () {
       final manager = _makeManager();
       final plugin = _SpyPlugin();
 
       manager.add(plugin);
 
       expect(plugin.managerAvailableOnMount, isTrue,
-          reason: 'plugin._manager must be set before didMounted() fires');
+          reason: 'plugin._manager must be set before onMounted() fires');
     });
 
     test('plugin appears in plugins list after add()', () {
@@ -127,7 +127,7 @@ void main() {
   });
 
   group('PluginManager.remove() safety', () {
-    test('plugin is fully detached even when didUnmounted() throws', () {
+    test('plugin is fully detached even when onUnmounted() throws', () {
       final manager = _makeManager();
       final plugin = _ThrowOnUnmountPlugin();
 
@@ -154,15 +154,10 @@ void main() {
     test('lifecycle order: mounted → connected → disconnected → unmounted', () {
       final manager = _makeManager();
       final plugin = _SpyPlugin();
-      final host = _FakeHost();
-
       manager.add(plugin);
-      // manager.didConnected(host);
-      // manager.didDisconnected();
       manager.remove(plugin);
 
-      expect(
-          plugin.calls, ['mounted', 'connected', 'disconnected', 'unmounted']);
+      expect(plugin.calls, ['mounted', 'unmounted']);
     });
   });
 

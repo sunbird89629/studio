@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:terminal_studio/src/hosts/connection_pool.dart';
+import 'package:terminal_studio/src/platform/hosts/connection_pool.dart';
 
 // ---------------------------------------------------------------------------
 // Fake connection handle – stands in for SSHClient in unit tests.

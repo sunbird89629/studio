@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:terminal_studio/src/plugins/terminal/terminal_input_tracker.dart';
+import 'package:terminal_studio/src/features/terminal/application/terminal_input_tracker.dart';
 
 // Convenience alias
 String process(String current, String data, [List<String>? history]) =>

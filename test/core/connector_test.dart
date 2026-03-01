@@ -2,10 +2,10 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:terminal_studio/src/core/conn.dart';
-import 'package:terminal_studio/src/core/fs.dart';
-import 'package:terminal_studio/src/core/host.dart';
-import 'package:terminal_studio/src/core/state/host.dart';
+import 'package:terminal_studio/src/platform/hosts/host_connector.dart';
+import 'package:terminal_studio/src/platform/hosts/fs.dart';
+import 'package:terminal_studio/src/platform/hosts/host.dart';
+import 'package:terminal_studio/src/platform/hosts/host_providers.dart';
 
 class MockHost extends Host {
   final _doneCompleter = Completer<void>();
