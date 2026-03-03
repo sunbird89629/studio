@@ -1,0 +1,60 @@
+{
+  "windowSeconds": 60,
+  "sampleCountAll": 812,
+  "sampleCountNonVmTag": 0,
+  "memoryBefore": {
+    "type": "MemoryUsage",
+    "heapUsage": 20920928,
+    "heapCapacity": 21938176,
+    "externalUsage": 4448
+  },
+  "memoryAfter": {
+    "type": "MemoryUsage",
+    "heapUsage": 20921776,
+    "heapCapacity": 21938176,
+    "externalUsage": 4448
+  },
+  "topLeafFramesAll": [
+    {
+      "frame": "dart::BaseTextBuffer::AddEscapedUTF8(char const*, long)",
+      "samples": 152,
+      "ratio": 18.7192118226601
+    },
+    {
+      "frame": "dart::Library::LoadedScripts() const",
+      "samples": 128,
+      "ratio": 15.763546798029557
+    },
+    {
+      "frame": "__vfprintf",
+      "samples": 74,
+      "ratio": 9.113300492610838
+    },
+    {
+      "frame": "dart::TextBuffer::EnsureCapacity(long)",
+      "samples": 50,
+      "ratio": 6.157635467980295
+    },
+    {
+      "frame": "dart::Script::FindLibrary() const",
+      "samples": 42,
+      "ratio": 5.172413793103448
+    },
+    {
+      "frame": "dart::BaseTextBuffer::AddEscapedLatin1(unsigned char const*, long)",
+      "samples": 31,
+      "ratio": 3.8177339901477834
+    },
+    {
+      "frame": "dart::BaseTextBuffer::AddChar(char)",
+      "samples": 30,
+      "ratio": 3.6945812807881775
+    },
+    {
+      "frame": "__v2printf",
+      "samples": 24,
+      "ratio": 2.955665024630542
+    }
+  ],
+  "topLeafFramesNonVmTag": []
+}

@@ -1,0 +1,62 @@
+{
+  "windowSeconds": 30,
+  "sampleCount": 12597,
+  "memoryNow": {
+    "type": "MemoryUsage",
+    "heapUsage": 1578015424,
+    "heapCapacity": 1604206592,
+    "externalUsage": 4928
+  },
+  "topLeafFrames": [
+    {
+      "frame": "mach_msg2_trap",
+      "samples": 1221,
+      "ratio": 9.692783996189569
+    },
+    {
+      "frame": "_fillBuffer",
+      "samples": 631,
+      "ratio": 5.009129157735969
+    },
+    {
+      "frame": "writeStringContent",
+      "samples": 343,
+      "ratio": 2.7228705247281098
+    },
+    {
+      "frame": "[]",
+      "samples": 311,
+      "ratio": 2.4688417877272366
+    },
+    {
+      "frame": "append_referrer(weak_entry_t*, objc_object**)",
+      "samples": 295,
+      "ratio": 2.3418274192268
+    },
+    {
+      "frame": "add",
+      "samples": 292,
+      "ratio": 2.3180122251329682
+    },
+    {
+      "frame": "_grow",
+      "samples": 275,
+      "ratio": 2.1830594586012544
+    },
+    {
+      "frame": "_platform_memmove",
+      "samples": 203,
+      "ratio": 1.6114948003492895
+    },
+    {
+      "frame": "_xzm_xzone_malloc_tiny",
+      "samples": 170,
+      "ratio": 1.349527665317139
+    },
+    {
+      "frame": "getTransformTo",
+      "samples": 159,
+      "ratio": 1.2622052869730889
+    }
+  ]
+}

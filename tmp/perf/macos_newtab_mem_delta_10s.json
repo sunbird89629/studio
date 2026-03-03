@@ -1,0 +1,14 @@
+{
+  "before": {
+    "type": "MemoryUsage",
+    "heapUsage": 2492297360,
+    "heapCapacity": 2533785600,
+    "externalUsage": 4928
+  },
+  "after10s": {
+    "type": "MemoryUsage",
+    "heapUsage": 2908234384,
+    "heapCapacity": 2955821056,
+    "externalUsage": 4928
+  }
+}
