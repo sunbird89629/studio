@@ -177,6 +177,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.19.1"
+  command_palette:
+    dependency: "direct main"
+    description:
+      name: command_palette
+      sha256: b15a9befccdc1fd0fa9c40e8c6449ccd8d4784b57916bb62e8a4b4a7fb398dbf
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.7.6"
   console:
     dependency: transitive
     description:
@@ -1022,6 +1030,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.4.1"
+  substring_highlight:
+    dependency: transitive
+    description:
+      name: substring_highlight
+      sha256: "96c61e8316098831f6bee87d2386617e4be6aaf87fbc89402dc049d371b67efb"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.33"
   syncfusion_flutter_core:
     dependency: transitive
     description:
@@ -1230,6 +1246,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.5.1"
+  woozy_search:
+    dependency: transitive
+    description:
+      name: woozy_search
+      sha256: c453181e0c3d03002b68094fe1869a8a5033d844541d48937288a75b3b923a15
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.3"
   xdg_directories:
     dependency: transitive
     description:

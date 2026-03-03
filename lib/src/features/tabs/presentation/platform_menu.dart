@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:command_palette/command_palette.dart';
 import 'package:terminal_studio/src/features/tabs/application/active_tab_service.dart';
-import 'package:terminal_studio/src/features/command_palette/application/command_palette_notifier.dart';
 import 'package:terminal_studio/src/features/tabs/application/tabs_service.dart';
 import 'package:terminal_studio/src/features/command_palette/application/vim_edit_notifier.dart';
 import 'package:terminal_studio/src/features/tabs/application/window_service.dart';
@@ -190,7 +190,7 @@ class _GlobalPlatformMenuState extends ConsumerState<GlobalPlatformMenu> {
               label: 'Command Palette',
               shortcut: keymap[ShortcutId.commandPalette]!,
               onSelected: () {
-                ref.read(commandPaletteServiceProvider.notifier).show();
+                CommandPalette.of(context).open();
               },
             ),
             PlatformMenuItem(
