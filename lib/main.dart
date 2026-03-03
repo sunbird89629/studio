@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_devtools/riverpod_devtools.dart';
 import 'package:terminal_studio/src/platform/plugins/open_term.dart';
-import 'package:terminal_studio/src/shared/logging/log_service.dart';
 import 'package:terminal_studio/src/shared/logging/app_logger.dart';
+import 'package:terminal_studio/src/shared/logging/log_service.dart';
 import 'package:terminal_studio/src/shared/utils/provider_logger.dart';
 import 'package:window_manager/window_manager.dart';
 

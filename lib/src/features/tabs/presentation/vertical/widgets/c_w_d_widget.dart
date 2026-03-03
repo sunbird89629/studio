@@ -17,7 +17,7 @@ class CWDWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Text(
-      cwd,
+      '⎿$cwd',
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
       style: TextStyle(

@@ -45,6 +45,7 @@ lib/src/
     terminal/
       application/
       presentation/
+      runtime/
     tunnel/
       application/
 
@@ -74,11 +75,16 @@ lib/src/
 - `domain/`：纯业务模型与规则（如 `effective_settings`）
 - `infrastructure/`：外部系统访问（文件、网络、API）
 - `presentation/`：Widget/UI 与交互
+- `runtime/`：纯终端运行时能力（输入输出、会话能力接口、状态读模型）
 
 核心 feature：
 
 - `tabs`：标签页管理、主页面布局、平台菜单、日志面板
 - `terminal`：终端插件、输入跟踪、终端菜单
+  - 现已拆分为：
+    - `application/terminal_plugin.dart`：插件生命周期与组装
+    - `presentation/terminal_tab_view.dart`：终端 UI 与 overlays
+    - `runtime/terminal_runtime.dart`：跨 feature 的运行时能力接口
 - `settings`：配置加载/保存、快捷键、主题与配置导入导出
 - `ssh`：SSH 主机编辑与持久化
 - `command_palette`：命令模型、注册、搜索、执行
@@ -221,4 +227,3 @@ lib/src/
 - 少量 provider 命名沿用历史 `*ServiceProvider`，语义可进一步统一
 - `features/*/(domain|infrastructure)` 存在空目录（为后续扩展预留）
 - `flutter analyze` 仍有若干 info/warning（不影响编译与测试）
-

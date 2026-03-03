@@ -9,10 +9,10 @@ import 'package:shelf/shelf_io.dart' as io;
 import 'package:shelf_router/shelf_router.dart';
 import 'package:shelf_web_socket/shelf_web_socket.dart';
 import 'package:terminal_studio/src/features/tabs/application/active_tab_service.dart';
+import 'package:terminal_studio/src/features/terminal/runtime/terminal_runtime.dart';
 import 'package:terminal_studio/src/shared/state/terminal_event_bus.dart';
 import 'package:terminal_studio/src/shared/state/terminal_output_event.dart';
 import 'package:terminal_studio/src/shared/logging/app_logger.dart';
-import 'package:terminal_studio/src/features/terminal/application/terminal_plugin.dart';
 import 'package:terminal_studio/src/features/tabs/application/plugin_tab.dart';
 import 'package:uuid/uuid.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
@@ -89,7 +89,8 @@ class RemoteControlNotifier extends Notifier<RemoteControlState> {
         localUrl: localUrl,
       );
 
-      _logger.i('Remote Control Server started at $localUrl (Token: $authToken)');
+      _logger
+          .i('Remote Control Server started at $localUrl (Token: $authToken)');
     } catch (e) {
       _logger.e('Failed to start Remote Control Server: $e');
       rethrow;
@@ -186,9 +187,11 @@ class RemoteControlNotifier extends Notifier<RemoteControlState> {
   void _forwardInputToActiveTerminal(String input) {
     final activeTab = ref.read(activeTabServiceProvider).getActiveTab();
     if (activeTab is PluginTab) {
-      final plugin = activeTab.plugin;
-      if (plugin is TerminalPlugin) {
-        plugin.session?.write(utf8.encode(input));
+      final sink = activeTab.plugin is TerminalInputSink
+          ? activeTab.plugin as TerminalInputSink
+          : null;
+      if (sink != null) {
+        sink.writeInput(input);
         _logger.d('Forwarded remote input to active terminal');
         return;
       }

@@ -2,11 +2,11 @@
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:terminal_studio/src/shared/state/terminal_activity_provider.dart';
-import 'package:terminal_studio/src/features/terminal/application/terminal_plugin.dart';
 import 'package:terminal_studio/src/features/tabs/presentation/vertical/widgets/c_w_d_widget.dart';
 import 'package:terminal_studio/src/features/tabs/presentation/vertical/widgets/command_widget.dart';
 import 'package:terminal_studio/src/features/tabs/presentation/vertical/widgets/host_widget.dart';
+import 'package:terminal_studio/src/features/terminal/application/terminal_plugin.dart';
+import 'package:terminal_studio/src/shared/state/terminal_activity_provider.dart';
 
 class TerminalTileContent extends StatelessWidget {
   const TerminalTileContent({
@@ -17,13 +17,6 @@ class TerminalTileContent extends StatelessWidget {
 
   final TerminalPlugin terminal;
   final bool isActive;
-
-  /// Strip the dimensions suffix " — WxH" that TerminalPlugin appends to title.
-  String _primaryText() {
-    final raw = terminal.title.value ?? 'Terminal';
-    final sepIdx = raw.indexOf(' \u2014 ');
-    return sepIdx >= 0 ? raw.substring(0, sepIdx) : raw;
-  }
 
   (String, String) get hostAndCWD {
     final title = terminal.title.value ?? 'Terminal';

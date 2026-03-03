@@ -1,7 +1,7 @@
 import 'package:flex_tabs/flex_tabs.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_studio/src/features/tabs/application/tabs_provider.dart';
-import 'package:terminal_studio/src/features/terminal/application/terminal_plugin.dart';
+import 'package:terminal_studio/src/features/terminal/runtime/terminal_runtime.dart';
 import 'package:terminal_studio/src/features/tabs/application/plugin_tab.dart';
 
 ProviderContainer? _container;
@@ -87,8 +87,8 @@ class OpenTermTab {
   OpenTermTerminal? get terminal {
     if (_item is PluginTab) {
       final plugin = (_item as PluginTab).plugin;
-      if (plugin is TerminalPlugin) {
-        return OpenTermTerminal._(plugin);
+      if (plugin is TerminalRuntimeAccess) {
+        return OpenTermTerminal._(plugin as TerminalRuntimeAccess);
       }
     }
     return null;
@@ -97,20 +97,20 @@ class OpenTermTab {
 
 /// Provides programmatic access to a terminal tab's state.
 class OpenTermTerminal {
-  final TerminalPlugin _plugin;
+  final TerminalRuntimeAccess _runtime;
 
-  OpenTermTerminal._(this._plugin);
+  OpenTermTerminal._(this._runtime);
 
   /// Best-effort tracking of the text currently typed at the prompt.
-  String get currentInput => _plugin.currentInput;
+  String get currentInput => _runtime.currentInput;
 
   /// Commands committed so far (on Enter), capped at 500 entries.
-  List<String> get commandHistory => _plugin.commandHistory;
+  List<String> get commandHistory => _runtime.commandHistory;
 
-  int get viewWidth => _plugin.terminal.viewWidth;
+  int get viewWidth => _runtime.viewWidth;
 
-  int get viewHeight => _plugin.terminal.viewHeight;
+  int get viewHeight => _runtime.viewHeight;
 
   /// Write [text] to the terminal as if the user typed it.
-  void write(String text) => _plugin.terminal.textInput(text);
+  void write(String text) => _runtime.writeInput(text);
 }
