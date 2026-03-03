@@ -154,7 +154,7 @@ class RemoteControlNotifier extends Notifier<RemoteControlState> {
         // Handle terminal input from remote
         if (type == 'input') {
           final input = data['data'] as String;
-          _forwardInputToActiveTerminal(input);
+          await _forwardInputToActiveTerminal(input);
         }
       } catch (e) {
         _logger.e('Error handling remote message: $e');
@@ -184,14 +184,14 @@ class RemoteControlNotifier extends Notifier<RemoteControlState> {
     }
   }
 
-  void _forwardInputToActiveTerminal(String input) {
+  Future<void> _forwardInputToActiveTerminal(String input) async {
     final activeTab = ref.read(activeTabServiceProvider).getActiveTab();
     if (activeTab is PluginTab) {
       final sink = activeTab.plugin is TerminalInputSink
           ? activeTab.plugin as TerminalInputSink
           : null;
       if (sink != null) {
-        sink.writeInput(input);
+        await sink.writeInput(input);
         _logger.d('Forwarded remote input to active terminal');
         return;
       }
