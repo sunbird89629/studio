@@ -9,11 +9,11 @@ import 'package:shelf/shelf_io.dart' as io;
 import 'package:shelf_router/shelf_router.dart';
 import 'package:shelf_web_socket/shelf_web_socket.dart';
 import 'package:terminal_studio/src/features/tabs/application/active_tab_service.dart';
+import 'package:terminal_studio/src/features/tabs/application/plugin_tab.dart';
 import 'package:terminal_studio/src/features/terminal/runtime/terminal_runtime.dart';
+import 'package:terminal_studio/src/shared/logging/app_logger.dart';
 import 'package:terminal_studio/src/shared/state/terminal_event_bus.dart';
 import 'package:terminal_studio/src/shared/state/terminal_output_event.dart';
-import 'package:terminal_studio/src/shared/logging/app_logger.dart';
-import 'package:terminal_studio/src/features/tabs/application/plugin_tab.dart';
 import 'package:uuid/uuid.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
@@ -154,7 +154,7 @@ class RemoteControlNotifier extends Notifier<RemoteControlState> {
         // Handle terminal input from remote
         if (type == 'input') {
           final input = data['data'] as String;
-          await _forwardInputToActiveTerminal(input);
+          _forwardInputToActiveTerminal(input);
         }
       } catch (e) {
         _logger.e('Error handling remote message: $e');
