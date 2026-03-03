@@ -1,14 +1,15 @@
 import 'package:flex_tabs/flex_tabs.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:terminal_studio/app.dart';
 import 'package:terminal_studio/src/features/command_palette/application/intents.dart';
-import 'package:terminal_studio/src/features/tabs/application/tabs_service.dart';
-import 'package:terminal_studio/src/platform/hosts/local_spec.dart';
 import 'package:terminal_studio/src/features/tabs/application/tabs_provider.dart';
+import 'package:terminal_studio/src/features/tabs/application/tabs_service.dart';
 import 'package:terminal_studio/src/features/tabs/presentation/home.dart';
+import 'package:terminal_studio/src/platform/hosts/local_spec.dart';
 
 Future<void> _waitUntil(
   WidgetTester tester,
@@ -56,6 +57,7 @@ void main() {
     final input = find.byType(TextField).last;
     await tester.tap(input);
     await tester.enterText(input, 'new tab');
+    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
     await tester.pumpAndSettle();
 
     // Step 4: execute "new tab" action.
