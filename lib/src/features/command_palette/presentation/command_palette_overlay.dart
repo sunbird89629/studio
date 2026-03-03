@@ -13,7 +13,7 @@ class CommandPaletteListener extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(commandPaletteServiceProvider);
+    final commands = ref.watch(commandPaletteCommandsProvider);
     final keymapAsync = ref.watch(keymapProvider);
     final keymap = keymapAsync.value ?? defaultKeymaps;
 
@@ -21,7 +21,7 @@ class CommandPaletteListener extends ConsumerWidget {
       actions: _toActions(
         context: context,
         ref: ref,
-        commands: state.filteredCommands,
+        commands: commands,
         keymap: keymap,
       ),
       config: CommandPaletteConfig(
