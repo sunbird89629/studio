@@ -35,6 +35,8 @@ class CommandPaletteNotifier extends Notifier<CommandPaletteState> {
 
   @override
   CommandPaletteState build() {
+    _registry.clear();
+
     // 注册内置命令
     _registry.registerAll(builtinCommands);
 

@@ -27,10 +27,10 @@ class MyApp extends ConsumerWidget {
       theme: theme.theme,
       home: ContextMenuOverlay(
         cardBuilder: (context, children) => StudioMenuCard(children: children),
-        child: _withPlatformMenu(
-          const GlobalActions(
-            child: GlobalShortcuts(
-              child: CommandPaletteListener(
+        child: CommandPaletteListener(
+          child: _withPlatformMenu(
+            const GlobalActions(
+              child: GlobalShortcuts(
                 child: VimEditListener(
                   child: Home(),
                 ),

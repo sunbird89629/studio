@@ -4,6 +4,11 @@ import 'package:terminal_studio/src/features/command_palette/application/command
 class CommandRegistry {
   final _commands = <String, Command>{};
 
+  /// 清空所有已注册命令
+  void clear() {
+    _commands.clear();
+  }
+
   /// 注册一个命令
   void register(Command command) {
     if (_commands.containsKey(command.id)) {
