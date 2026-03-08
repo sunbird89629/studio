@@ -24,7 +24,7 @@ import 'package:window_manager/window_manager.dart';
 /// Manages the app exit lifecycle: exits when all tabs are closed.
 /// Extracted from _HomeState to keep UI and side-effect logic separate.
 final _tabsLifecycleProvider = Provider<void>((ref) {
-  final document = ref.read(tabsProvider);
+  final document = ref.read(tabsProvider.notifier).document;
   TabsContainer<TabsNode>? watchedRoot;
 
   void onRootChanged() {
@@ -71,7 +71,7 @@ class _HomeState extends ConsumerState<Home> {
     ref
         .read(tabsServiceProvider)
         .openTerminal(const LocalHostSpec(), tabs: root);
-    ref.read(tabsProvider).setRoot(root);
+    ref.read(tabsProvider.notifier).document.setRoot(root);
   }
 
   void _checkReleaseNotes() async {
@@ -114,7 +114,7 @@ class _AppLayout extends ConsumerWidget {
     final logVisible = ref.watch(logVisibleProvider);
 
     final tabsView = TabsView(
-      ref.watch(tabsProvider),
+      ref.watch(tabsDocumentProvider),
       theme: _tabsTheme,
       actionBuilder: (tabs) => _buildTabActions(context, ref, tabs),
     );

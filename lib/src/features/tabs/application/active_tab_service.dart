@@ -13,7 +13,7 @@ class ActiveTabService {
   }
 
   TabItem? getActiveTab() {
-    return ref.read(tabsProvider).activeTab.value;
+    return ref.read(activeTabProvider);
   }
 
   void selectPreviousTab() {
@@ -62,7 +62,7 @@ class ActiveTabService {
     } else {
       // Single tab in this group.
       bool isOnlyGroup = false;
-      final doc = ref.read(tabsProvider);
+      final doc = ref.read(tabsProvider.notifier).document;
 
       // If doc.children has 1 item, and that item IS our activeGroup, then we are the only group.
       if (doc.children.length == 1 && doc.children.first == activeGroup) {

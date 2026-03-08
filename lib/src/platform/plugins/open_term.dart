@@ -24,7 +24,7 @@ class OpenTerm {
   OpenTerm._(this._container);
 
   List<TabItem> _allItems() {
-    final root = _container.read(tabsProvider).root;
+    final root = _container.read(tabsProvider.notifier).document.root;
     if (root == null) return [];
     return _collectItems(root);
   }
@@ -47,7 +47,7 @@ class OpenTerm {
   }
 
   OpenTermTab? get activeTab {
-    final active = _container.read(tabsProvider).activeTab.value;
+    final active = _container.read(tabsProvider.notifier).document.activeTab.value;
     if (active == null) return null;
     final items = _allItems();
     final index = items.indexOf(active);

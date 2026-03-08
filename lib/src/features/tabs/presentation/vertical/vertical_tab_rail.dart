@@ -1,5 +1,5 @@
 import 'package:flex_tabs/flex_tabs.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter/material.dart' show ReorderableDragStartListener, ReorderableListView;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_studio/src/features/tabs/application/tabs_provider.dart';
@@ -12,84 +12,15 @@ import 'package:terminal_studio/src/features/tabs/presentation/vertical/widgets/
 /// - Plugin icon + title
 /// - Secondary line: host name (idle) or current command (running/attention)
 /// - Animated activity badge for running / attention states
-class VerticalTabRail extends ConsumerStatefulWidget {
+class VerticalTabRail extends ConsumerWidget {
   const VerticalTabRail({super.key});
 
-  @override
-  ConsumerState<VerticalTabRail> createState() => _VerticalTabRailState();
-}
-
-class _VerticalTabRailState extends ConsumerState<VerticalTabRail> {
-  /// Flattened list of (tabItem, owningTabsGroup) pairs in tree order.
-  List<(TabItem, Tabs)> _allTabs = [];
-  TabsDocument? _tabsDocument;
-
-  /// Tabs groups we're currently listening to for child changes.
-  final Set<Tabs> _listenedGroups = {};
-
-  @override
-  void initState() {
-    super.initState();
-    final doc = ref.read(tabsProvider);
-    _tabsDocument = doc;
-    doc.addListener(_onDocumentChanged);
-    _refreshTabs(doc);
-  }
-
-  @override
-  void dispose() {
-    _tabsDocument?.removeListener(_onDocumentChanged);
-    for (final g in _listenedGroups) {
-      g.removeListener(_onGroupChanged);
-    }
-    super.dispose();
-  }
-
-  void _onDocumentChanged() => _refreshTabs(ref.read(tabsProvider));
-
-  void _onGroupChanged() => _refreshTabs(ref.read(tabsProvider));
-
-  void _refreshTabs(TabsDocument doc) {
-    // Remove listeners from groups no longer in the tree.
-    for (final g in _listenedGroups) {
-      g.removeListener(_onGroupChanged);
-    }
-    _listenedGroups.clear();
-
-    final result = <(TabItem, Tabs)>[];
-    final root = doc.root;
-    if (root != null) _collectFromNode(root, result);
-
-    // Attach listeners to all current groups.
-    for (final (_, tabs) in result) {
-      if (_listenedGroups.add(tabs)) {
-        tabs.addListener(_onGroupChanged);
-      }
-    }
-
-    setState(() {
-      _allTabs = result;
-    });
-  }
-
-  void _collectFromNode(TabsContainer node, List<(TabItem, Tabs)> result) {
-    if (node is Tabs) {
-      for (final item in node.children) {
-        result.add((item, node));
-      }
-    } else {
-      for (final child in node.children) {
-        if (child is TabsContainer) _collectFromNode(child, result);
-      }
-    }
-  }
-
-  void _onReorder(int oldIndex, int newIndex) {
+  void _onReorder(List<(TabItem, Tabs)> allTabs, int oldIndex, int newIndex) {
     if (newIndex > oldIndex) newIndex -= 1;
     if (oldIndex == newIndex) return;
 
-    final (srcTab, srcGroup) = _allTabs[oldIndex];
-    final (dstTab, dstGroup) = _allTabs[newIndex];
+    final (srcTab, srcGroup) = allTabs[oldIndex];
+    final (dstTab, dstGroup) = allTabs[newIndex];
 
     if (srcGroup != dstGroup) return;
 
@@ -97,24 +28,23 @@ class _VerticalTabRailState extends ConsumerState<VerticalTabRail> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final allTabs = ref.watch(allTabsProvider);
     return Column(
       children: [
         Expanded(
           child: ReorderableListView.builder(
-            padding: EdgeInsets.only(top: 24),
+            padding: const EdgeInsets.only(top: 24),
             buildDefaultDragHandles: false,
-            itemCount: _allTabs.length,
-            onReorder: _onReorder,
+            itemCount: allTabs.length,
+            onReorder: (oldIndex, newIndex) =>
+                _onReorder(allTabs, oldIndex, newIndex),
             itemBuilder: (context, index) {
-              final (tabItem, tabs) = _allTabs[index];
+              final (tabItem, tabs) = allTabs[index];
               return ReorderableDragStartListener(
                 key: ObjectKey(tabItem),
                 index: index,
-                child: TabTitle(
-                  tabItem: tabItem,
-                  tabs: tabs,
-                ),
+                child: TabTitle(tabItem: tabItem, tabs: tabs),
               );
             },
           ),

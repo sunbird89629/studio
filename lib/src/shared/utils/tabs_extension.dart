@@ -4,7 +4,7 @@ import 'package:terminal_studio/src/features/tabs/application/tabs_provider.dart
 
 extension RefTabsExtension on WidgetRef {
   void openTab(TabItem tab) {
-    final document = read(tabsProvider);
+    final document = read(tabsProvider.notifier).document;
     document.root?.add(tab);
     tab.activate();
   }
