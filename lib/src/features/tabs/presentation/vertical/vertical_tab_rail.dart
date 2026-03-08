@@ -1,6 +1,7 @@
 import 'package:flex_tabs/flex_tabs.dart';
+import 'package:flutter/material.dart'
+    show ReorderableDragStartListener, ReorderableListView;
 import 'package:flutter/widgets.dart';
-import 'package:flutter/material.dart' show ReorderableDragStartListener, ReorderableListView;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_studio/src/features/tabs/application/tabs_provider.dart';
 import 'package:terminal_studio/src/features/tabs/presentation/tab_title.dart';
@@ -37,8 +38,11 @@ class VerticalTabRail extends ConsumerWidget {
             padding: const EdgeInsets.only(top: 24),
             buildDefaultDragHandles: false,
             itemCount: allTabs.length,
-            onReorder: (oldIndex, newIndex) =>
-                _onReorder(allTabs, oldIndex, newIndex),
+            onReorder: (oldIndex, newIndex) => _onReorder(
+              allTabs,
+              oldIndex,
+              newIndex,
+            ),
             itemBuilder: (context, index) {
               final (tabItem, tabs) = allTabs[index];
               return ReorderableDragStartListener(

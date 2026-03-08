@@ -88,19 +88,19 @@ class _TabTitleState extends State<TabTitle> {
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    // Positioned(
-                    //   left: 0,
-                    //   top: 0,
-                    //   bottom: 0,
-                    //   child: AspectRatio(
-                    //     aspectRatio: 1,
-                    //     child: Icon(
-                    //       _getTabIcon,
-                    //       size: 100,
-                    //       color: Colors.white.withValues(alpha: 0.12),
-                    //     ),
-                    //   ),
-                    // ),
+                    Positioned(
+                      left: 0,
+                      top: 0,
+                      bottom: 0,
+                      child: AspectRatio(
+                        aspectRatio: 1,
+                        child: Icon(
+                          _getTabIcon,
+                          size: 100,
+                          color: Colors.white.withValues(alpha: 0.12),
+                        ),
+                      ),
+                    ),
                     VerticalTabContentWidget(
                       terminal: terminal,
                       isActive: isActive,

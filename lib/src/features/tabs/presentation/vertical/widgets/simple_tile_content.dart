@@ -1,7 +1,6 @@
 // ─── Tab Tile ────────────────────────────────────────────────────────────────
 
 import 'package:flex_tabs/flex_tabs.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class SimpleTileContent extends StatelessWidget {
