@@ -25,7 +25,7 @@ UI Layer → Service Layer → Core Layer → State (Riverpod + JSONC files) →
 - `Host` — connection interface (shell, execute, connectFileSystem)
 - `HostConnector` — state machine: initialized → connecting → connected/disconnected/aborted; uses `StreamController.broadcast()` (`connector.stream`); `connector.dispose()` called via `ref.onDispose` in `connectorProvider`
 - `FileSystem` — local and SSH (SFTP) implementations
-- **Tab tree** (`tabsProvider → TabsDocument`): `root` → layout containers (`TabsRow`/`TabsColumn`) → `Tabs` (leaf, holds `TabItem`). Branch on `is Tabs` to collect items. `TabItem.isActivated` = `parent!.activeTab == this`. `PluginTab.plugin.title` is `ValueNotifier<String?>` (raw); `PluginTab.title` is `ValueNotifier<Widget?>` (display row).
+- **Tab tree** (`tabsProvider` is `NotifierProvider<TabsNotifier, int>`; access document via `ref.read(tabsProvider.notifier).document`): `root` → layout containers (`TabsRow`/`TabsColumn`) → `Tabs` (leaf, holds `TabItem`). Branch on `is Tabs` to collect items. `TabItem.isActivated` = `parent!.activeTab == this`. `PluginTab.plugin.title` is `ValueNotifier<String?>` (raw); `PluginTab.title` is `ValueNotifier<Widget?>` (display row). Derived providers: `allTabsProvider` (reactive flattened tab list), `activeTabProvider` (reactive active tab), `tabsDocumentProvider` (stable doc ref for `TabsView`).
 
 ### State Management
 
@@ -153,6 +153,8 @@ GitHub Actions (`.github/workflows/`):
 ## Dependency Gotchas
 
 - Riverpod 3.x: `WidgetRef` is `sealed class WidgetRef implements MutationTarget` — does NOT extend `Ref`; functions taking `Ref` will reject `WidgetRef` from ConsumerWidget. Inline save logic in `Ref` contexts instead of calling a shared helper that takes `WidgetRef`
+- Riverpod 3.x: `ChangeNotifierProvider` is NOT in the default `flutter_riverpod` export — it lives in `flutter_riverpod/legacy.dart`; prefer `NotifierProvider<T, StateType>` instead
+- `flex_tabs` `TabsView`: constructing `TabsView(document)` internally calls `document.notifyListeners()` during widget init, BEFORE `setRoot()` — any listener checking `document.root` at this point will see `null`; use a two-level listener (watch document changes → switch to watching root.children) to avoid premature `exit(0)`
 - `LogicalKeyboardKey` cannot be a `const` map key (overrides `==`/`hashCode`); use `final` map
 - `part` directives must appear after all `import` statements in Dart files
 - `terminal_plugin.dart` uses `import 'package:flutter/material.dart' show ...` (named show list) alongside `cupertino.dart` — any new Material widget used in this file must be added to the `show` list explicitly

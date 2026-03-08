@@ -54,48 +54,63 @@ class _TabsDocumentBridge extends ChangeNotifier {
   }
 }
 
+// ─── State ────────────────────────────────────────────────────────────────────
+
+/// Immutable snapshot of the tab tree, recomputed on every change.
+typedef TabsState = ({
+  List<(TabItem, Tabs)> allTabs,
+  TabItem? activeTab,
+});
+
 // ─── Riverpod Notifier ────────────────────────────────────────────────────────
 
-/// Bridges [_TabsDocumentBridge] into Riverpod 3.x reactivity via a version
-/// counter. Increment [state] on every tab-tree change so that
-/// `ref.watch(tabsProvider)` consumers rebuild correctly.
-class TabsNotifier extends Notifier<int> {
+/// Single data source for all tab state. Bridges [_TabsDocumentBridge] into
+/// Riverpod 3.x reactivity: each tab-tree change recomputes [TabsState] so
+/// all `ref.watch(tabsProvider)` consumers receive a fresh snapshot.
+class TabsNotifier extends Notifier<TabsState> {
   late final _TabsDocumentBridge _bridge;
 
   @override
-  int build() {
+  TabsState build() {
     _bridge = _TabsDocumentBridge();
     _bridge.addListener(_onChanged);
     ref.onDispose(_bridge.dispose);
-    return 0;
+    return _computeState();
   }
 
-  void _onChanged() => state++;
+  void _onChanged() => state = _computeState();
 
+  TabsState _computeState() {
+    final result = <(TabItem, Tabs)>[];
+    final root = _bridge.document.root;
+    if (root != null) _collectTabs(root, result);
+    return (
+      allTabs: result,
+      activeTab: _bridge.document.activeTab.value,
+    );
+  }
+
+  // ─── Mutations ─────────────────────────────────────────────────────────────
+
+  void setRoot(TabsContainer<TabsNode> root) => _bridge.document.setRoot(root);
+
+  void openTab(TabItem tab) {
+    _bridge.document.root?.add(tab);
+    tab.activate();
+  }
+
+  /// Returns true when [group] is the only top-level tab group in the document.
+  bool isOnlyGroup(Tabs group) {
+    final children = _bridge.document.children;
+    return children.length == 1 && children.first == group;
+  }
+
+  // ─── Internal document access ───────────────────────────────────────────────
+
+  /// Direct access to [TabsDocument] — only for [tabsDocumentProvider] and
+  /// the two-level lifecycle listener in [_tabsLifecycleProvider].
   TabsDocument get document => _bridge.document;
 }
-
-/// Primary tabs provider. [ref.watch] to subscribe to any tab-tree change;
-/// access [tabsProvider.notifier.document] for the underlying [TabsDocument].
-final tabsProvider = NotifierProvider<TabsNotifier, int>(TabsNotifier.new);
-
-// ─── Derived providers ────────────────────────────────────────────────────────
-
-/// Stable [TabsDocument] reference for widgets like [TabsView] that manage
-/// their own internal reactivity.
-final tabsDocumentProvider = Provider<TabsDocument>((ref) {
-  return ref.read(tabsProvider.notifier).document;
-});
-
-/// Flattened list of all (TabItem, owning Tabs group) pairs in tree order.
-/// Recomputes whenever the tab tree changes.
-final allTabsProvider = Provider<List<(TabItem, Tabs)>>((ref) {
-  ref.watch(tabsProvider);
-  final result = <(TabItem, Tabs)>[];
-  final root = ref.read(tabsProvider.notifier).document.root;
-  if (root != null) _collectTabs(root, result);
-  return result;
-});
 
 void _collectTabs(TabsContainer node, List<(TabItem, Tabs)> result) {
   if (node is Tabs) {
@@ -109,8 +124,24 @@ void _collectTabs(TabsContainer node, List<(TabItem, Tabs)> result) {
   }
 }
 
-/// The currently active [TabItem], recomputes whenever the tab tree changes.
+/// Primary tabs provider. [ref.watch] returns a [TabsState] snapshot;
+/// access [tabsProvider.notifier.document] for mutations.
+final tabsProvider = NotifierProvider<TabsNotifier, TabsState>(TabsNotifier.new);
+
+// ─── Derived providers (projections) ─────────────────────────────────────────
+
+/// Stable [TabsDocument] reference for widgets like [TabsView] that manage
+/// their own internal reactivity.
+final tabsDocumentProvider = Provider<TabsDocument>((ref) {
+  return ref.read(tabsProvider.notifier).document;
+});
+
+/// Flattened list of all (TabItem, owning Tabs group) pairs in tree order.
+final allTabsProvider = Provider<List<(TabItem, Tabs)>>((ref) {
+  return ref.watch(tabsProvider).allTabs;
+});
+
+/// The currently active [TabItem].
 final activeTabProvider = Provider<TabItem?>((ref) {
-  ref.watch(tabsProvider);
-  return ref.read(tabsProvider.notifier).document.activeTab.value;
+  return ref.watch(tabsProvider).activeTab;
 });

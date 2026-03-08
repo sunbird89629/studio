@@ -71,7 +71,7 @@ class _HomeState extends ConsumerState<Home> {
     ref
         .read(tabsServiceProvider)
         .openTerminal(const LocalHostSpec(), tabs: root);
-    ref.read(tabsProvider.notifier).document.setRoot(root);
+    ref.read(tabsProvider.notifier).setRoot(root);
   }
 
   void _checkReleaseNotes() async {
