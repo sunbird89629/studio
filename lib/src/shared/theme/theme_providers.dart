@@ -61,7 +61,7 @@ class ThemeService {
     final settings = await ref.read(settingsProvider.future);
     settings.themeId = themeId;
     final config = ref.read(configFileServiceProvider);
-    final profiles = ref.read(profilesProvider).value ?? [];
+    final profiles = await ref.read(profilesProvider.future);
     await config.saveToFile(settings, profiles: profiles);
     ref.invalidate(settingsProvider);
   }

@@ -83,7 +83,16 @@ final selectedModelProvider =
 
 class SelectedModelNotifier extends Notifier<String?> {
   @override
-  String? build() => null;
+  String? build() {
+    ref.listen(aiModelsProvider, (_, next) {
+      next.whenData((models) {
+        if (state == null && models.isNotEmpty) {
+          state = models.first;
+        }
+      });
+    });
+    return null;
+  }
 
   void set(String? value) => state = value;
 }
@@ -257,13 +266,7 @@ class _CopilotSidebarState extends ConsumerState<CopilotSidebar> {
       data: (models) {
         if (models.isEmpty) return const SizedBox.shrink();
 
-        final currentSelection =
-            selectedModel ?? (models.isNotEmpty ? models.first : null);
-        if (selectedModel == null && currentSelection != null) {
-          Future.microtask(() {
-            ref.read(selectedModelProvider.notifier).set(currentSelection);
-          });
-        }
+        final currentSelection = selectedModel ?? models.first;
 
         return DropdownButton<String>(
           value: currentSelection,
