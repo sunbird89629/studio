@@ -3,11 +3,12 @@
 import 'package:flex_tabs/flex_tabs.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:terminal_studio/src/shared/state/terminal_activity_provider.dart';
-import 'package:terminal_studio/src/features/terminal/application/terminal_plugin.dart';
-import 'package:terminal_studio/src/features/tabs/presentation/icons/ai_icons.dart';
 import 'package:terminal_studio/src/features/tabs/application/plugin_tab.dart';
+import 'package:terminal_studio/src/features/tabs/presentation/close_tab_button.dart';
+import 'package:terminal_studio/src/features/tabs/presentation/icons/ai_icons.dart';
 import 'package:terminal_studio/src/features/tabs/presentation/vertical/widgets/vertical_tab_content_widget.dart';
+import 'package:terminal_studio/src/features/terminal/application/terminal_plugin.dart';
+import 'package:terminal_studio/src/shared/state/terminal_activity_provider.dart';
 
 class TabTitle extends StatefulWidget {
   const TabTitle({
@@ -64,6 +65,7 @@ class _TabTitleState extends State<TabTitle> {
       builder: (context, _) {
         final isActive = _tab.isActivated;
         return Material(
+          color: Colors.transparent,
           child: MouseRegion(
             onEnter: (_) => setState(() => _hover = true),
             onExit: (_) => setState(() => _hover = false),
@@ -73,36 +75,32 @@ class _TabTitleState extends State<TabTitle> {
                 duration: const Duration(milliseconds: 120),
                 height: 120,
                 decoration: BoxDecoration(
-                  color: isActive
-                      ? Colors.white.withValues(alpha: 0.12)
-                      : _hover
-                          ? Colors.white.withValues(alpha: 0.06)
-                          : Colors.transparent,
-                  border: Border(
-                    right: BorderSide(
-                      color: isActive
-                          ? CupertinoColors.activeBlue
-                          : Colors.transparent,
-                      width: 2,
-                    ),
-                  ),
+                  color: getBackgroundColor(isActive),
+                  // border: Border(
+                  //   right: BorderSide(
+                  //     color: isActive
+                  //         ? CupertinoColors.activeBlue
+                  //         : Colors.transparent,
+                  //     width: 2,
+                  //   ),
+                  // ),
                 ),
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    Positioned(
-                      left: 0,
-                      top: 0,
-                      bottom: 0,
-                      child: AspectRatio(
-                        aspectRatio: 1,
-                        child: Icon(
-                          _getTabIcon,
-                          size: 100,
-                          color: Colors.white.withValues(alpha: 0.12),
-                        ),
-                      ),
-                    ),
+                    // Positioned(
+                    //   left: 0,
+                    //   top: 0,
+                    //   bottom: 0,
+                    //   child: AspectRatio(
+                    //     aspectRatio: 1,
+                    //     child: Icon(
+                    //       _getTabIcon,
+                    //       size: 100,
+                    //       color: Colors.white.withValues(alpha: 0.12),
+                    //     ),
+                    //   ),
+                    // ),
                     VerticalTabContentWidget(
                       terminal: terminal,
                       isActive: isActive,
@@ -118,7 +116,7 @@ class _TabTitleState extends State<TabTitle> {
                         right: 0,
                         width: 40,
                         height: 40,
-                        child: _CloseButton(onPressed: _tab.dispose),
+                        child: CloseTabButton(onPressed: _tab.dispose),
                       ),
                   ],
                 ),
@@ -128,6 +126,18 @@ class _TabTitleState extends State<TabTitle> {
         );
       },
     );
+  }
+
+  Color getBackgroundColor(bool isActive) {
+    if (isActive) {
+      return Colors.transparent;
+    }
+    //  else if (_hover) {
+    //   return Colors.white.withValues(alpha: 0.06);
+    // }
+    else {
+      return Colors.white.withValues(alpha: 0.12);
+    }
   }
 }
 
@@ -222,29 +232,6 @@ class _ActivityBadgeState extends State<_ActivityBadge>
             ),
           );
         },
-      ),
-    );
-  }
-}
-
-// ─── Close button ─────────────────────────────────────────────────────────────
-
-class _CloseButton extends StatelessWidget {
-  const _CloseButton({required this.onPressed});
-
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onPressed,
-      child: Padding(
-        padding: const EdgeInsets.only(left: 4),
-        child: Icon(
-          CupertinoIcons.xmark,
-          size: 12,
-          color: Colors.white.withValues(alpha: 0.6),
-        ),
       ),
     );
   }
