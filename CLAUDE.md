@@ -162,6 +162,8 @@ GitHub Actions (`.github/workflows/`):
 - xterm `CellOffset.y` from `onTapUp` is buffer-absolute (includes scroll offset) — confirmed in `render.dart`
 - xterm `Terminal.scrollUp/scrollDown` are **buffer scroll operations** (escape sequences), NOT viewport scroll — to programmatically scroll the view, pass `scrollController` to `TerminalView`; compute target pixel as `(bufferLine / (buffer.height - viewHeight)) * scrollController.position.maxScrollExtent`
 - No `url_launcher` dep — use `LauncherService` (`Process.run('open'/'xdg-open'/'start')`) for platform-native file/URL opening
+- `riverpod_lint 3.x` does NOT depend on `custom_lint` — migrated to `analysis_server_plugin`; add only to `dev_dependencies`, register in `analysis_options.yaml` as `plugins:\n  riverpod_lint:` (map format, not a list item); IDE picks it up automatically, no `dart run custom_lint` needed
+- Riverpod async anti-patterns to avoid: (1) `ref.read(provider).value ?? []` in async methods may silently return empty before data loads — use `await ref.read(provider.future)` instead; (2) `FutureBuilder(future: ref.read(...).loadX())` inside `build()` recreates the Future on every rebuild — cache in `initState` using a `ConsumerStatefulWidget`; (3) `Future.microtask(() => ref.read(notifier).set(...))` in `build()` is a side-effect anti-pattern — move auto-init logic into `Notifier.build()` using `ref.listen`
 
 ## Testing Gotchas
 

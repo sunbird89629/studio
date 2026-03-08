@@ -2,6 +2,8 @@ PODS:
   - Flutter (1.0.0)
   - flutter_pty (0.0.1):
     - Flutter
+  - integration_test (0.0.1):
+    - Flutter
   - package_info_plus (0.4.5):
     - Flutter
   - url_launcher_ios (0.0.1):
@@ -10,6 +12,7 @@ PODS:
 DEPENDENCIES:
   - Flutter (from `Flutter`)
   - flutter_pty (from `.symlinks/plugins/flutter_pty/ios`)
+  - integration_test (from `.symlinks/plugins/integration_test/ios`)
   - package_info_plus (from `.symlinks/plugins/package_info_plus/ios`)
   - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
 
@@ -18,6 +21,8 @@ EXTERNAL SOURCES:
     :path: Flutter
   flutter_pty:
     :path: ".symlinks/plugins/flutter_pty/ios"
+  integration_test:
+    :path: ".symlinks/plugins/integration_test/ios"
   package_info_plus:
     :path: ".symlinks/plugins/package_info_plus/ios"
   url_launcher_ios:
@@ -26,6 +31,7 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
   flutter_pty: 206742da6092b413cb683de17436c16d1f3c7997
+  integration_test: 4a889634ef21a45d28d50d622cf412dc6d9f586e
   package_info_plus: af8e2ca6888548050f16fa2f1938db7b5a5df499
   url_launcher_ios: 7a95fa5b60cc718a708b8f2966718e93db0cef1b
 
