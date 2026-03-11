@@ -37,9 +37,7 @@ dependencies:
   dartssh2: ^2.7.2+3
 
   xterm:
-    git:
-      url: https://github.com/sunbird89629/xterm.dart.git
-      ref: dbbaafd
+    path: /Users/hao/work/flutter/xterm.dart
   flutter_riverpod: ^3.2.0
   riverpod_devtools: ^0.4.4
   google_generative_ai: ^0.4.5
