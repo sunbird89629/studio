@@ -6,17 +6,17 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:terminal_studio/src/shared/state/release_notes_service.dart';
-import 'package:terminal_studio/src/features/tabs/application/tabs_service.dart';
 import 'package:terminal_studio/src/features/copilot/application/copilot_providers.dart';
-import 'package:terminal_studio/src/shared/state/log_visible_provider.dart';
-import 'package:terminal_studio/src/features/tabs/application/tabs_provider.dart';
-import 'package:terminal_studio/src/shared/theme/theme_providers.dart';
-import 'package:terminal_studio/src/platform/hosts/local_spec.dart';
-import 'package:terminal_studio/src/features/tabs/presentation/context_menu.dart';
 import 'package:terminal_studio/src/features/copilot/presentation/copilot_sidebar.dart';
+import 'package:terminal_studio/src/features/tabs/application/tabs_provider.dart';
+import 'package:terminal_studio/src/features/tabs/application/tabs_service.dart';
+import 'package:terminal_studio/src/features/tabs/presentation/context_menu.dart';
 import 'package:terminal_studio/src/features/tabs/presentation/log_sidebar.dart';
 import 'package:terminal_studio/src/features/tabs/presentation/vertical/vertical_tab_rail.dart';
+import 'package:terminal_studio/src/platform/hosts/local_spec.dart';
+import 'package:terminal_studio/src/shared/state/log_visible_provider.dart';
+import 'package:terminal_studio/src/shared/state/release_notes_service.dart';
+import 'package:terminal_studio/src/shared/theme/theme_providers.dart';
 import 'package:terminal_studio/src/shared/widgets/debug_indicator.dart';
 import 'package:terminal_studio/src/shared/widgets/release_notes_dialog.dart';
 import 'package:window_manager/window_manager.dart';
@@ -24,7 +24,7 @@ import 'package:window_manager/window_manager.dart';
 /// Manages the app exit lifecycle: exits when all tabs are closed.
 /// Extracted from _HomeState to keep UI and side-effect logic separate.
 final _tabsLifecycleProvider = Provider<void>((ref) {
-  final document = ref.read(tabsProvider);
+  final document = ref.read(tabsProvider.notifier).document;
   TabsContainer<TabsNode>? watchedRoot;
 
   void onRootChanged() {
@@ -68,8 +68,10 @@ class _HomeState extends ConsumerState<Home> {
 
   void _initTabs() {
     final root = Tabs();
-    ref.read(tabsServiceProvider).openTerminal(const LocalHostSpec(), tabs: root);
-    ref.read(tabsProvider).setRoot(root);
+    ref
+        .read(tabsServiceProvider)
+        .openTerminal(const LocalHostSpec(), tabs: root);
+    ref.read(tabsProvider.notifier).setRoot(root);
   }
 
   void _checkReleaseNotes() async {
@@ -112,7 +114,7 @@ class _AppLayout extends ConsumerWidget {
     final logVisible = ref.watch(logVisibleProvider);
 
     final tabsView = TabsView(
-      ref.watch(tabsProvider),
+      ref.watch(tabsDocumentProvider),
       theme: _tabsTheme,
       actionBuilder: (tabs) => _buildTabActions(context, ref, tabs),
     );
@@ -123,7 +125,8 @@ class _AppLayout extends ConsumerWidget {
           width: 200,
           child: VerticalTabRail(),
         ),
-        const VerticalDivider(width: 1, thickness: 1),
+        // const VerticalDivider(width: 1, thickness: 1),
+        SizedBox(width: 6),
         Expanded(child: tabsView),
       ],
     );

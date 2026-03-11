@@ -3,11 +3,24 @@ import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_studio/src/shared/state/release_notes_service.dart';
 
-class ReleaseNotesDialog extends ConsumerWidget {
+class ReleaseNotesDialog extends ConsumerStatefulWidget {
   const ReleaseNotesDialog({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ReleaseNotesDialog> createState() => _ReleaseNotesDialogState();
+}
+
+class _ReleaseNotesDialogState extends ConsumerState<ReleaseNotesDialog> {
+  late final Future<String> _notesFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _notesFuture = ref.read(releaseNotesServiceProvider).loadReleaseNotes();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Dialog(
       child: ConstrainedBox(
         constraints: BoxConstraints(
@@ -35,8 +48,7 @@ class ReleaseNotesDialog extends ConsumerWidget {
               const SizedBox(height: 16),
               Expanded(
                 child: FutureBuilder<String>(
-                  future:
-                      ref.read(releaseNotesServiceProvider).loadReleaseNotes(),
+                  future: _notesFuture,
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(child: CircularProgressIndicator());

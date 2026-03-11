@@ -143,7 +143,7 @@ class ProfilesSettingsView extends ConsumerWidget {
     if (name == null || name.isEmpty) return;
 
     final profiles = List<ProfileRecord>.from(
-      ref.read(profilesProvider).value ?? [],
+      await ref.read(profilesProvider.future),
     );
     profiles.add(ProfileRecord(name: name));
     await _saveProfiles(ref, profiles);

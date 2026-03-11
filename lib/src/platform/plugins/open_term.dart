@@ -23,42 +23,30 @@ class OpenTerm {
 
   OpenTerm._(this._container);
 
-  List<TabItem> _allItems() {
-    final root = _container.read(tabsProvider).root;
-    if (root == null) return [];
-    return _collectItems(root);
-  }
+  List<(TabItem, Tabs)> _allTabs() => _container.read(tabsProvider).allTabs;
 
-  static List<TabItem> _collectItems(TabsContainer<dynamic> node) {
-    if (node is Tabs) return List<TabItem>.from(node.children);
-    return [
-      for (final child in node.children)
-        if (child is TabsContainer) ..._collectItems(child),
-    ];
-  }
-
-  int get tabCount => _allItems().length;
+  int get tabCount => _allTabs().length;
 
   List<OpenTermTab> get tabs {
-    final items = _allItems();
+    final all = _allTabs();
     return [
-      for (var i = 0; i < items.length; i++) OpenTermTab._(items[i], i),
+      for (var i = 0; i < all.length; i++) OpenTermTab._(all[i].$1, i),
     ];
   }
 
   OpenTermTab? get activeTab {
-    final active = _container.read(tabsProvider).activeTab.value;
+    final active = _container.read(tabsProvider).activeTab;
     if (active == null) return null;
-    final items = _allItems();
-    final index = items.indexOf(active);
+    final all = _allTabs();
+    final index = all.indexWhere((t) => t.$1 == active);
     if (index == -1) return null;
     return OpenTermTab._(active, index);
   }
 
   OpenTermTab? operator [](int index) {
-    final items = _allItems();
-    if (index < 0 || index >= items.length) return null;
-    return OpenTermTab._(items[index], index);
+    final all = _allTabs();
+    if (index < 0 || index >= all.length) return null;
+    return OpenTermTab._(all[index].$1, index);
   }
 }
 

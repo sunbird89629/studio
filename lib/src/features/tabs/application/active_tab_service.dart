@@ -13,7 +13,7 @@ class ActiveTabService {
   }
 
   TabItem? getActiveTab() {
-    return ref.read(tabsProvider).activeTab.value;
+    return ref.read(activeTabProvider);
   }
 
   void selectPreviousTab() {
@@ -61,15 +61,7 @@ class ActiveTabService {
       activeTab.detach();
     } else {
       // Single tab in this group.
-      bool isOnlyGroup = false;
-      final doc = ref.read(tabsProvider);
-
-      // If doc.children has 1 item, and that item IS our activeGroup, then we are the only group.
-      if (doc.children.length == 1 && doc.children.first == activeGroup) {
-        isOnlyGroup = true;
-      }
-
-      if (isOnlyGroup) {
+      if (ref.read(tabsProvider.notifier).isOnlyGroup(activeGroup)) {
         ref.read(windowServiceProvider).closeWindow();
       } else {
         // Just a split pane, close it.

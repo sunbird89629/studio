@@ -25,7 +25,7 @@ UI Layer → Service Layer → Core Layer → State (Riverpod + JSONC files) →
 - `Host` — connection interface (shell, execute, connectFileSystem)
 - `HostConnector` — state machine: initialized → connecting → connected/disconnected/aborted; uses `StreamController.broadcast()` (`connector.stream`); `connector.dispose()` called via `ref.onDispose` in `connectorProvider`
 - `FileSystem` — local and SSH (SFTP) implementations
-- **Tab tree** (`tabsProvider → TabsDocument`): `root` → layout containers (`TabsRow`/`TabsColumn`) → `Tabs` (leaf, holds `TabItem`). Branch on `is Tabs` to collect items. `TabItem.isActivated` = `parent!.activeTab == this`. `PluginTab.plugin.title` is `ValueNotifier<String?>` (raw); `PluginTab.title` is `ValueNotifier<Widget?>` (display row).
+- **Tab tree** (`tabsProvider` is `NotifierProvider<TabsNotifier, int>`; access document via `ref.read(tabsProvider.notifier).document`): `root` → layout containers (`TabsRow`/`TabsColumn`) → `Tabs` (leaf, holds `TabItem`). Branch on `is Tabs` to collect items. `TabItem.isActivated` = `parent!.activeTab == this`. `PluginTab.plugin.title` is `ValueNotifier<String?>` (raw); `PluginTab.title` is `ValueNotifier<Widget?>` (display row). Derived providers: `allTabsProvider` (reactive flattened tab list), `activeTabProvider` (reactive active tab), `tabsDocumentProvider` (stable doc ref for `TabsView`).
 
 ### State Management
 
@@ -153,6 +153,8 @@ GitHub Actions (`.github/workflows/`):
 ## Dependency Gotchas
 
 - Riverpod 3.x: `WidgetRef` is `sealed class WidgetRef implements MutationTarget` — does NOT extend `Ref`; functions taking `Ref` will reject `WidgetRef` from ConsumerWidget. Inline save logic in `Ref` contexts instead of calling a shared helper that takes `WidgetRef`
+- Riverpod 3.x: `ChangeNotifierProvider` is NOT in the default `flutter_riverpod` export — it lives in `flutter_riverpod/legacy.dart`; prefer `NotifierProvider<T, StateType>` instead
+- `flex_tabs` `TabsView`: constructing `TabsView(document)` internally calls `document.notifyListeners()` during widget init, BEFORE `setRoot()` — any listener checking `document.root` at this point will see `null`; use a two-level listener (watch document changes → switch to watching root.children) to avoid premature `exit(0)`
 - `LogicalKeyboardKey` cannot be a `const` map key (overrides `==`/`hashCode`); use `final` map
 - `part` directives must appear after all `import` statements in Dart files
 - `terminal_plugin.dart` uses `import 'package:flutter/material.dart' show ...` (named show list) alongside `cupertino.dart` — any new Material widget used in this file must be added to the `show` list explicitly
@@ -160,6 +162,8 @@ GitHub Actions (`.github/workflows/`):
 - xterm `CellOffset.y` from `onTapUp` is buffer-absolute (includes scroll offset) — confirmed in `render.dart`
 - xterm `Terminal.scrollUp/scrollDown` are **buffer scroll operations** (escape sequences), NOT viewport scroll — to programmatically scroll the view, pass `scrollController` to `TerminalView`; compute target pixel as `(bufferLine / (buffer.height - viewHeight)) * scrollController.position.maxScrollExtent`
 - No `url_launcher` dep — use `LauncherService` (`Process.run('open'/'xdg-open'/'start')`) for platform-native file/URL opening
+- `riverpod_lint 3.x` does NOT depend on `custom_lint` — migrated to `analysis_server_plugin`; add only to `dev_dependencies`, register in `analysis_options.yaml` as `plugins:\n  riverpod_lint:` (map format, not a list item); IDE picks it up automatically, no `dart run custom_lint` needed
+- Riverpod async anti-patterns to avoid: (1) `ref.read(provider).value ?? []` in async methods may silently return empty before data loads — use `await ref.read(provider.future)` instead; (2) `FutureBuilder(future: ref.read(...).loadX())` inside `build()` recreates the Future on every rebuild — cache in `initState` using a `ConsumerStatefulWidget`; (3) `Future.microtask(() => ref.read(notifier).set(...))` in `build()` is a side-effect anti-pattern — move auto-init logic into `Notifier.build()` using `ref.listen`
 
 ## Testing Gotchas
 

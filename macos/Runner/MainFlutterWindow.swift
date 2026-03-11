@@ -10,6 +10,8 @@ class MainFlutterWindow: NSWindow {
 
     RegisterGeneratedPlugins(registry: flutterViewController)
 
+    self.styleMask.insert(.borderless)
+
     super.awakeFromNib()
   }
 }

@@ -3,11 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_studio/src/features/tabs/application/tabs_provider.dart';
 
 extension RefTabsExtension on WidgetRef {
-  void openTab(TabItem tab) {
-    final document = read(tabsProvider);
-    document.root?.add(tab);
-    tab.activate();
-  }
+  void openTab(TabItem tab) => read(tabsProvider.notifier).openTab(tab);
 }
 
 extension TabItemExtension on TabItem {

@@ -46,8 +46,9 @@ class OneLineLogPrinter extends LogPrinter {
         .trim();
     if (sanitized.isEmpty) return '-';
     if (sanitized.startsWith('.')) return sanitized.substring(1);
-    if (sanitized.endsWith('.'))
+    if (sanitized.endsWith('.')) {
       return sanitized.substring(0, sanitized.length - 1);
+    }
     return sanitized;
   }
 

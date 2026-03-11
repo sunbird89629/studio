@@ -46,7 +46,7 @@ Future<void> resetAllKeymaps(WidgetRef ref) async {
 Future<void> _persistKeymaps(WidgetRef ref, Map<String, String> keymaps) async {
   final config = ref.read(configFileServiceProvider);
   final settings = await ref.read(settingsProvider.future);
-  final profiles = ref.read(profilesProvider).value ?? [];
+  final profiles = await ref.read(profilesProvider.future);
   await config.saveToFile(settings, profiles: profiles, keymaps: keymaps);
   ref.invalidate(keymapProvider);
 }
