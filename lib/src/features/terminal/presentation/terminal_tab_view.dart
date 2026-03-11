@@ -56,6 +56,8 @@ class _TerminalTabViewState extends ConsumerState<TerminalTabView> {
   Map<String, SingleActivator> _currentKeymap = defaultKeymaps;
   bool _openModifierActive = false;
 
+  final _terminalFocus = FocusNode();
+
   bool _findVisible = false;
   final _findController = TextEditingController();
   final _findFocus = FocusNode();
@@ -68,11 +70,15 @@ class _TerminalTabViewState extends ConsumerState<TerminalTabView> {
     super.initState();
     HardwareKeyboard.instance.addHandler(_handleGlobalKeyEvent);
     _findController.addListener(_onFindQueryChanged);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _terminalFocus.requestFocus();
+    });
   }
 
   @override
   void dispose() {
     HardwareKeyboard.instance.removeHandler(_handleGlobalKeyEvent);
+    _terminalFocus.dispose();
     _findController.dispose();
     _findFocus.dispose();
     _scrollController.dispose();
@@ -241,6 +247,7 @@ class _TerminalTabViewState extends ConsumerState<TerminalTabView> {
   @override
   Widget build(BuildContext context) {
     _currentKeymap = ref.watch(keymapProvider).value ?? defaultKeymaps;
+
     final settingsAsync = ref.watch(settingsProvider);
     final connStatus = ref
         .watch(connectorStatusProvider(widget.plugin.hostSpec))
@@ -267,6 +274,7 @@ class _TerminalTabViewState extends ConsumerState<TerminalTabView> {
               children: [
                 TerminalView(
                   widget.plugin.terminal,
+                  focusNode: _terminalFocus,
                   textStyle: style,
                   controller: widget.plugin.terminalController,
                   scrollController: _scrollController,

@@ -68,10 +68,10 @@ class _HomeState extends ConsumerState<Home> {
 
   void _initTabs() {
     final root = Tabs();
+    ref.read(tabsProvider.notifier).setRoot(root);
     ref
         .read(tabsServiceProvider)
         .openTerminal(const LocalHostSpec(), tabs: root);
-    ref.read(tabsProvider.notifier).setRoot(root);
   }
 
   void _checkReleaseNotes() async {

@@ -12,6 +12,11 @@ class _TabsDocumentBridge extends ChangeNotifier {
 
   _TabsDocumentBridge() {
     document.addListener(_onChanged);
+    document.activeTab.addListener(_onActiveTabChanged);
+  }
+
+  void _onActiveTabChanged() {
+    notifyListeners();
   }
 
   void _onChanged() {
@@ -46,6 +51,7 @@ class _TabsDocumentBridge extends ChangeNotifier {
   @override
   void dispose() {
     document.removeListener(_onChanged);
+    document.activeTab.removeListener(_onActiveTabChanged);
     for (final g in _watchedGroups) {
       g.removeListener(_onChanged);
     }
