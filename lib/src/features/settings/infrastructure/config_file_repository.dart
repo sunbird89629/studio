@@ -8,6 +8,7 @@ import 'package:terminal_studio/src/shared/models/records/profile_record.dart';
 import 'package:terminal_studio/src/shared/models/records/settings_record.dart';
 import 'package:terminal_studio/src/shared/models/records/snippet_record.dart';
 import 'package:terminal_studio/src/shared/logging/app_logger.dart';
+import 'package:terminal_studio/src/shared/utils/platform_utils.dart';
 
 /// Service for reading/writing `~/.config/openterm/config.jsonc`.
 class ConfigFileService {
@@ -21,16 +22,8 @@ class ConfigFileService {
   bool _isSyncing = false;
 
   /// Config directory: `~/.config/openterm/` (cross-platform)
-  String get configDir {
-    if (Platform.isWindows) {
-      // Windows: C:\Users\用户名\.config\openterm\
-      final home = Platform.environment['USERPROFILE'] ?? '.';
-      return p.join(home, '.config', 'openterm');
-    }
-    // macOS/Linux: ~/.config/openterm/
-    final home = Platform.environment['HOME'] ?? '.';
-    return p.join(home, '.config', 'openterm');
-  }
+  // Config directory: ~/.config/openterm/ (cross-platform)
+  String get configDir => p.join(platformHomeDirectory() ?? '.', '.config', 'openterm');
 
   /// Config file: `~/.config/openterm/config.jsonc`
   String get configFilePath => p.join(configDir, 'config.jsonc');

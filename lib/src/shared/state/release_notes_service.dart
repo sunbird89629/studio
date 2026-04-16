@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path/path.dart' as p;
 import 'package:terminal_studio/src/shared/logging/app_logger.dart';
+import 'package:terminal_studio/src/shared/utils/platform_utils.dart';
 
 final releaseNotesServiceProvider = Provider<ReleaseNotesService>((ref) {
   return ReleaseNotesService();
@@ -16,14 +17,7 @@ class ReleaseNotesService {
 
   final _logger = AppLogger.forComponent('ReleaseNotesService');
 
-  String get _configDir {
-    if (Platform.isWindows) {
-      final home = Platform.environment['USERPROFILE'] ?? '.';
-      return p.join(home, '.config', 'openterm');
-    }
-    final home = Platform.environment['HOME'] ?? '.';
-    return p.join(home, '.config', 'openterm');
-  }
+  String get _configDir => p.join(platformHomeDirectory() ?? '.', '.config', 'openterm');
 
   String get _stateFilePath => p.join(_configDir, 'state.json');
 

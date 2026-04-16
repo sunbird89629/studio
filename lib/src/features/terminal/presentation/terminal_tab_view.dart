@@ -280,6 +280,7 @@ class _TerminalTabViewState extends ConsumerState<TerminalTabView> {
                   scrollController: _scrollController,
                   onTapUp: _handleTapUp,
                   onSecondaryTapDown: (_, __) => showMenu(),
+                  onPaste: widget.plugin.paste,
                   mouseCursor: _openModifierActive
                       ? SystemMouseCursors.click
                       : SystemMouseCursors.text,

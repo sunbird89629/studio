@@ -5,6 +5,9 @@ import 'dart:io' as io;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:path/path.dart' as p;
+import 'package:super_clipboard/super_clipboard.dart';
+import 'package:terminal_studio/src/shared/utils/platform_utils.dart';
 import 'package:terminal_studio/src/platform/hosts/host_connector.dart';
 import 'package:terminal_studio/src/platform/hosts/host.dart';
 import 'package:terminal_studio/src/shared/models/shell_command_event.dart';
@@ -67,6 +70,79 @@ class TerminalPlugin extends Plugin implements TerminalRuntimeAccess {
   @override
   List<String> get commandHistory => _inputTracker.commandHistory;
 
+  // ── Clipboard paste ───────────────────────────────────────────────────────
+
+  static const _imageFormats = [
+    (Formats.png, 'png'),
+    (Formats.jpeg, 'jpg'),
+    (Formats.tiff, 'tiff'),
+    (Formats.gif, 'gif'),
+    (Formats.bmp, 'bmp'),
+  ];
+
+  Future<void> paste() async {
+    final clipboard = SystemClipboard.instance;
+    if (clipboard == null) return;
+    try {
+      final reader = await clipboard.read();
+
+      for (final (format, ext) in _imageFormats) {
+        final bytes = await _readFileFormat(reader, format);
+        if (bytes != null && bytes.isNotEmpty) {
+          final path = await _saveImageBytes(bytes, ext);
+          if (path != null) {
+            terminal.paste(path);
+            return;
+          }
+        }
+      }
+
+      final text = await reader.readValue(Formats.plainText);
+      if (text != null) {
+        terminal.paste(text);
+      }
+    } catch (e) {
+      _logger.e('Failed to read clipboard', error: e);
+    }
+  }
+
+  Future<Uint8List?> _readFileFormat(
+      ClipboardReader reader, FileFormat format) {
+    final c = Completer<Uint8List?>();
+    final progress = reader.getFile(format, (file) async {
+      try {
+        c.complete(await file.readAll());
+      } catch (e) {
+        c.completeError(e);
+      }
+    }, onError: c.completeError);
+    if (progress == null) c.complete(null);
+    return c.future;
+  }
+
+  Future<String?> _saveImageBytes(Uint8List bytes, String ext) async {
+    try {
+      final home = platformHomeDirectory();
+      if (home == null) return null;
+
+      final dir = io.Directory(p.join(home, 'Pictures'));
+      await dir.create(recursive: true);
+
+      final now = DateTime.now();
+      String pad(int v) => v.toString().padLeft(2, '0');
+      final ts = '${now.year}${pad(now.month)}${pad(now.day)}'
+          '_${pad(now.hour)}${pad(now.minute)}${pad(now.second)}';
+      final file = io.File(p.join(dir.path, 'paste_$ts.$ext'));
+      await file.writeAsBytes(bytes);
+
+      _logger.i('Saved clipboard image: ${file.path}');
+      return file.path;
+    } catch (e) {
+      _logger.e('Failed to save clipboard image', error: e);
+      return null;
+    }
+  }
+
   // ── Asciinema recording ────────────────────────────────────────────────────
   io.IOSink? _castSink;
   DateTime? _recordingStart;
@@ -77,10 +153,11 @@ class TerminalPlugin extends Plugin implements TerminalRuntimeAccess {
 
   Future<String> startRecording() async {
     if (isRecording) return '';
+    final home = platformHomeDirectory() ?? '.';
     final dir = io.Directory(
       io.Platform.isWindows
-          ? '${io.Platform.environment['USERPROFILE']}\\Documents\\TerminalStudio'
-          : '${io.Platform.environment['HOME']}/Documents/TerminalStudio',
+          ? '$home\\Documents\\TerminalStudio'
+          : '$home/Documents/TerminalStudio',
     );
     if (!await dir.exists()) await dir.create(recursive: true);
 

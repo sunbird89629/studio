@@ -6,6 +6,7 @@ import 'package:path/path.dart' as p;
 import 'package:terminal_studio/src/shared/models/records/ssh_host_record.dart';
 import 'package:terminal_studio/src/shared/models/records/ssh_key_record.dart';
 import 'package:terminal_studio/src/shared/logging/app_logger.dart';
+import 'package:terminal_studio/src/shared/utils/platform_utils.dart';
 
 /// Service for persisting SSH hosts and keys to JSON files.
 ///
@@ -20,15 +21,8 @@ class SshStorageService {
   final String? _configDirOverride;
   final _logger = AppLogger.forComponent('SshStorageService');
 
-  String get configDir {
-    if (_configDirOverride != null) return _configDirOverride!;
-    if (Platform.isWindows) {
-      final home = Platform.environment['USERPROFILE'] ?? '.';
-      return p.join(home, '.config', 'openterm');
-    }
-    final home = Platform.environment['HOME'] ?? '.';
-    return p.join(home, '.config', 'openterm');
-  }
+  String get configDir =>
+      _configDirOverride ?? p.join(platformHomeDirectory() ?? '.', '.config', 'openterm');
 
   String get _hostsFilePath => p.join(configDir, 'hosts.json');
   String get _keysFilePath => p.join(configDir, 'keys.json');
