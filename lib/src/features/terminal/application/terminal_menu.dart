@@ -1,12 +1,18 @@
+import 'dart:async';
+import 'dart:io' as io;
+
 import 'package:context_menus/context_menus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:terminal_studio/src/shared/state/broadcast_service.dart';
-import 'package:terminal_studio/src/features/tabs/application/tabs_service.dart';
+import 'package:path/path.dart' as p;
+import 'package:super_clipboard/super_clipboard.dart';
 import 'package:terminal_studio/src/features/file_manager/application/file_manager_plugin.dart';
+import 'package:terminal_studio/src/features/tabs/application/tabs_service.dart';
 import 'package:terminal_studio/src/features/tabs/application/starter_plugin.dart';
 import 'package:terminal_studio/src/features/terminal/application/terminal_plugin.dart';
+import 'package:terminal_studio/src/shared/logging/app_logger.dart';
+import 'package:terminal_studio/src/shared/state/broadcast_service.dart';
 import 'package:xterm/xterm.dart';
 
 class TerminalContextMenu extends ConsumerStatefulWidget {
@@ -29,6 +35,8 @@ class TerminalContextMenu extends ConsumerStatefulWidget {
 
 class TerminalContextMenuState extends ConsumerState<TerminalContextMenu>
     with ContextMenuStateMixin {
+  final _logger = AppLogger.forComponent('TerminalContextMenu');
+
   TerminalPlugin get plugin => widget.plugin;
 
   Terminal get terminal => plugin.terminal;
@@ -180,20 +188,85 @@ class TerminalContextMenuState extends ConsumerState<TerminalContextMenu>
     await Clipboard.setData(ClipboardData(text: text));
   }
 
+  static const _imageFormats = [
+    (Formats.png, 'png'),
+    (Formats.jpeg, 'jpg'),
+    (Formats.tiff, 'tiff'),
+    (Formats.gif, 'gif'),
+    (Formats.bmp, 'bmp'),
+  ];
+
   Future<void> _handlePaste() async {
+    final clipboard = SystemClipboard.instance;
+    if (clipboard != null) {
+      try {
+        final reader = await clipboard.read();
+
+        for (final (format, ext) in _imageFormats) {
+          if (!reader.canProvide(format)) continue;
+          final bytes = await _readFileFormat(reader, format);
+          if (bytes != null && bytes.isNotEmpty) {
+            final path = await _saveImageBytes(bytes, ext);
+            if (path != null) {
+              terminal.paste(path);
+              return;
+            }
+          }
+        }
+
+        final text = await reader.readValue(Formats.plainText);
+        if (text != null) {
+          terminal.paste(text);
+          return;
+        }
+      } catch (e) {
+        _logger.e('Failed to read clipboard', error: e);
+      }
+    }
+
     final data = await Clipboard.getData(Clipboard.kTextPlain);
-
-    if (data == null) {
-      return;
+    final text = data?.text;
+    if (text != null) {
+      terminal.paste(text);
     }
+  }
 
-    final text = data.text;
+  Future<Uint8List?> _readFileFormat(ClipboardReader reader, FileFormat format) {
+    final c = Completer<Uint8List?>();
+    final progress = reader.getFile(format, (file) async {
+      try {
+        c.complete(await file.readAll());
+      } catch (e) {
+        c.completeError(e);
+      }
+    }, onError: c.completeError);
+    if (progress == null) c.complete(null);
+    return c.future;
+  }
 
-    if (text == null) {
-      return;
+  Future<String?> _saveImageBytes(Uint8List bytes, String ext) async {
+    try {
+      final home = io.Platform.isWindows
+          ? io.Platform.environment['USERPROFILE']
+          : io.Platform.environment['HOME'];
+      if (home == null) return null;
+
+      final dir = io.Directory(p.join(home, 'Pictures'));
+      await dir.create(recursive: true);
+
+      final now = DateTime.now();
+      String pad(int v) => v.toString().padLeft(2, '0');
+      final ts = '${now.year}${pad(now.month)}${pad(now.day)}'
+          '_${pad(now.hour)}${pad(now.minute)}${pad(now.second)}';
+      final file = io.File(p.join(dir.path, 'paste_$ts.$ext'));
+      await file.writeAsBytes(bytes);
+
+      _logger.i('Saved clipboard image: ${file.path}');
+      return file.path;
+    } catch (e) {
+      _logger.e('Failed to save clipboard image', error: e);
+      return null;
     }
-
-    terminal.paste(text);
   }
 
   Future<void> _handleSelectAll() async {
