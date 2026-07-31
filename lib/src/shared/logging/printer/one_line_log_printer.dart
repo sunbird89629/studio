@@ -112,8 +112,8 @@ class OneLineLogPrinter extends LogPrinter {
   }
 
   String _toClickablePath(String sourceUri) {
-    if (sourceUri.startsWith('package:terminal_studio/')) {
-      final rel = sourceUri.substring('package:terminal_studio/'.length);
+    if (sourceUri.startsWith('package:open_term/')) {
+      final rel = sourceUri.substring('package:open_term/'.length);
       return 'lib/$rel';
     }
     if (sourceUri.startsWith('file://')) {

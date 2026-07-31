@@ -1,8 +1,8 @@
 import 'package:flex_tabs/flex_tabs.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:terminal_studio/src/features/tabs/application/tabs_provider.dart';
-import 'package:terminal_studio/src/features/terminal/runtime/terminal_runtime.dart';
-import 'package:terminal_studio/src/features/tabs/application/plugin_tab.dart';
+import 'package:open_term/src/features/tabs/application/tabs_provider.dart';
+import 'package:open_term/src/features/terminal/runtime/terminal_runtime.dart';
+import 'package:open_term/src/features/tabs/application/plugin_tab.dart';
 
 ProviderContainer? _container;
 

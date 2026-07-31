@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:terminal_studio/src/shared/state/terminal_output_event.dart';
+import 'package:open_term/src/shared/state/terminal_output_event.dart';
 
 /// Broadcast stream of terminal output events, decoupling [TerminalPlugin]
 /// from consumers such as [RemoteControlService].

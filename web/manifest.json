@@ -1,6 +1,6 @@
 {
-    "name": "studio",
-    "short_name": "studio",
+    "name": "OpenTerm",
+    "short_name": "OpenTerm",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

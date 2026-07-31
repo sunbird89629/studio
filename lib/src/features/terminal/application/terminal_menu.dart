@@ -2,11 +2,11 @@ import 'package:context_menus/context_menus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:terminal_studio/src/features/file_manager/application/file_manager_plugin.dart';
-import 'package:terminal_studio/src/features/tabs/application/tabs_service.dart';
-import 'package:terminal_studio/src/features/tabs/application/starter_plugin.dart';
-import 'package:terminal_studio/src/features/terminal/application/terminal_plugin.dart';
-import 'package:terminal_studio/src/shared/state/broadcast_service.dart';
+import 'package:open_term/src/features/file_manager/application/file_manager_plugin.dart';
+import 'package:open_term/src/features/tabs/application/tabs_service.dart';
+import 'package:open_term/src/features/tabs/application/starter_plugin.dart';
+import 'package:open_term/src/features/terminal/application/terminal_plugin.dart';
+import 'package:open_term/src/shared/state/broadcast_service.dart';
 import 'package:xterm/xterm.dart';
 
 class TerminalContextMenu extends ConsumerStatefulWidget {

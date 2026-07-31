@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
-import 'package:terminal_studio/src/shared/utils/target_platform.dart';
+import 'package:open_term/src/shared/utils/target_platform.dart';
 
 extension SingleActivatorExtension on SingleActivator {
   String get platformLabel {

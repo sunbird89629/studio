@@ -1,4 +1,4 @@
-import 'package:terminal_studio/src/shared/utils/internet_address.dart';
+import 'package:open_term/src/shared/utils/internet_address.dart';
 
 bool isIPv4(String address) {
   try {

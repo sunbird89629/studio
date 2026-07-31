@@ -2,9 +2,9 @@ import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
-import 'package:terminal_studio/src/features/remote_control/application/remote_control_notifier.dart';
-import 'package:terminal_studio/src/features/tunnel/application/tunnel_notifier.dart';
-import 'package:terminal_studio/src/shared/logging/app_logger.dart';
+import 'package:open_term/src/features/remote_control/application/remote_control_notifier.dart';
+import 'package:open_term/src/features/tunnel/application/tunnel_notifier.dart';
+import 'package:open_term/src/shared/logging/app_logger.dart';
 
 class NotificationService {
   final _logger = AppLogger.forComponent('NotificationService');

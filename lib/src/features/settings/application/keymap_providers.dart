@@ -1,9 +1,9 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:terminal_studio/src/features/settings/infrastructure/config_file_repository.dart';
-import 'package:terminal_studio/src/features/settings/application/database_providers.dart';
-import 'package:terminal_studio/src/features/settings/application/settings_providers.dart';
-import 'package:terminal_studio/src/features/command_palette/application/shortcuts.dart';
+import 'package:open_term/src/features/settings/infrastructure/config_file_repository.dart';
+import 'package:open_term/src/features/settings/application/database_providers.dart';
+import 'package:open_term/src/features/settings/application/settings_providers.dart';
+import 'package:open_term/src/features/command_palette/application/shortcuts.dart';
 
 /// Merged keymaps: platform defaults + user overrides from `config.jsonc`.
 final keymapProvider =

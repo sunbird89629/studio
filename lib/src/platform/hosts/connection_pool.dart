@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:terminal_studio/src/shared/logging/app_logger.dart';
+import 'package:open_term/src/shared/logging/app_logger.dart';
 
 class _PoolEntry<T> {
   final T client;

@@ -3,11 +3,11 @@ import 'dart:io' as io;
 import 'dart:typed_data';
 
 import 'package:flutter_pty/flutter_pty.dart';
-import 'package:terminal_studio/src/platform/hosts/fs.dart'
+import 'package:open_term/src/platform/hosts/fs.dart'
     hide File, Directory, Link;
-import 'package:terminal_studio/src/platform/hosts/host.dart';
-import 'package:terminal_studio/src/platform/hosts/local_fs.dart';
-import 'package:terminal_studio/src/shared/logging/app_logger.dart';
+import 'package:open_term/src/platform/hosts/host.dart';
+import 'package:open_term/src/platform/hosts/local_fs.dart';
+import 'package:open_term/src/shared/logging/app_logger.dart';
 
 class LocalHost implements Host {
   final _logger = AppLogger.forComponent('LocalHost');

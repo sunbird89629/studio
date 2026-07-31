@@ -1,10 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:terminal_studio/src/features/settings/infrastructure/config_file_repository.dart';
-import 'package:terminal_studio/src/features/settings/application/database_providers.dart';
-import 'package:terminal_studio/src/features/settings/application/settings_providers.dart';
-import 'package:terminal_studio/src/shared/theme/theme_plugin.dart';
-import 'package:terminal_studio/src/shared/theme/theme_registry.dart';
-import 'package:terminal_studio/src/shared/theme/themes.dart';
+import 'package:open_term/src/features/settings/infrastructure/config_file_repository.dart';
+import 'package:open_term/src/features/settings/application/database_providers.dart';
+import 'package:open_term/src/features/settings/application/settings_providers.dart';
+import 'package:open_term/src/shared/theme/theme_plugin.dart';
+import 'package:open_term/src/shared/theme/theme_registry.dart';
+import 'package:open_term/src/shared/theme/themes.dart';
 
 /// Global theme registry containing all registered themes.
 final themeRegistryProvider = Provider<ThemeRegistry>((ref) {

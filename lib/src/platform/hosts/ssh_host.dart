@@ -1,9 +1,9 @@
 import 'dart:typed_data';
 
 import 'package:dartssh2/dartssh2.dart';
-import 'package:terminal_studio/src/platform/hosts/fs.dart';
-import 'package:terminal_studio/src/platform/hosts/host.dart';
-import 'package:terminal_studio/src/platform/hosts/ssh_fs.dart';
+import 'package:open_term/src/platform/hosts/fs.dart';
+import 'package:open_term/src/platform/hosts/host.dart';
+import 'package:open_term/src/platform/hosts/ssh_fs.dart';
 
 class SSHHost implements Host {
   /// [onDispose] is called by [disconnect] instead of directly closing the

@@ -3,10 +3,10 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
-import 'package:terminal_studio/src/shared/logging/log_buffer.dart';
-import 'package:terminal_studio/src/shared/logging/log_cleaner.dart';
-import 'package:terminal_studio/src/shared/logging/log_entry.dart';
-import 'package:terminal_studio/src/shared/logging/log_file_output.dart';
+import 'package:open_term/src/shared/logging/log_buffer.dart';
+import 'package:open_term/src/shared/logging/log_cleaner.dart';
+import 'package:open_term/src/shared/logging/log_entry.dart';
+import 'package:open_term/src/shared/logging/log_file_output.dart';
 
 /// 全局日志服务
 class LogService {

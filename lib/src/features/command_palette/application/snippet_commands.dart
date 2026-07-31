@@ -1,9 +1,9 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:terminal_studio/src/features/command_palette/application/command.dart';
-import 'package:terminal_studio/src/platform/plugins/open_term.dart';
-import 'package:terminal_studio/src/shared/models/records/snippet_record.dart';
-import 'package:terminal_studio/src/features/settings/application/settings_providers.dart';
+import 'package:open_term/src/features/command_palette/application/command.dart';
+import 'package:open_term/src/platform/plugins/open_term.dart';
+import 'package:open_term/src/shared/models/records/snippet_record.dart';
+import 'package:open_term/src/features/settings/application/settings_providers.dart';
 
 /// Sends [snippet.command] to the active terminal as user input.
 class SnippetCommand extends Command {

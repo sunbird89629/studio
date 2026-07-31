@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:terminal_studio/src/features/command_palette/application/command.dart';
-import 'package:terminal_studio/src/shared/theme/theme_providers.dart';
+import 'package:open_term/src/features/command_palette/application/command.dart';
+import 'package:open_term/src/shared/theme/theme_providers.dart';
 
 /// Command to select a specific theme.
 class SelectThemeCommand extends Command {

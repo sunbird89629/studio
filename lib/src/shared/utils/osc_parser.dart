@@ -1,4 +1,4 @@
-import 'package:terminal_studio/src/shared/models/shell_command_event.dart';
+import 'package:open_term/src/shared/models/shell_command_event.dart';
 
 /// Result of parsing a raw terminal output chunk through [OscParser].
 class OscParseResult {

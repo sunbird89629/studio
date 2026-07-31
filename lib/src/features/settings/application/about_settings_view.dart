@@ -3,9 +3,9 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:terminal_studio/src/features/settings/application/config_export_usecase.dart';
-import 'package:terminal_studio/src/shared/state/release_notes_service.dart';
-import 'package:terminal_studio/src/shared/widgets/release_notes_dialog.dart';
+import 'package:open_term/src/features/settings/application/config_export_usecase.dart';
+import 'package:open_term/src/shared/state/release_notes_service.dart';
+import 'package:open_term/src/shared/widgets/release_notes_dialog.dart';
 
 class AboutSettingsView extends ConsumerWidget {
   const AboutSettingsView({super.key});
@@ -20,7 +20,7 @@ class AboutSettingsView extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'TerminalStudio',
+              'OpenTerm',
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
             ),
             const SizedBox(height: 8),
@@ -35,7 +35,7 @@ class AboutSettingsView extends ConsumerWidget {
             ),
             const SizedBox(height: 24),
             const Text(
-              'Copyright © 2024 TerminalStudio Contributors',
+              'Copyright © 2024 OpenTerm Contributors',
             ),
             const SizedBox(height: 24),
             OutlinedButton(
@@ -86,7 +86,7 @@ class AboutSettingsView extends ConsumerWidget {
 
       // Write to a temp file and show success
       final home = Platform.environment['HOME'] ?? '/tmp';
-      final exportPath = '$home/terminal_studio_config.json';
+      final exportPath = '$home/open_term_config.json';
       await File(exportPath).writeAsString(json);
 
       if (context.mounted) {
@@ -113,7 +113,7 @@ class AboutSettingsView extends ConsumerWidget {
     // Show a dialog asking to select the file path
     final controller = TextEditingController();
     final home = Platform.environment['HOME'] ?? '/tmp';
-    controller.text = '$home/terminal_studio_config.json';
+    controller.text = '$home/open_term_config.json';
 
     final confirmed = await showDialog<bool>(
       context: context,

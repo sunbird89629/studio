@@ -1,4 +1,4 @@
-import 'package:terminal_studio/src/shared/utils/uuid.dart';
+import 'package:open_term/src/shared/utils/uuid.dart';
 
 class SSHKeyRecord {
   String uuid;

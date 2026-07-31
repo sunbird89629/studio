@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:terminal_studio/src/features/terminal/runtime/terminal_runtime.dart';
+import 'package:open_term/src/features/terminal/runtime/terminal_runtime.dart';
 
 /// Manages a shared broadcast group: when a terminal plugin is a participant,
 /// any user input is mirrored to every other terminal in the group.

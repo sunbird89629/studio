@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:terminal_studio/src/features/copilot/infrastructure/ai_copilot_service.dart';
-import 'package:terminal_studio/src/features/settings/application/settings_providers.dart';
+import 'package:open_term/src/features/copilot/infrastructure/ai_copilot_service.dart';
+import 'package:open_term/src/features/settings/application/settings_providers.dart';
 
 // ── Models ────────────────────────────────────────────────────────────────────
 

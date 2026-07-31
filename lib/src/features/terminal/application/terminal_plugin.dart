@@ -7,24 +7,24 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:path/path.dart' as p;
 import 'package:super_clipboard/super_clipboard.dart';
-import 'package:terminal_studio/src/shared/utils/platform_utils.dart';
-import 'package:terminal_studio/src/platform/hosts/host_connector.dart';
-import 'package:terminal_studio/src/platform/hosts/host.dart';
-import 'package:terminal_studio/src/shared/models/shell_command_event.dart';
-import 'package:terminal_studio/src/shared/models/terminal_session.dart';
-import 'package:terminal_studio/src/platform/plugins/plugin_runtime.dart';
-import 'package:terminal_studio/src/features/terminal/presentation/terminal_tab_view.dart';
-import 'package:terminal_studio/src/features/terminal/runtime/terminal_runtime.dart';
-import 'package:terminal_studio/src/shared/state/broadcast_service.dart';
-import 'package:terminal_studio/src/shared/state/terminal_event_bus.dart';
-import 'package:terminal_studio/src/features/settings/application/settings_providers.dart';
-import 'package:terminal_studio/src/shared/state/terminal_activity_provider.dart';
-import 'package:terminal_studio/src/shared/utils/osc_parser.dart';
-import 'package:terminal_studio/src/features/terminal/application/inline_image.dart';
-import 'package:terminal_studio/src/features/terminal/application/terminal_input_tracker.dart';
-import 'package:terminal_studio/src/features/terminal/application/xterm_fixes.dart';
-import 'package:terminal_studio/src/shared/logging/app_logger.dart';
-import 'package:terminal_studio/src/shared/utils/uuid.dart';
+import 'package:open_term/src/shared/utils/platform_utils.dart';
+import 'package:open_term/src/platform/hosts/host_connector.dart';
+import 'package:open_term/src/platform/hosts/host.dart';
+import 'package:open_term/src/shared/models/shell_command_event.dart';
+import 'package:open_term/src/shared/models/terminal_session.dart';
+import 'package:open_term/src/platform/plugins/plugin_runtime.dart';
+import 'package:open_term/src/features/terminal/presentation/terminal_tab_view.dart';
+import 'package:open_term/src/features/terminal/runtime/terminal_runtime.dart';
+import 'package:open_term/src/shared/state/broadcast_service.dart';
+import 'package:open_term/src/shared/state/terminal_event_bus.dart';
+import 'package:open_term/src/features/settings/application/settings_providers.dart';
+import 'package:open_term/src/shared/state/terminal_activity_provider.dart';
+import 'package:open_term/src/shared/utils/osc_parser.dart';
+import 'package:open_term/src/features/terminal/application/inline_image.dart';
+import 'package:open_term/src/features/terminal/application/terminal_input_tracker.dart';
+import 'package:open_term/src/features/terminal/application/xterm_fixes.dart';
+import 'package:open_term/src/shared/logging/app_logger.dart';
+import 'package:open_term/src/shared/utils/uuid.dart';
 import 'package:xterm/xterm.dart';
 
 class TerminalPlugin extends Plugin implements TerminalRuntimeAccess {
@@ -156,8 +156,8 @@ class TerminalPlugin extends Plugin implements TerminalRuntimeAccess {
     final home = platformHomeDirectory() ?? '.';
     final dir = io.Directory(
       io.Platform.isWindows
-          ? '$home\\Documents\\TerminalStudio'
-          : '$home/Documents/TerminalStudio',
+          ? '$home\\Documents\\OpenTerm'
+          : '$home/Documents/OpenTerm',
     );
     if (!await dir.exists()) await dir.create(recursive: true);
 

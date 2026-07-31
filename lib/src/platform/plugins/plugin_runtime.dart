@@ -1,9 +1,9 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:terminal_studio/src/platform/hosts/host_connector.dart';
-import 'package:terminal_studio/src/platform/plugins/exceptions.dart';
-import 'package:terminal_studio/src/platform/hosts/host.dart';
-import 'package:terminal_studio/src/shared/logging/app_logger.dart';
+import 'package:open_term/src/platform/hosts/host_connector.dart';
+import 'package:open_term/src/platform/plugins/exceptions.dart';
+import 'package:open_term/src/platform/hosts/host.dart';
+import 'package:open_term/src/shared/logging/app_logger.dart';
 
 abstract class Plugin {
   PluginManager? _manager;

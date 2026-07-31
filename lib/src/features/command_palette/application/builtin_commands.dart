@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:terminal_studio/src/features/command_palette/application/command.dart';
-import 'package:terminal_studio/src/features/tabs/application/active_tab_service.dart';
-import 'package:terminal_studio/src/features/tabs/application/tabs_service.dart';
-import 'package:terminal_studio/src/features/tabs/application/window_service.dart';
-import 'package:terminal_studio/src/shared/state/log_visible_provider.dart';
-import 'package:terminal_studio/src/platform/hosts/local_spec.dart';
-import 'package:terminal_studio/src/features/command_palette/application/shortcuts.dart';
-import 'package:terminal_studio/src/features/tabs/application/devtools_tab.dart';
-import 'package:terminal_studio/src/features/settings/application/settings_tab.dart';
-import 'package:terminal_studio/src/shared/utils/tabs_extension.dart';
-import 'package:terminal_studio/src/features/command_palette/application/vim_edit_notifier.dart';
+import 'package:open_term/src/features/command_palette/application/command.dart';
+import 'package:open_term/src/features/tabs/application/active_tab_service.dart';
+import 'package:open_term/src/features/tabs/application/tabs_service.dart';
+import 'package:open_term/src/features/tabs/application/window_service.dart';
+import 'package:open_term/src/shared/state/log_visible_provider.dart';
+import 'package:open_term/src/platform/hosts/local_spec.dart';
+import 'package:open_term/src/features/command_palette/application/shortcuts.dart';
+import 'package:open_term/src/features/tabs/application/devtools_tab.dart';
+import 'package:open_term/src/features/settings/application/settings_tab.dart';
+import 'package:open_term/src/shared/utils/tabs_extension.dart';
+import 'package:open_term/src/features/command_palette/application/vim_edit_notifier.dart';
 
 /// 内置命令列表
 final builtinCommands = <Command>[

@@ -1,5 +1,5 @@
-import 'package:terminal_studio/src/shared/models/records/profile_record.dart';
-import 'package:terminal_studio/src/shared/models/records/settings_record.dart';
+import 'package:open_term/src/shared/models/records/profile_record.dart';
+import 'package:open_term/src/shared/models/records/settings_record.dart';
 
 /// Resolved settings after merging Profile over Global.
 ///

@@ -4,10 +4,10 @@ import 'dart:io';
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:terminal_studio/src/shared/constants/log_channels.dart';
-import 'package:terminal_studio/src/shared/models/cloudflared_event.dart';
-import 'package:terminal_studio/src/shared/logging/log_service.dart';
-import 'package:terminal_studio/src/shared/utils/cloudflared_log_parser.dart';
+import 'package:open_term/src/shared/constants/log_channels.dart';
+import 'package:open_term/src/shared/models/cloudflared_event.dart';
+import 'package:open_term/src/shared/logging/log_service.dart';
+import 'package:open_term/src/shared/utils/cloudflared_log_parser.dart';
 
 part 'tunnel_notifier.freezed.dart';
 

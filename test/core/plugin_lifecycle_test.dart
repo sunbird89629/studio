@@ -3,13 +3,13 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:terminal_studio/src/features/command_palette/application/command.dart';
-import 'package:terminal_studio/src/features/command_palette/application/command_registry.dart';
-import 'package:terminal_studio/src/platform/hosts/host_connector.dart';
-import 'package:terminal_studio/src/platform/plugins/exceptions.dart';
-import 'package:terminal_studio/src/platform/hosts/fs.dart';
-import 'package:terminal_studio/src/platform/hosts/host.dart';
-import 'package:terminal_studio/src/platform/plugins/plugin_runtime.dart';
+import 'package:open_term/src/features/command_palette/application/command.dart';
+import 'package:open_term/src/features/command_palette/application/command_registry.dart';
+import 'package:open_term/src/platform/hosts/host_connector.dart';
+import 'package:open_term/src/platform/plugins/exceptions.dart';
+import 'package:open_term/src/platform/hosts/fs.dart';
+import 'package:open_term/src/platform/hosts/host.dart';
+import 'package:open_term/src/platform/plugins/plugin_runtime.dart';
 
 // ── Minimal fakes ─────────────────────────────────────────────────────────────
 

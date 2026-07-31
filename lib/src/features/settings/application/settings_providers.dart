@@ -1,10 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
-import 'package:terminal_studio/src/shared/models/records/profile_record.dart';
-import 'package:terminal_studio/src/shared/models/records/settings_record.dart';
-import 'package:terminal_studio/src/features/settings/infrastructure/config_file_repository.dart';
-import 'package:terminal_studio/src/features/settings/application/database_providers.dart';
-import 'package:terminal_studio/src/features/settings/domain/effective_settings.dart';
+import 'package:open_term/src/shared/models/records/profile_record.dart';
+import 'package:open_term/src/shared/models/records/settings_record.dart';
+import 'package:open_term/src/features/settings/infrastructure/config_file_repository.dart';
+import 'package:open_term/src/features/settings/application/database_providers.dart';
+import 'package:open_term/src/features/settings/domain/effective_settings.dart';
 
 final settingsProvider = FutureProvider<SettingsRecord>((ref) async {
   final config = ref.read(configFileServiceProvider);

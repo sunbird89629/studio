@@ -1,7 +1,7 @@
-# TerminalStudio Project Context
+# OpenTerm Project Context
 
 ## Overview
-TerminalStudio is a cross-platform terminal emulator built with **Flutter**. It is designed to be extensible and feature-rich, supporting local and SSH connections. The application uses a plugin-based architecture to manage different functionalities and host interactions.
+OpenTerm is a cross-platform terminal emulator built with **Flutter**. It is designed to be extensible and feature-rich, supporting local and SSH connections. The application uses a plugin-based architecture to manage different functionalities and host interactions.
 
 ### Architecture
 *   **Framework:** Flutter (Mobile, Desktop, Web - though primarily targeted at Desktop).

@@ -1,5 +1,5 @@
 import 'package:dartssh2/dartssh2.dart';
-import 'package:terminal_studio/src/platform/hosts/connection_pool.dart';
+import 'package:open_term/src/platform/hosts/connection_pool.dart';
 
 /// Singleton SSH connection pool.
 ///

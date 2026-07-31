@@ -2,9 +2,9 @@ import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:terminal_studio/src/shared/models/records/ssh_host_record.dart';
-import 'package:terminal_studio/src/features/ssh/infrastructure/ssh_storage_repository.dart';
-import 'package:terminal_studio/src/features/settings/application/database_providers.dart';
+import 'package:open_term/src/shared/models/records/ssh_host_record.dart';
+import 'package:open_term/src/features/ssh/infrastructure/ssh_storage_repository.dart';
+import 'package:open_term/src/features/settings/application/database_providers.dart';
 
 void main() {
   test('SshStorageService persists and loads SSH hosts', () async {

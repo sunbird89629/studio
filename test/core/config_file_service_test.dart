@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:terminal_studio/src/shared/models/records/settings_record.dart';
-import 'package:terminal_studio/src/features/settings/infrastructure/config_file_repository.dart';
+import 'package:open_term/src/shared/models/records/settings_record.dart';
+import 'package:open_term/src/features/settings/infrastructure/config_file_repository.dart';
 
 void main() {
   group('stripJsoncComments', () {

@@ -1,4 +1,4 @@
-# Terminal Studio
+# OpenTerm
 
 Flutter 跨平台桌面终端模拟器（macOS/Windows/Linux）。
 

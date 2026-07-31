@@ -4,12 +4,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
-import 'package:terminal_studio/app.dart';
-import 'package:terminal_studio/src/features/command_palette/application/intents.dart';
-import 'package:terminal_studio/src/features/tabs/application/tabs_provider.dart';
-import 'package:terminal_studio/src/features/tabs/application/tabs_service.dart';
-import 'package:terminal_studio/src/features/tabs/presentation/home.dart';
-import 'package:terminal_studio/src/platform/hosts/local_spec.dart';
+import 'package:open_term/app.dart';
+import 'package:open_term/src/features/command_palette/application/intents.dart';
+import 'package:open_term/src/features/tabs/application/tabs_provider.dart';
+import 'package:open_term/src/features/tabs/application/tabs_service.dart';
+import 'package:open_term/src/features/tabs/presentation/home.dart';
+import 'package:open_term/src/platform/hosts/local_spec.dart';
 
 Future<void> _waitUntil(
   WidgetTester tester,

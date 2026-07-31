@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:terminal_studio/src/features/tabs/application/tabs_service.dart';
-import 'package:terminal_studio/src/platform/hosts/local_spec.dart';
-import 'package:terminal_studio/src/features/copilot/presentation/ai_plugin.dart';
+import 'package:open_term/src/features/tabs/application/tabs_service.dart';
+import 'package:open_term/src/platform/hosts/local_spec.dart';
+import 'package:open_term/src/features/copilot/presentation/ai_plugin.dart';
 
 class AddTabButton extends ConsumerWidget {
   const AddTabButton({super.key});

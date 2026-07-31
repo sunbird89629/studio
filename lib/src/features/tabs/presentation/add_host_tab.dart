@@ -1,7 +1,7 @@
 import 'package:flex_tabs/flex_tabs.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:terminal_studio/src/features/ssh/application/host_edit_page.dart';
+import 'package:open_term/src/features/ssh/application/host_edit_page.dart';
 
 class AddHostTab extends TabItem {
   AddHostTab() {

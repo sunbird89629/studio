@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:terminal_studio/src/platform/hosts/fs.dart';
-import 'package:terminal_studio/src/platform/plugins/plugin_runtime.dart';
-import 'package:terminal_studio/src/shared/state/launcher_service.dart';
-import 'package:terminal_studio/src/features/tabs/application/tabs_service.dart';
-import 'package:terminal_studio/src/features/file_manager/application/navigation_breadcrumbs.dart';
-import 'package:terminal_studio/src/features/file_manager/application/navigation_stack.dart';
+import 'package:open_term/src/platform/hosts/fs.dart';
+import 'package:open_term/src/platform/plugins/plugin_runtime.dart';
+import 'package:open_term/src/shared/state/launcher_service.dart';
+import 'package:open_term/src/features/tabs/application/tabs_service.dart';
+import 'package:open_term/src/features/file_manager/application/navigation_breadcrumbs.dart';
+import 'package:open_term/src/features/file_manager/application/navigation_stack.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
 class FileManagerPlugin extends Plugin {

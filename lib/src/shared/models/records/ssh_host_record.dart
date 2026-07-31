@@ -1,6 +1,6 @@
-import 'package:terminal_studio/src/platform/hosts/host_connector.dart';
-import 'package:terminal_studio/src/platform/hosts/ssh_conn.dart';
-import 'package:terminal_studio/src/shared/utils/uuid.dart';
+import 'package:open_term/src/platform/hosts/host_connector.dart';
+import 'package:open_term/src/platform/hosts/ssh_conn.dart';
+import 'package:open_term/src/shared/utils/uuid.dart';
 
 class SSHHostRecord implements HostSpec {
   String uuid;

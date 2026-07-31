@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:terminal_studio/src/features/command_palette/application/command.dart';
+import 'package:open_term/src/features/command_palette/application/command.dart';
 
 /// 将现有 Intent 包装为 Command 的适配器
 class IntentCommand extends Command {

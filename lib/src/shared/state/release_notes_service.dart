@@ -5,8 +5,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path/path.dart' as p;
-import 'package:terminal_studio/src/shared/logging/app_logger.dart';
-import 'package:terminal_studio/src/shared/utils/platform_utils.dart';
+import 'package:open_term/src/shared/logging/app_logger.dart';
+import 'package:open_term/src/shared/utils/platform_utils.dart';
 
 final releaseNotesServiceProvider = Provider<ReleaseNotesService>((ref) {
   return ReleaseNotesService();

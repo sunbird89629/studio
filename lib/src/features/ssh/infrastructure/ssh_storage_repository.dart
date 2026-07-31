@@ -3,10 +3,10 @@ import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
-import 'package:terminal_studio/src/shared/models/records/ssh_host_record.dart';
-import 'package:terminal_studio/src/shared/models/records/ssh_key_record.dart';
-import 'package:terminal_studio/src/shared/logging/app_logger.dart';
-import 'package:terminal_studio/src/shared/utils/platform_utils.dart';
+import 'package:open_term/src/shared/models/records/ssh_host_record.dart';
+import 'package:open_term/src/shared/models/records/ssh_key_record.dart';
+import 'package:open_term/src/shared/logging/app_logger.dart';
+import 'package:open_term/src/shared/utils/platform_utils.dart';
 
 /// Service for persisting SSH hosts and keys to JSON files.
 ///

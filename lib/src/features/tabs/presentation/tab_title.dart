@@ -3,12 +3,12 @@
 import 'package:flex_tabs/flex_tabs.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:terminal_studio/src/features/tabs/application/plugin_tab.dart';
-import 'package:terminal_studio/src/features/tabs/presentation/close_tab_button.dart';
-import 'package:terminal_studio/src/features/tabs/presentation/icons/ai_icons.dart';
-import 'package:terminal_studio/src/features/tabs/presentation/vertical/widgets/vertical_tab_content_widget.dart';
-import 'package:terminal_studio/src/features/terminal/application/terminal_plugin.dart';
-import 'package:terminal_studio/src/shared/state/terminal_activity_provider.dart';
+import 'package:open_term/src/features/tabs/application/plugin_tab.dart';
+import 'package:open_term/src/features/tabs/presentation/close_tab_button.dart';
+import 'package:open_term/src/features/tabs/presentation/icons/ai_icons.dart';
+import 'package:open_term/src/features/tabs/presentation/vertical/widgets/vertical_tab_content_widget.dart';
+import 'package:open_term/src/features/terminal/application/terminal_plugin.dart';
+import 'package:open_term/src/shared/state/terminal_activity_provider.dart';
 
 class TabTitle extends StatefulWidget {
   const TabTitle({

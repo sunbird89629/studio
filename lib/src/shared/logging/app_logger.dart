@@ -1,6 +1,6 @@
 import 'package:logger/logger.dart';
-import 'package:terminal_studio/src/shared/logging/log_service_output.dart';
-import 'package:terminal_studio/src/shared/logging/printer/one_line_log_printer.dart';
+import 'package:open_term/src/shared/logging/log_service_output.dart';
+import 'package:open_term/src/shared/logging/printer/one_line_log_printer.dart';
 
 /// Context associated with a log entry.
 class LogContext {

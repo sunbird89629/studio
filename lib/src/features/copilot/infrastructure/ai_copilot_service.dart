@@ -1,7 +1,7 @@
 import 'package:dart_openai/dart_openai.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:terminal_studio/src/features/settings/application/settings_providers.dart';
-import 'package:terminal_studio/src/shared/logging/app_logger.dart';
+import 'package:open_term/src/features/settings/application/settings_providers.dart';
+import 'package:open_term/src/shared/logging/app_logger.dart';
 
 final aiCopilotServiceProvider = Provider((ref) {
   final apiKey = ref.watch(settingsProvider).value?.aiApiKey;

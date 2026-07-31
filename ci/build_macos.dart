@@ -69,7 +69,7 @@ void main(List<String> args) async {
       exit(1);
     }
 
-    print('🎉 Successfully installed TerminalStudio.app to /Applications');
+    print('🎉 Successfully installed OpenTerm.app to /Applications');
   } catch (e, stack) {
     print('❌ Uncaught error: $e');
     print(stack);

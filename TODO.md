@@ -1,4 +1,4 @@
-你好！作为 TerminalStudio 项目的 Owner，很高兴看到你对项目的关注。基于当前的代码库状态（特别是我们拥有基础的插件架构但 UI 和功能尚处于早期阶段），为了让 TerminalStudio 在功能完善性、易用性和用户理解上更进一步，我给你以下三条最重要的建议：
+你好！作为 OpenTerm 项目的 Owner，很高兴看到你对项目的关注。基于当前的代码库状态（特别是我们拥有基础的插件架构但 UI 和功能尚处于早期阶段），为了让 OpenTerm 在功能完善性、易用性和用户理解上更进一步，我给你以下三条最重要的建议：
 
 ### 1. 增加可视化的全局设置页面 (Global Settings UI)
 **现状**: 目前在 `TerminalTabView` 中我们已经通过 `settingsProvider` 读取配置（如字体大小、Family），但 `lib/src/ui/pages` 下只有一个 `host_edit_page.dart`。这意味着用户无法直观地修改这些偏好。

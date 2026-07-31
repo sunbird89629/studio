@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:terminal_studio/src/shared/logging/log_entry.dart';
-import 'package:terminal_studio/src/shared/logging/log_service.dart';
+import 'package:open_term/src/shared/logging/log_entry.dart';
+import 'package:open_term/src/shared/logging/log_service.dart';
 
 // ── State ─────────────────────────────────────────────────────────────────────
 

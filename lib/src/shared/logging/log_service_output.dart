@@ -1,6 +1,6 @@
 import 'package:logger/logger.dart';
-import 'package:terminal_studio/src/shared/logging/log_entry.dart';
-import 'package:terminal_studio/src/shared/logging/log_service.dart';
+import 'package:open_term/src/shared/logging/log_entry.dart';
+import 'package:open_term/src/shared/logging/log_service.dart';
 
 /// LogOutput that bridges logger events into [LogService].
 class LogServiceOutput extends LogOutput {

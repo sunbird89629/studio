@@ -1,6 +1,6 @@
 import 'package:flex_tabs/flex_tabs.dart';
 import 'package:flutter/material.dart';
-import 'package:terminal_studio/src/shared/theme/theme_plugin.dart';
+import 'package:open_term/src/shared/theme/theme_plugin.dart';
 
 /// Solarized Dark theme - precision colors for machines and people.
 class SolarizedDarkTheme extends ThemePlugin {

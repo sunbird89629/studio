@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:terminal_studio/src/shared/models/cloudflared_event.dart';
+import 'package:open_term/src/shared/models/cloudflared_event.dart';
 
 class CloudflaredLogParser {
   static final _textLogRegex = RegExp(

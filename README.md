@@ -2,7 +2,7 @@
 
 An open-source, AI-powered, plugin-driven terminal emulator built with **Flutter**.
 
-<img width="700px" src="https://raw.githubusercontent.com/TerminalStudio/studio/master/media/demo.png">
+<img width="700px" src="https://raw.githubusercontent.com/sunbird89629/open_term/master/media/demo.png">
 
 ## Highlights
 

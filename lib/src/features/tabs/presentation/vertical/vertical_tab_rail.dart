@@ -5,10 +5,10 @@ import 'package:flutter/material.dart'
     show ReorderableDragStartListener, ReorderableListView;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:terminal_studio/src/features/tabs/application/tabs_provider.dart';
-import 'package:terminal_studio/src/features/tabs/presentation/tab_title.dart';
-import 'package:terminal_studio/src/features/tabs/presentation/vertical/widgets/add_tab_button.dart';
-import 'package:terminal_studio/src/shared/widgets/macos_titlebar.dart';
+import 'package:open_term/src/features/tabs/application/tabs_provider.dart';
+import 'package:open_term/src/features/tabs/presentation/tab_title.dart';
+import 'package:open_term/src/features/tabs/presentation/vertical/widgets/add_tab_button.dart';
+import 'package:open_term/src/shared/widgets/macos_titlebar.dart';
 import 'package:window_manager/window_manager.dart';
 
 /// A vertical left-side tab rail showing all open tabs as status-aware tiles.

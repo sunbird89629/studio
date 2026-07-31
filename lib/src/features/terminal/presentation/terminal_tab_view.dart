@@ -18,19 +18,19 @@ import 'package:flutter/material.dart'
         Theme;
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:terminal_studio/src/features/command_palette/application/intents.dart';
-import 'package:terminal_studio/src/features/command_palette/application/shortcuts.dart';
-import 'package:terminal_studio/src/features/settings/application/keymap_providers.dart';
-import 'package:terminal_studio/src/features/settings/application/settings_providers.dart';
-import 'package:terminal_studio/src/features/terminal/application/inline_image.dart';
-import 'package:terminal_studio/src/features/terminal/application/terminal_menu.dart';
-import 'package:terminal_studio/src/features/terminal/application/terminal_plugin.dart';
-import 'package:terminal_studio/src/platform/hosts/host_connector.dart';
-import 'package:terminal_studio/src/platform/hosts/host_providers.dart';
-import 'package:terminal_studio/src/shared/logging/app_logger.dart';
-import 'package:terminal_studio/src/shared/state/broadcast_service.dart';
-import 'package:terminal_studio/src/shared/state/launcher_service.dart';
-import 'package:terminal_studio/src/shared/utils/link_detector.dart';
+import 'package:open_term/src/features/command_palette/application/intents.dart';
+import 'package:open_term/src/features/command_palette/application/shortcuts.dart';
+import 'package:open_term/src/features/settings/application/keymap_providers.dart';
+import 'package:open_term/src/features/settings/application/settings_providers.dart';
+import 'package:open_term/src/features/terminal/application/inline_image.dart';
+import 'package:open_term/src/features/terminal/application/terminal_menu.dart';
+import 'package:open_term/src/features/terminal/application/terminal_plugin.dart';
+import 'package:open_term/src/platform/hosts/host_connector.dart';
+import 'package:open_term/src/platform/hosts/host_providers.dart';
+import 'package:open_term/src/shared/logging/app_logger.dart';
+import 'package:open_term/src/shared/state/broadcast_service.dart';
+import 'package:open_term/src/shared/state/launcher_service.dart';
+import 'package:open_term/src/shared/utils/link_detector.dart';
 import 'package:xterm/xterm.dart';
 
 class TerminalTabView extends ConsumerStatefulWidget {

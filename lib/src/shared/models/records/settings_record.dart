@@ -1,4 +1,4 @@
-import 'package:terminal_studio/src/shared/models/records/snippet_record.dart';
+import 'package:open_term/src/shared/models/records/snippet_record.dart';
 
 class SettingsRecord {
   double terminalFontSize;

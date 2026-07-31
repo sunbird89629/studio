@@ -1,9 +1,9 @@
 import 'package:flex_tabs/flex_tabs.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:terminal_studio/src/platform/plugins/plugin_manager_provider.dart';
-import 'package:terminal_studio/src/platform/plugins/plugin_runtime.dart';
-import 'package:terminal_studio/src/shared/logging/app_logger.dart';
+import 'package:open_term/src/platform/plugins/plugin_manager_provider.dart';
+import 'package:open_term/src/platform/plugins/plugin_runtime.dart';
+import 'package:open_term/src/shared/logging/app_logger.dart';
 
 class PluginTab extends TabItem {
   final Plugin plugin;

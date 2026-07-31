@@ -4,9 +4,9 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
-import 'package:terminal_studio/src/platform/hosts/host.dart';
-import 'package:terminal_studio/src/platform/hosts/local_host.dart';
-import 'package:terminal_studio/src/shared/logging/app_logger.dart';
+import 'package:open_term/src/platform/hosts/host.dart';
+import 'package:open_term/src/platform/hosts/local_host.dart';
+import 'package:open_term/src/shared/logging/app_logger.dart';
 import 'package:xterm/xterm.dart';
 
 class VimEditState {

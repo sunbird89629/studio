@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:terminal_studio/src/platform/plugins/plugin_runtime.dart';
+import 'package:open_term/src/platform/plugins/plugin_runtime.dart';
 
 class StarterPlugin extends Plugin {
   final _uptime = ValueNotifier<String?>(null);

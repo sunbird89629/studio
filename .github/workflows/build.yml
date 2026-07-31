@@ -28,7 +28,7 @@ jobs:
 
       # Build and package
       - name: Packaging .dmg .zip
-        run: flutter_distributor package --platform macos --targets dmg,zip --artifact-name "TerminalStudio-${{github.ref_name}}-macos.{{ext}}"
+        run: flutter_distributor package --platform macos --targets dmg,zip --artifact-name "OpenTerm-${{github.ref_name}}-macos.{{ext}}"
 
       # Publish
       - name: Publish to GitHub Release
@@ -54,7 +54,7 @@ jobs:
 
       # Build and package
       - name: Packaging .msix .zip
-        run: flutter_distributor package --platform windows --targets msix,zip --artifact-name "TerminalStudio-${{github.ref_name}}-windows.{{ext}}"
+        run: flutter_distributor package --platform windows --targets msix,zip --artifact-name "OpenTerm-${{github.ref_name}}-windows.{{ext}}"
 
       # Publish
       - name: Publish to GitHub Release
@@ -84,7 +84,7 @@ jobs:
 
       # Build and package
       - name: Packaging .deb .zip
-        run: flutter_distributor package --platform linux --targets deb,zip --artifact-name "TerminalStudio-${{github.ref_name}}-linux.{{ext}}"
+        run: flutter_distributor package --platform linux --targets deb,zip --artifact-name "OpenTerm-${{github.ref_name}}-linux.{{ext}}"
 
       # Publish
       - name: Publish to GitHub Release

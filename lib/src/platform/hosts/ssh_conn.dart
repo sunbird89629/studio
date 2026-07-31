@@ -1,10 +1,10 @@
 import 'package:dartssh2/dartssh2.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:terminal_studio/src/platform/hosts/host_connector.dart';
-import 'package:terminal_studio/src/platform/plugins/exceptions.dart';
-import 'package:terminal_studio/src/platform/hosts/ssh_connection_pool.dart';
-import 'package:terminal_studio/src/platform/hosts/ssh_host.dart';
-import 'package:terminal_studio/src/shared/models/records/ssh_host_record.dart';
+import 'package:open_term/src/platform/hosts/host_connector.dart';
+import 'package:open_term/src/platform/plugins/exceptions.dart';
+import 'package:open_term/src/platform/hosts/ssh_connection_pool.dart';
+import 'package:open_term/src/platform/hosts/ssh_host.dart';
+import 'package:open_term/src/shared/models/records/ssh_host_record.dart';
 
 class SSHConnector extends HostConnector<SSHHost> {
   final SSHHostRecord record;

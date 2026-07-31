@@ -1,10 +1,10 @@
 import 'package:command_palette/command_palette.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:terminal_studio/src/features/command_palette/application/command.dart';
-import 'package:terminal_studio/src/features/command_palette/application/command_palette_notifier.dart';
-import 'package:terminal_studio/src/features/command_palette/application/shortcuts.dart';
-import 'package:terminal_studio/src/features/settings/application/keymap_providers.dart';
+import 'package:open_term/src/features/command_palette/application/command.dart';
+import 'package:open_term/src/features/command_palette/application/command_palette_notifier.dart';
+import 'package:open_term/src/features/command_palette/application/shortcuts.dart';
+import 'package:open_term/src/features/settings/application/keymap_providers.dart';
 
 class CommandPaletteListener extends ConsumerWidget {
   const CommandPaletteListener({super.key, required this.child});

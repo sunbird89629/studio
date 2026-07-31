@@ -1,13 +1,13 @@
 import 'package:flex_tabs/flex_tabs.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:terminal_studio/src/platform/hosts/host_connector.dart';
-import 'package:terminal_studio/src/platform/hosts/fs.dart';
-import 'package:terminal_studio/src/platform/plugins/plugin_runtime.dart';
-import 'package:terminal_studio/src/features/tabs/application/active_tab_service.dart';
-import 'package:terminal_studio/src/platform/plugins/plugin_manager_provider.dart';
-import 'package:terminal_studio/src/features/terminal/application/terminal_plugin.dart';
-import 'package:terminal_studio/src/features/tabs/application/code_editor_tab.dart';
-import 'package:terminal_studio/src/features/tabs/application/plugin_tab.dart';
+import 'package:open_term/src/platform/hosts/host_connector.dart';
+import 'package:open_term/src/platform/hosts/fs.dart';
+import 'package:open_term/src/platform/plugins/plugin_runtime.dart';
+import 'package:open_term/src/features/tabs/application/active_tab_service.dart';
+import 'package:open_term/src/platform/plugins/plugin_manager_provider.dart';
+import 'package:open_term/src/features/terminal/application/terminal_plugin.dart';
+import 'package:open_term/src/features/tabs/application/code_editor_tab.dart';
+import 'package:open_term/src/features/tabs/application/plugin_tab.dart';
 
 class TabsService {
   final Ref ref;

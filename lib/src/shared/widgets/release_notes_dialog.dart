@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:terminal_studio/src/shared/state/release_notes_service.dart';
+import 'package:open_term/src/shared/state/release_notes_service.dart';
 
 class ReleaseNotesDialog extends ConsumerStatefulWidget {
   const ReleaseNotesDialog({super.key});

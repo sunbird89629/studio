@@ -1,12 +1,12 @@
 import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:terminal_studio/src/shared/models/records/profile_record.dart';
-import 'package:terminal_studio/src/shared/models/records/ssh_host_record.dart';
-import 'package:terminal_studio/src/features/settings/infrastructure/config_file_repository.dart';
-import 'package:terminal_studio/src/features/ssh/infrastructure/ssh_storage_repository.dart';
-import 'package:terminal_studio/src/features/settings/application/database_providers.dart';
-import 'package:terminal_studio/src/features/settings/application/settings_providers.dart';
+import 'package:open_term/src/shared/models/records/profile_record.dart';
+import 'package:open_term/src/shared/models/records/ssh_host_record.dart';
+import 'package:open_term/src/features/settings/infrastructure/config_file_repository.dart';
+import 'package:open_term/src/features/ssh/infrastructure/ssh_storage_repository.dart';
+import 'package:open_term/src/features/settings/application/database_providers.dart';
+import 'package:open_term/src/features/settings/application/settings_providers.dart';
 
 final configExportServiceProvider = Provider(ConfigExportService.new);
 

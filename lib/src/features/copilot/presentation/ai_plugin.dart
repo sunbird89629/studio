@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:terminal_studio/src/platform/plugins/plugin_runtime.dart';
-import 'package:terminal_studio/src/features/copilot/presentation/copilot_sidebar.dart';
+import 'package:open_term/src/platform/plugins/plugin_runtime.dart';
+import 'package:open_term/src/features/copilot/presentation/copilot_sidebar.dart';
 
 /// An AI plugin that provides an AI assistant interface within a tab.
 class AIPlugin extends Plugin {

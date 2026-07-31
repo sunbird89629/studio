@@ -1,5 +1,5 @@
-import 'package:terminal_studio/src/platform/hosts/host_connector.dart';
-import 'package:terminal_studio/src/platform/hosts/local_conn.dart';
+import 'package:open_term/src/platform/hosts/host_connector.dart';
+import 'package:open_term/src/platform/hosts/local_conn.dart';
 
 class LocalHostSpec implements HostSpec {
   const LocalHostSpec();

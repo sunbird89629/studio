@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:terminal_studio/src/features/remote_control/application/remote_control_notifier.dart';
-import 'package:terminal_studio/src/features/tunnel/application/tunnel_notifier.dart';
+import 'package:open_term/src/features/remote_control/application/remote_control_notifier.dart';
+import 'package:open_term/src/features/tunnel/application/tunnel_notifier.dart';
 
 class RemoteControlSettingsView extends ConsumerWidget {
   const RemoteControlSettingsView({super.key});

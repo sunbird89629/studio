@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:terminal_studio/src/shared/models/records/profile_record.dart';
-import 'package:terminal_studio/src/features/settings/infrastructure/config_file_repository.dart';
-import 'package:terminal_studio/src/features/settings/application/database_providers.dart';
-import 'package:terminal_studio/src/features/settings/application/settings_providers.dart';
+import 'package:open_term/src/shared/models/records/profile_record.dart';
+import 'package:open_term/src/features/settings/infrastructure/config_file_repository.dart';
+import 'package:open_term/src/features/settings/application/database_providers.dart';
+import 'package:open_term/src/features/settings/application/settings_providers.dart';
 
 /// Settings panel for managing profiles (create/edit/delete/duplicate).
 class ProfilesSettingsView extends ConsumerWidget {

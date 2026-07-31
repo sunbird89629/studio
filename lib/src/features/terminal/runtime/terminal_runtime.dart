@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
-import 'package:terminal_studio/src/platform/hosts/host.dart';
-import 'package:terminal_studio/src/shared/state/terminal_activity_provider.dart';
+import 'package:open_term/src/platform/hosts/host.dart';
+import 'package:open_term/src/shared/state/terminal_activity_provider.dart';
 
 /// Write-only capability used by non-terminal features (e.g. remote control).
 abstract class TerminalInputSink {

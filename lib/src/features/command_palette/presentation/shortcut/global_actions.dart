@@ -1,15 +1,15 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:command_palette/command_palette.dart';
-import 'package:terminal_studio/src/features/tabs/application/active_tab_service.dart';
-import 'package:terminal_studio/src/features/tabs/application/tabs_service.dart';
-import 'package:terminal_studio/src/features/command_palette/application/vim_edit_notifier.dart';
-import 'package:terminal_studio/src/features/tabs/application/window_service.dart';
-import 'package:terminal_studio/src/platform/hosts/local_spec.dart';
-import 'package:terminal_studio/src/features/command_palette/application/intents.dart';
-import 'package:terminal_studio/src/features/tabs/application/devtools_tab.dart';
-import 'package:terminal_studio/src/features/settings/application/settings_tab.dart';
-import 'package:terminal_studio/src/shared/utils/tabs_extension.dart';
+import 'package:open_term/src/features/tabs/application/active_tab_service.dart';
+import 'package:open_term/src/features/tabs/application/tabs_service.dart';
+import 'package:open_term/src/features/command_palette/application/vim_edit_notifier.dart';
+import 'package:open_term/src/features/tabs/application/window_service.dart';
+import 'package:open_term/src/platform/hosts/local_spec.dart';
+import 'package:open_term/src/features/command_palette/application/intents.dart';
+import 'package:open_term/src/features/tabs/application/devtools_tab.dart';
+import 'package:open_term/src/features/settings/application/settings_tab.dart';
+import 'package:open_term/src/shared/utils/tabs_extension.dart';
 
 class GlobalActions extends ConsumerWidget {
   const GlobalActions({super.key, required this.child});

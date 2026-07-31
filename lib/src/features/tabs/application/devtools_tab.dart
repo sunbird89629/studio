@@ -1,9 +1,9 @@
 import 'package:flex_tabs/flex_tabs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:terminal_studio/src/features/ssh/infrastructure/ssh_storage_repository.dart';
-import 'package:terminal_studio/src/features/settings/application/database_providers.dart';
-import 'package:terminal_studio/src/features/tabs/application/playground_tab.dart';
+import 'package:open_term/src/features/ssh/infrastructure/ssh_storage_repository.dart';
+import 'package:open_term/src/features/settings/application/database_providers.dart';
+import 'package:open_term/src/features/tabs/application/playground_tab.dart';
 import 'package:xterm/xterm.dart';
 
 class DevToolsTab extends TabItem {

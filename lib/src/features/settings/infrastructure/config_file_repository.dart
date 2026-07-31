@@ -4,11 +4,11 @@ import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
-import 'package:terminal_studio/src/shared/models/records/profile_record.dart';
-import 'package:terminal_studio/src/shared/models/records/settings_record.dart';
-import 'package:terminal_studio/src/shared/models/records/snippet_record.dart';
-import 'package:terminal_studio/src/shared/logging/app_logger.dart';
-import 'package:terminal_studio/src/shared/utils/platform_utils.dart';
+import 'package:open_term/src/shared/models/records/profile_record.dart';
+import 'package:open_term/src/shared/models/records/settings_record.dart';
+import 'package:open_term/src/shared/models/records/snippet_record.dart';
+import 'package:open_term/src/shared/logging/app_logger.dart';
+import 'package:open_term/src/shared/utils/platform_utils.dart';
 
 /// Service for reading/writing `~/.config/openterm/config.jsonc`.
 class ConfigFileService {
@@ -276,7 +276,7 @@ class ConfigFileService {
   }) {
     return '''
 {
-  // TerminalStudio Configuration
+  // OpenTerm Configuration
   // 修改后自动生效，无需重启
 
   "terminal": {

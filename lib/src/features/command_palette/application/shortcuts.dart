@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
-import 'package:terminal_studio/src/shared/utils/target_platform.dart';
+import 'package:open_term/src/shared/utils/target_platform.dart';
 
 // ── Action IDs ─────────────────────────────────────
 

@@ -1,4 +1,4 @@
-import 'package:terminal_studio/src/platform/hosts/host_connector.dart';
+import 'package:open_term/src/platform/hosts/host_connector.dart';
 
 enum SessionStatus { active, exited, disconnected }
 

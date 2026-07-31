@@ -2,11 +2,11 @@
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:terminal_studio/src/features/tabs/presentation/vertical/widgets/c_w_d_widget.dart';
-import 'package:terminal_studio/src/features/tabs/presentation/vertical/widgets/command_widget.dart';
-import 'package:terminal_studio/src/features/tabs/presentation/vertical/widgets/host_widget.dart';
-import 'package:terminal_studio/src/features/terminal/application/terminal_plugin.dart';
-import 'package:terminal_studio/src/shared/state/terminal_activity_provider.dart';
+import 'package:open_term/src/features/tabs/presentation/vertical/widgets/c_w_d_widget.dart';
+import 'package:open_term/src/features/tabs/presentation/vertical/widgets/command_widget.dart';
+import 'package:open_term/src/features/tabs/presentation/vertical/widgets/host_widget.dart';
+import 'package:open_term/src/features/terminal/application/terminal_plugin.dart';
+import 'package:open_term/src/shared/state/terminal_activity_provider.dart';
 
 class TerminalTileContent extends StatelessWidget {
   const TerminalTileContent({

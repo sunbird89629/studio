@@ -1,4 +1,4 @@
-import 'package:terminal_studio/src/features/command_palette/application/command.dart';
+import 'package:open_term/src/features/command_palette/application/command.dart';
 
 /// 命令注册表，管理所有可用命令
 class CommandRegistry {

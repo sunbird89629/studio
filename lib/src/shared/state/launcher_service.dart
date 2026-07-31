@@ -1,6 +1,6 @@
 import 'dart:io' as io;
 
-import 'package:terminal_studio/src/shared/logging/app_logger.dart';
+import 'package:open_term/src/shared/logging/app_logger.dart';
 
 /// Opens URLs and file paths with the system's default application.
 ///

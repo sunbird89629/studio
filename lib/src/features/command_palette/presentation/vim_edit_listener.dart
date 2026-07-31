@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:terminal_studio/src/features/command_palette/application/vim_edit_notifier.dart';
-import 'package:terminal_studio/src/features/settings/application/settings_providers.dart';
+import 'package:open_term/src/features/command_palette/application/vim_edit_notifier.dart';
+import 'package:open_term/src/features/settings/application/settings_providers.dart';
 import 'package:xterm/xterm.dart';
 
 class VimEditListener extends ConsumerWidget {

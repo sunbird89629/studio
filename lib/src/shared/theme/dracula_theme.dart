@@ -1,6 +1,6 @@
 import 'package:flex_tabs/flex_tabs.dart';
 import 'package:flutter/material.dart';
-import 'package:terminal_studio/src/shared/theme/theme_plugin.dart';
+import 'package:open_term/src/shared/theme/theme_plugin.dart';
 
 /// Dracula theme - popular dark theme with purple accent.
 class DraculaTheme extends ThemePlugin {

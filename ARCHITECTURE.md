@@ -1,8 +1,8 @@
-# Terminal Studio 架构文档
+# OpenTerm 架构文档
 
 ## 1. 概览
 
-Terminal Studio 当前采用 **Modular Monolith（模块化单体）** 架构，核心目录分为三层：
+OpenTerm 当前采用 **Modular Monolith（模块化单体）** 架构，核心目录分为三层：
 
 - `features/`：按业务能力拆分（设置、终端、标签、SSH、命令面板等）
 - `platform/`：底层运行时与平台抽象（Host、Plugin Runtime）

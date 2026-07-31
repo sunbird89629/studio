@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:terminal_studio/src/shared/theme/theme_plugin.dart';
+import 'package:open_term/src/shared/theme/theme_plugin.dart';
 
 /// Registry for managing theme plugins.
 ///
